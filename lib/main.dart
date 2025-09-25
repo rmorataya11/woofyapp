@@ -1,0 +1,110 @@
+import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'screens/auth/splash_screen.dart';
+import 'screens/auth/onboarding_screen.dart';
+import 'screens/auth/login_screen.dart';
+import 'screens/auth/signup_screen.dart';
+import 'screens/navigation/main_navigation.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Supabase.initialize(
+    url: 'https://ssjvqorhqfzgbczkwkaw.supabase.co',
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzanZxb3JocWZ6Z2Jjemt3a2F3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg3NTQ1NTcsImV4cCI6MjA3NDMzMDU1N30.VazSIZC34I3J4vol1kDiN-5Rb7i0hczoNBGzW-G0-r4',
+  );
+
+  runApp(const WoofyApp());
+}
+
+class WoofyApp extends StatelessWidget {
+  const WoofyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Woofy',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF1E88E5),
+          brightness: Brightness.light,
+        ),
+        useMaterial3: true,
+        fontFamily: 'SF Pro Display',
+      ),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const SplashScreen(),
+        '/onboarding': (context) => const OnboardingScreen(),
+        '/login': (context) => const LoginScreen(),
+        '/signup': (context) => const SignupScreen(),
+        '/home': (context) => const MainNavigation(),
+      },
+    );
+  }
+}
+
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({super.key, required this.title});
+
+  final String title;
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF1E88E5),
+        foregroundColor: Colors.white,
+        title: const Text('Woofy'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              await Supabase.instance.client.auth.signOut();
+              Navigator.of(context).pushReplacementNamed('/');
+            },
+          ),
+        ],
+      ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFE3F2FD), Color(0xFFFFFFFF)],
+          ),
+        ),
+        child: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.pets, size: 100, color: Color(0xFF1E88E5)),
+              SizedBox(height: 24),
+              Text(
+                '¡Bienvenido a Woofy!',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF212121),
+                ),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Tu app para el cuidado responsable de perritos',
+                style: TextStyle(fontSize: 16, color: Color(0xFF616161)),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

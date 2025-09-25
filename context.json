@@ -1,0 +1,120 @@
+{
+    "app_name": "Woofy",
+    "mission": "Centralizar el cuidado de perritos en una sola app con guía responsable y acciones rápidas.",
+    "pillars": ["Asistente IA", "Mapa de veterinarias", "Diagnóstico preliminar (pre-triaje)", "Calendario de cuidados", "Agendar citas", "Precios y tiempos de espera"],
+    "brand": {
+      "tone": ["empático", "claro", "responsable", "pet-friendly"],
+      "voice_examples": {
+        "neutral": "Te ayudo a organizar el cuidado de tu perrito.",
+        "alert": "Esto podría requerir atención veterinaria hoy.",
+        "disclaimer": "Woofy no sustituye consulta profesional. Ante señales graves, acude a tu veterinaria."
+      },
+      "accessibility": {
+        "min_contrast": "WCAG AA",
+        "tap_targets_min": "44x44 dp",
+        "font_scale": "soportar 80%-130%"
+      }
+    },
+    "platform": ["iOS", "Android"],
+    "navigation": {
+      "pattern": "bottom_tabs",
+      "tabs": [
+        "Home",
+        "Mapa",
+        "Calendario",
+        "Citas",
+        "Perfil"
+      ]
+    },
+    "ui_style": {
+      "layout": "tarjetas y listas con acciones claras",
+      "components": {
+        "cards": ["ProximoEventoSalud", "ClinicaCercana", "TipsIA"],
+        "lists": ["ClinicasList", "CitasList", "RecordatoriosList"],
+        "inputs": ["Síntomas multiline", "Select especialidad", "DateTime picker", "FileUpload (PDF/imagen)"],
+        "feedback": ["banners de estado", "snackbars", "skeletons"]
+      },
+      "states": ["loading", "empty", "error", "success"]
+    },
+    "core_flows": {
+      "onboarding": ["crear_cuenta", "crear_perfil_mascota(nombre, raza, edad, peso, foto)", "permisos(ubicacion, notificaciones)"],
+      "buscar_clinicas": [
+        "geolocalizar_usuario",
+        "listar_clinicas{abierto_ahora, distancia, especialidad, rating}",
+        "ver_detalle{precios, tiempo_espera, horario, telefono}",
+        "cta: agendar"
+      ],
+      "diagnostico_preliminar": [
+        "capturar_sintomas",
+        "clasificar_urgencia{baja, media, alta}",
+        "mostrar_guia_pasosa_paso",
+        "cta_sugerida{ver_clinicas, agendar_hoy}"
+      ],
+      "calendario_cuidados": [
+        "ver_mes",
+        "crear_evento{vacuna, desparasitar, antipulgas, control}",
+        "recordatorios_push",
+        "historial_registros"
+      ],
+      "agendar_cita": [
+        "seleccionar_clinica",
+        "ver_disponibilidad",
+        "elegir_slot",
+        "confirmar_cita",
+        "notificacion_y_resumen"
+      ],
+      "precios_y_espera": [
+        "tabla_servicios_comunes",
+        "estimacion_espera{en_vivo|historico_por_franja}",
+        "ordenar_por{precio, espera}"
+      ]
+    },
+    "data_models": {
+      "User": {"id":"string","email":"string","name":"string","phone":"string","createdAt":"iso"},
+      "Pet": {"id":"string","userId":"string","name":"string","breed":"string","ageMonths":"number","weightKg":"number","photoUrl":"string"},
+      "Clinic": {"id":"string","name":"string","geo":{"lat":"number","lng":"number"},"address":"string","phone":"string","openHours":"object","specialties":["string"],"rating":"number"},
+      "Service": {"id":"string","clinicId":"string","name":"string","category":"string","basePrice":"number","currency":"string"},
+      "WaitTimeSnapshot": {"clinicId":"string","minutes":"number","source":"enum[live,model]","capturedAt":"iso"},
+      "Appointment": {"id":"string","userId":"string","petId":"string","clinicId":"string","serviceId":"string","startsAt":"iso","status":"enum[pending,confirmed,rescheduled,cancelled,done]","notes":"string"},
+      "MedicalRecordEntry": {"id":"string","petId":"string","type":"enum[vaccine,deworm,antiflea,surgery,allergy,weight,other]","date":"iso","notes":"string","attachments":["url"]},
+      "Reminder": {"id":"string","petId":"string","title":"string","dueAt":"iso","sent":"boolean"},
+      "SymptomCheck": {"id":"string","petId":"string","inputs":"object","triageLevel":"enum[low,medium,high]","advice":"string","createdAt":"iso"},
+      "AIConversation": {"id":"string","userId":"string","turns":[{"role":"user|assistant","text":"string","time":"iso"}]}
+    },
+    "apis": {
+      "clinics_search": "GET /clinics?near=lat,lng&openNow&specialty&sort=wait|price",
+      "clinic_prices": "GET /clinics/{id}/prices",
+      "clinic_wait": "GET /clinics/{id}/wait",
+      "appointments": "POST /appointments, GET /appointments?userId=, PATCH /appointments/{id}",
+      "pets": "GET/POST /pets, GET/POST /pets/{id}/records",
+      "reminders": "POST /pets/{id}/reminders",
+      "ai_triage": "POST /ai/triage",
+      "ai_faq": "POST /ai/faq"
+    },
+    "ai_assistant": {
+      "capabilities": ["faq_cuidado", "pre_triaje", "recomendaciones_preventivas", "resumen_eventos_salud"],
+      "safety": [
+        "mostrar_disclaimer_en_todo_resultado_medico",
+        "redirigir_a_emergencia_si: sangrado, convulsiones, ingesta_toxicos, dificultad_respirar, dolor_intenso, letargo_extremo"
+      ],
+      "prompts": {
+        "system": "Eres Woofy, asistente responsable para cuidado canino. Nunca sustituyes a un veterinario. Habla claro y amable. Ofrece pasos concretos y CTA a clínica.",
+        "triage_user_template": "Síntomas: {{texto_usuario}} | Edad: {{edad}} meses | Peso: {{peso}} kg | Raza: {{raza}}",
+        "triage_output_schema": {
+          "triageLevel": "low|medium|high",
+          "advice": "string",
+          "nextActions": ["string"],
+          "cta": "ver_clinicas|agendar|llamar_emergencia",
+          "disclaimer": "string"
+        }
+      }
+    },
+    "privacy_security": {
+      "encryption": ["TLS_en_transito", "cifrado_en_reposo"],
+      "access_control": ["por_userId", "por_petId", "roles: owner, clinic_admin, vet"],
+      "consent": ["compartir_datos_con_clinicas_consentido"],
+      "audit": ["log_cambios_expediente"]
+    },
+    "metrics": ["activacion_perfil_mascota", "citas_agendadas", "MAE_tiempo_espera", "retencion_4_semanas", "CSAT_post_cita"]
+  }
+  

@@ -1,0 +1,328 @@
+{
+    "designSystem": {
+      "name": "Modern Healthcare Mobile UI",
+      "version": "1.0.0",
+      "description": "A comprehensive design system for healthcare mobile applications with focus on accessibility, trust, and user-friendly interactions"
+    },
+    
+    "colorPalette": {
+      "primary": {
+        "main": "#6366F1",
+        "light": "#A5B4FC",
+        "dark": "#4338CA",
+        "gradient": "linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)"
+      },
+      "secondary": {
+        "main": "#F8FAFC",
+        "light": "#FFFFFF",
+        "dark": "#E2E8F0"
+      },
+      "accent": {
+        "warning": "#F59E0B",
+        "success": "#10B981",
+        "error": "#EF4444",
+        "rating": "#FBBF24"
+      },
+      "neutral": {
+        "white": "#FFFFFF",
+        "gray50": "#F9FAFB",
+        "gray100": "#F3F4F6",
+        "gray200": "#E5E7EB",
+        "gray300": "#D1D5DB",
+        "gray400": "#9CA3AF",
+        "gray500": "#6B7280",
+        "gray600": "#4B5563",
+        "gray700": "#374151",
+        "gray800": "#1F2937",
+        "gray900": "#111827"
+      }
+    },
+  
+    "typography": {
+      "fontFamily": {
+        "primary": "SF Pro Display, -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
+        "secondary": "SF Pro Text, -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
+      },
+      "fontSizes": {
+        "xs": "12px",
+        "sm": "14px",
+        "base": "16px",
+        "lg": "18px",
+        "xl": "20px",
+        "2xl": "24px",
+        "3xl": "30px",
+        "4xl": "36px"
+      },
+      "fontWeights": {
+        "regular": 400,
+        "medium": 500,
+        "semibold": 600,
+        "bold": 700
+      },
+      "lineHeights": {
+        "tight": 1.25,
+        "normal": 1.5,
+        "relaxed": 1.75
+      }
+    },
+  
+    "spacing": {
+      "scale": "4px base unit",
+      "values": {
+        "xs": "4px",
+        "sm": "8px",
+        "md": "12px",
+        "lg": "16px",
+        "xl": "20px",
+        "2xl": "24px",
+        "3xl": "32px",
+        "4xl": "40px",
+        "5xl": "48px",
+        "6xl": "64px"
+      }
+    },
+  
+    "borderRadius": {
+      "none": "0px",
+      "sm": "4px",
+      "md": "8px",
+      "lg": "12px",
+      "xl": "16px",
+      "2xl": "20px",
+      "3xl": "24px",
+      "full": "9999px"
+    },
+  
+    "shadows": {
+      "sm": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+      "md": "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+      "lg": "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+      "xl": "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+      "card": "0 8px 32px rgba(99, 102, 241, 0.08)",
+      "floating": "0 16px 40px rgba(99, 102, 241, 0.12)"
+    },
+  
+    "components": {
+      "cards": {
+        "variants": {
+          "hero": {
+            "background": "gradient or solid color",
+            "borderRadius": "2xl",
+            "padding": "3xl",
+            "shadow": "floating",
+            "textColor": "white",
+            "features": ["large hero image", "prominent CTA", "gradient overlay"]
+          },
+          "profile": {
+            "background": "white",
+            "borderRadius": "xl",
+            "padding": "xl",
+            "shadow": "card",
+            "features": ["avatar", "rating badge", "price display", "action buttons"]
+          },
+          "appointment": {
+            "background": "primary gradient",
+            "borderRadius": "2xl",
+            "padding": "lg",
+            "textColor": "white",
+            "features": ["date/time display", "doctor info", "menu actions"]
+          }
+        },
+        "commonFeatures": {
+          "elevation": "consistent shadow usage",
+          "spacing": "16-24px internal padding",
+          "corners": "rounded corners (12-20px)",
+          "hierarchy": "clear visual hierarchy with typography"
+        }
+      },
+  
+      "buttons": {
+        "variants": {
+          "primary": {
+            "background": "primary gradient",
+            "textColor": "white",
+            "borderRadius": "xl",
+            "padding": "lg horizontal, md vertical",
+            "fontWeight": "semibold"
+          },
+          "secondary": {
+            "background": "gray100",
+            "textColor": "gray700",
+            "borderRadius": "xl",
+            "padding": "lg horizontal, md vertical"
+          },
+          "icon": {
+            "background": "transparent or light gray",
+            "shape": "circular",
+            "size": "44px minimum touch target",
+            "iconSize": "20-24px"
+          }
+        },
+        "states": {
+          "default": "base styling",
+          "hover": "subtle color shift",
+          "active": "pressed state",
+          "disabled": "reduced opacity (50%)"
+        }
+      },
+  
+      "navigation": {
+        "patterns": {
+          "backButton": {
+            "position": "top-left",
+            "style": "arrow icon in circle",
+            "size": "44px touch target"
+          },
+          "menuButton": {
+            "position": "top-right",
+            "style": "three dots or hamburger",
+            "background": "subtle or none"
+          }
+        }
+      },
+  
+      "badges": {
+        "rating": {
+          "background": "white or light",
+          "textColor": "dark",
+          "borderRadius": "full",
+          "padding": "sm horizontal, xs vertical",
+          "features": ["star icon", "numeric rating", "subtle shadow"]
+        },
+        "status": {
+          "borderRadius": "full",
+          "padding": "xs horizontal",
+          "fontWeight": "medium",
+          "fontSize": "xs"
+        }
+      },
+  
+      "calendar": {
+        "structure": {
+          "header": "month/year with navigation arrows",
+          "dayHeaders": "abbreviated day names",
+          "dates": "grid layout with selectable states",
+          "selectedDate": "primary color background with white text",
+          "todayDate": "subtle highlight or outline"
+        },
+        "styling": {
+          "borderRadius": "md for individual dates",
+          "spacing": "consistent grid gaps",
+          "typography": "medium weight for selected dates"
+        }
+      },
+  
+      "timeSlots": {
+        "layout": "pill-shaped buttons in rows",
+        "states": {
+          "available": "gray background with dark text",
+          "selected": "primary color background with white text",
+          "unavailable": "disabled state with reduced opacity"
+        },
+        "grouping": "organized by time periods (Morning, Afternoon, Evening, Night)"
+      },
+  
+      "avatars": {
+        "sizes": {
+          "sm": "32px",
+          "md": "40px",
+          "lg": "48px",
+          "xl": "64px",
+          "2xl": "80px"
+        },
+        "styling": {
+          "borderRadius": "full",
+          "border": "optional white border",
+          "fallback": "initials with gradient background"
+        }
+      }
+    },
+  
+    "layout": {
+      "grid": {
+        "columns": 12,
+        "gutters": "16-20px",
+        "margins": "16-24px on mobile"
+      },
+      "containers": {
+        "maxWidth": "375px mobile, 768px tablet",
+        "padding": "16-24px horizontal"
+      },
+      "spacing": {
+        "sections": "32-48px vertical spacing",
+        "components": "16-24px between components",
+        "elements": "8-12px between related elements"
+      }
+    },
+  
+    "patterns": {
+      "listItems": {
+        "structure": "avatar + content + actions",
+        "padding": "16px vertical, 20px horizontal",
+        "dividers": "subtle lines or background color changes",
+        "hover": "background color change"
+      },
+      "forms": {
+        "inputs": {
+          "borderRadius": "lg",
+          "padding": "12-16px",
+          "border": "1px solid gray300",
+          "focusState": "primary color border with shadow"
+        },
+        "labels": {
+          "position": "above input",
+          "fontWeight": "medium",
+          "color": "gray700"
+        }
+      },
+      "modals": {
+        "background": "white",
+        "borderRadius": "2xl top corners",
+        "shadow": "xl",
+        "padding": "24px",
+        "overlay": "semi-transparent dark background"
+      }
+    },
+  
+    "animations": {
+      "transitions": {
+        "duration": "200-300ms",
+        "easing": "ease-out",
+        "properties": ["background-color", "transform", "opacity", "box-shadow"]
+      },
+      "interactions": {
+        "tap": "subtle scale down (0.95)",
+        "hover": "gentle scale up (1.02) on desktop",
+        "loading": "pulse or spinner animations"
+      }
+    },
+  
+    "accessibility": {
+      "contrast": "minimum 4.5:1 for normal text, 3:1 for large text",
+      "touchTargets": "minimum 44px for interactive elements",
+      "focus": "visible focus indicators with primary color",
+      "screenReader": "semantic HTML and appropriate ARIA labels"
+    },
+  
+    "responsive": {
+      "breakpoints": {
+        "mobile": "up to 767px",
+        "tablet": "768px to 1023px",
+        "desktop": "1024px and up"
+      },
+      "adaptations": {
+        "mobile": "single column, larger touch targets, bottom navigation",
+        "tablet": "potentially multi-column, preserved mobile patterns",
+        "desktop": "adapted for mouse interaction, larger viewport utilization"
+      }
+    },
+  
+    "designPrinciples": {
+      "clarity": "Clean, uncluttered interfaces with clear visual hierarchy",
+      "trust": "Professional appearance appropriate for healthcare context",
+      "efficiency": "Quick access to key functions and information",
+      "accessibility": "Inclusive design for users with varying abilities",
+      "consistency": "Unified visual language across all screens and interactions",
+      "feedback": "Clear system status and user action confirmation"
+    }
+  }
