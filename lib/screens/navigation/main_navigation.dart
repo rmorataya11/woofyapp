@@ -25,14 +25,19 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
       body: _screens[_currentIndex],
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF1E88E5).withOpacity(0.1),
+              color: isDark
+                  ? Colors.black.withOpacity(0.3)
+                  : const Color(0xFF1E88E5).withOpacity(0.1),
               blurRadius: 20,
               offset: const Offset(0, -5),
             ),
@@ -44,11 +49,11 @@ class _MainNavigationState extends State<MainNavigation> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildNavItem(0, Icons.home, 'Home'),
-                _buildNavItem(1, Icons.map, 'Mapa'),
-                _buildNavItem(2, Icons.calendar_today, 'Calendario'),
-                _buildNavItem(3, Icons.event_note, 'Citas'),
-                _buildNavItem(4, Icons.person, 'Perfil'),
+                _buildNavItem(0, Icons.home, 'Home', theme),
+                _buildNavItem(1, Icons.map, 'Mapa', theme),
+                _buildNavItem(2, Icons.calendar_today, 'Calendario', theme),
+                _buildNavItem(3, Icons.event_note, 'Citas', theme),
+                _buildNavItem(4, Icons.person, 'Perfil', theme),
               ],
             ),
           ),
@@ -57,8 +62,14 @@ class _MainNavigationState extends State<MainNavigation> {
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label) {
+  Widget _buildNavItem(
+    int index,
+    IconData icon,
+    String label,
+    ThemeData theme,
+  ) {
     final isSelected = _currentIndex == index;
+    final isDark = theme.brightness == Brightness.dark;
 
     return GestureDetector(
       onTap: () {
@@ -81,7 +92,9 @@ class _MainNavigationState extends State<MainNavigation> {
               icon,
               color: isSelected
                   ? const Color(0xFF1E88E5)
-                  : const Color(0xFF616161),
+                  : (isDark
+                        ? const Color(0xFFB0B0B0)
+                        : const Color(0xFF616161)),
               size: 24,
             ),
             const SizedBox(height: 4),
@@ -92,7 +105,9 @@ class _MainNavigationState extends State<MainNavigation> {
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                 color: isSelected
                     ? const Color(0xFF1E88E5)
-                    : const Color(0xFF616161),
+                    : (isDark
+                          ? const Color(0xFFB0B0B0)
+                          : const Color(0xFF616161)),
               ),
             ),
           ],
@@ -110,14 +125,23 @@ class PlaceholderScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFE3F2FD), Color(0xFFFFFFFF)],
-          ),
+        decoration: BoxDecoration(
+          gradient: isDark
+              ? const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFF1A1A1A), Color(0xFF121212)],
+                )
+              : const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFFE3F2FD), Color(0xFFFFFFFF)],
+                ),
         ),
         child: SafeArea(
           child: Center(
@@ -128,18 +152,20 @@ class PlaceholderScreen extends StatelessWidget {
                 const SizedBox(height: 24),
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF212121),
+                    color: isDark ? Colors.white : const Color(0xFF212121),
                   ),
                 ),
                 const SizedBox(height: 16),
                 Text(
                   'Próximamente disponible',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
-                    color: Color(0xFF616161),
+                    color: isDark
+                        ? const Color(0xFFB0B0B0)
+                        : const Color(0xFF616161),
                   ),
                 ),
                 const SizedBox(height: 32),

@@ -182,14 +182,23 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFE3F2FD), Color(0xFFFFFFFF)],
-          ),
+        decoration: BoxDecoration(
+          gradient: isDark
+              ? const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFF1A1A1A), Color(0xFF121212)],
+                )
+              : const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFFE3F2FD), Color(0xFFFFFFFF)],
+                ),
         ),
         child: SafeArea(
           child: Column(
@@ -221,13 +230,15 @@ class _MapScreenState extends State<MapScreen> {
         children: [
           const Icon(Icons.location_on, color: Color(0xFF1E88E5), size: 28),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Text(
               'Veterinarias Cercanas',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF212121),
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : const Color(0xFF212121),
               ),
             ),
           ),

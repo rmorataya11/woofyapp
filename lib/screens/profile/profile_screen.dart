@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../providers/theme_provider.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen>
+class _ProfileScreenState extends ConsumerState<ProfileScreen>
     with TickerProviderStateMixin {
   final SupabaseClient _supabase = Supabase.instance.client;
 
@@ -212,14 +214,23 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFE3F2FD), Color(0xFFFFFFFF)],
-          ),
+        decoration: BoxDecoration(
+          gradient: isDark
+              ? const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFF1A1A1A), Color(0xFF121212)],
+                )
+              : const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFFE3F2FD), Color(0xFFFFFFFF)],
+                ),
         ),
         child: SafeArea(
           child: _isLoading
@@ -237,11 +248,11 @@ class _ProfileScreenState extends State<ProfileScreen>
                     child: SingleChildScrollView(
                       child: Column(
                         children: [
-                          _buildProfileHeader(),
-                          _buildStatsSection(),
-                          _buildPetsSection(),
-                          _buildSettingsSection(),
-                          _buildPreferencesSection(),
+                          _buildProfileHeader(theme),
+                          _buildStatsSection(theme),
+                          _buildPetsSection(theme),
+                          _buildSettingsSection(theme),
+                          _buildPreferencesSection(theme),
                           const SizedBox(
                             height: 100,
                           ), // Espacio para bottom nav
@@ -255,16 +266,18 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Widget _buildProfileHeader() {
+  Widget _buildProfileHeader(ThemeData theme) {
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardTheme.color,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1E88E5).withOpacity(0.1),
+            color:
+                theme.cardTheme.shadowColor ??
+                const Color(0xFF1E88E5).withOpacity(0.1),
             blurRadius: 20,
             offset: const Offset(0, 5),
           ),
@@ -387,16 +400,18 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Widget _buildStatsSection() {
+  Widget _buildStatsSection(ThemeData theme) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardTheme.color,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1E88E5).withOpacity(0.1),
+            color:
+                theme.cardTheme.shadowColor ??
+                const Color(0xFF1E88E5).withOpacity(0.1),
             blurRadius: 15,
             offset: const Offset(0, 3),
           ),
@@ -497,16 +512,18 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Widget _buildPetsSection() {
+  Widget _buildPetsSection(ThemeData theme) {
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardTheme.color,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1E88E5).withOpacity(0.1),
+            color:
+                theme.cardTheme.shadowColor ??
+                const Color(0xFF1E88E5).withOpacity(0.1),
             blurRadius: 15,
             offset: const Offset(0, 3),
           ),
@@ -635,16 +652,18 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Widget _buildSettingsSection() {
+  Widget _buildSettingsSection(ThemeData theme) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardTheme.color,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1E88E5).withOpacity(0.1),
+            color:
+                theme.cardTheme.shadowColor ??
+                const Color(0xFF1E88E5).withOpacity(0.1),
             blurRadius: 15,
             offset: const Offset(0, 3),
           ),
@@ -691,16 +710,18 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Widget _buildPreferencesSection() {
+  Widget _buildPreferencesSection(ThemeData theme) {
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardTheme.color,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1E88E5).withOpacity(0.1),
+            color:
+                theme.cardTheme.shadowColor ??
+                const Color(0xFF1E88E5).withOpacity(0.1),
             blurRadius: 15,
             offset: const Offset(0, 3),
           ),
@@ -730,11 +751,18 @@ class _ProfileScreenState extends State<ProfileScreen>
             _userProfile['preferences']?['email_updates'] ?? true,
             (value) => _updatePreference('email_updates', value),
           ),
-          _buildPreferenceSwitch(
-            'Modo Oscuro',
-            'Usar tema oscuro en la aplicación',
-            _userProfile['preferences']?['dark_mode'] ?? false,
-            (value) => _updatePreference('dark_mode', value),
+          Consumer(
+            builder: (context, ref, child) {
+              final isDarkMode = ref.watch(isDarkModeProvider);
+              final themeNotifier = ref.read(themeModeProvider.notifier);
+
+              return _buildPreferenceSwitch(
+                'Modo Oscuro',
+                'Usar tema oscuro en la aplicación',
+                isDarkMode,
+                (value) => themeNotifier.toggleTheme(),
+              );
+            },
           ),
         ],
       ),

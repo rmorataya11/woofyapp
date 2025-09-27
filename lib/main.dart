@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/auth/splash_screen.dart';
 import 'screens/auth/onboarding_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/signup_screen.dart';
 import 'screens/navigation/main_navigation.dart';
+import 'providers/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,7 +17,7 @@ void main() async {
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzanZxb3JocWZ6Z2Jjemt3a2F3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg3NTQ1NTcsImV4cCI6MjA3NDMzMDU1N30.VazSIZC34I3J4vol1kDiN-5Rb7i0hczoNBGzW-G0-r4',
   );
 
-  runApp(const WoofyApp());
+  runApp(const ProviderScope(child: WoofyApp()));
 }
 
 class WoofyApp extends StatelessWidget {
@@ -23,24 +25,25 @@ class WoofyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Woofy',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF1E88E5),
-          brightness: Brightness.light,
-        ),
-        useMaterial3: true,
-        fontFamily: 'SF Pro Display',
-      ),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const SplashScreen(),
-        '/onboarding': (context) => const OnboardingScreen(),
-        '/login': (context) => const LoginScreen(),
-        '/signup': (context) => const SignupScreen(),
-        '/home': (context) => const MainNavigation(),
+    return Consumer(
+      builder: (context, ref, child) {
+        final themeMode = ref.watch(themeModeProvider);
+
+        return MaterialApp(
+          title: 'Woofy',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: themeMode,
+          initialRoute: '/',
+          routes: {
+            '/': (context) => const SplashScreen(),
+            '/onboarding': (context) => const OnboardingScreen(),
+            '/login': (context) => const LoginScreen(),
+            '/signup': (context) => const SignupScreen(),
+            '/home': (context) => const MainNavigation(),
+          },
+        );
       },
     );
   }
