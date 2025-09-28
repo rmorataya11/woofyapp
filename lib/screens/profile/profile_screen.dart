@@ -210,8 +210,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                 'Teléfono',
               ),
             ],
-          ),
-        ],
       ),
     );
   }
@@ -250,8 +248,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
             blurRadius: 20,
             offset: const Offset(0, 5),
-          ),
-        ],
           ),
         ],
       ),
@@ -296,8 +292,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                 ),
               ),
             ],
-          ),
-        ],
       ),
     );
   }
@@ -347,8 +341,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
             blurRadius: 20,
             offset: const Offset(0, 5),
-          ),
-        ],
           ),
         ],
       ),
@@ -526,8 +518,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             offset: const Offset(0, 5),
           ),
         ],
-          ),
-        ],
       ),
       child: Column(
         children: [
@@ -572,8 +562,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
             blurRadius: 20,
             offset: const Offset(0, 5),
-          ),
-        ],
           ),
         ],
       ),

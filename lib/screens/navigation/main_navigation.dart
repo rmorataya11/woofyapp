@@ -50,11 +50,11 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildNavItem(0, Icons.home, 'Home', theme),
-                _buildNavItem(1, Icons.map, 'Mapa', theme),
-                _buildNavItem(2, Icons.calendar_today, 'Calendario', theme),
-                _buildNavItem(3, Icons.event_note, 'Citas', theme),
-                _buildNavItem(4, Icons.person, 'Perfil', theme),
+                _buildNavItem(0, Icons.home, 'Home'),
+                _buildNavItem(1, Icons.map, 'Mapa'),
+                _buildNavItem(2, Icons.calendar_today, 'Calendario'),
+                _buildNavItem(3, Icons.event_note, 'Citas'),
+                _buildNavItem(4, Icons.person, 'Perfil'),
               ],
             ),
           ),
