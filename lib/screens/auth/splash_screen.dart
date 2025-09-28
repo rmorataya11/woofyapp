@@ -65,17 +65,23 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFE3F2FD), // lightBlue
-              Color(0xFFFFFFFF), // white
-            ],
-          ),
+        decoration: BoxDecoration(
+          gradient: isDark
+              ? const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFF1A1A1A), Color(0xFF121212)],
+                )
+              : const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFFE3F2FD), Color(0xFFFFFFFF)],
+                ),
         ),
         child: SafeArea(
           child: Center(
@@ -123,11 +129,13 @@ class _SplashScreenState extends State<SplashScreen>
                         ),
                         const SizedBox(height: 16),
                         // Subtítulo
-                        const Text(
+                        Text(
                           'Cuidado responsable para tu perrito',
                           style: TextStyle(
                             fontSize: 16,
-                            color: Color(0xFF616161),
+                            color: isDark
+                                ? const Color(0xFFB0B0B0)
+                                : const Color(0xFF616161),
                             fontWeight: FontWeight.w400,
                           ),
                         ),

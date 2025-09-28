@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../router/app_router.dart';
 import '../../providers/pet_provider.dart';
 import '../../providers/navigation_provider.dart';
 import '../appointments/appointments_screen.dart';
 import '../map/map_screen.dart';
 import '../calendar/calendar_screen.dart';
+import '../../config/theme_utils.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -90,13 +91,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFE3F2FD), Color(0xFFFFFFFF)],
-          ),
-        ),
+        decoration: ThemeUtils.getBackgroundDecoration(context, ref),
         child: SafeArea(
           child: _isLoading
               ? const Center(
@@ -135,11 +130,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: ThemeUtils.getCardColor(context, ref),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1E88E5).withOpacity(0.1),
+            color: ThemeUtils.getShadowColor(context, ref),
             blurRadius: 20,
             offset: const Offset(0, 5),
           ),
@@ -166,15 +161,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   children: [
                     Text(
                       '¡Hola, $_userName!',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF212121),
+                        color: ThemeUtils.getTextPrimaryColor(context, ref),
                       ),
                     ),
-                    const Text(
+                    Text(
                       '¿Cómo está tu perrito hoy?',
-                      style: TextStyle(fontSize: 14, color: Color(0xFF616161)),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: ThemeUtils.getTextSecondaryColor(context, ref),
+                      ),
                     ),
                   ],
                 ),
@@ -188,6 +186,36 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ],
           ),
+          if (_pets.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Text(
+              'Tus mascotas:',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: ThemeUtils.getTextPrimaryColor(context, ref),
+              ),
+            ),
+            const SizedBox(height: 8),
+            ..._pets.map(
+              (pet) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Row(
+                  children: [
+                    const Icon(Icons.pets, size: 16, color: Color(0xFF1E88E5)),
+                    const SizedBox(width: 8),
+                    Text(
+                      pet['name'],
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: ThemeUtils.getTextSecondaryColor(context, ref),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -197,12 +225,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Acciones Rápidas',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF212121),
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white
+                : const Color(0xFF212121),
           ),
         ),
         const SizedBox(height: 16),
@@ -273,7 +303,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFF1E1E1E)
+              : Colors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -289,17 +321,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             const SizedBox(height: 8),
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF212121),
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : const Color(0xFF212121),
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 4),
             Text(
               subtitle,
-              style: const TextStyle(fontSize: 12, color: Color(0xFF616161)),
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFFB0B0B0)
+                    : const Color(0xFF616161),
+              ),
               textAlign: TextAlign.center,
             ),
           ],

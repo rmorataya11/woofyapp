@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/theme_notifier.dart';
 import '../../providers/pet_provider.dart';
 import '../../router/app_router.dart';
+import '../../providers/theme_provider.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -13,7 +14,8 @@ class ProfileScreen extends ConsumerStatefulWidget {
   ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+class _ProfileScreenState extends ConsumerState<ProfileScreen>
+    with TickerProviderStateMixin {
   final SupabaseClient _supabase = Supabase.instance.client;
 
   Map<String, dynamic> _userProfile = {
@@ -91,6 +93,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -115,11 +120,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               : SingleChildScrollView(
                       child: Column(
                         children: [
-                          _buildProfileHeader(),
-                          _buildStatsSection(),
-                          _buildPetsSection(),
-                          _buildSettingsSection(),
-                          _buildPreferencesSection(),
+                          _buildProfileHeader(theme),
+                          _buildStatsSection(theme),
+                          _buildPetsSection(theme),
+                          _buildSettingsSection(theme),
+                          _buildPreferencesSection(theme),
                           const SizedBox(
                             height: 100,
                           ), // Espacio para bottom nav
@@ -131,7 +136,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildProfileHeader() {
+  Widget _buildProfileHeader(ThemeData theme) {
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(24),
@@ -233,7 +238,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildStatsSection() {
+  Widget _buildStatsSection(ThemeData theme) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(20),
@@ -245,6 +250,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
             blurRadius: 20,
             offset: const Offset(0, 5),
+          ),
+        ],
           ),
         ],
       ),
@@ -327,9 +334,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildPetsSection() {
+  Widget _buildPetsSection(ThemeData theme) {
     final pets = ref.watch(petNotifierProvider);
-    
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
@@ -341,6 +347,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
             blurRadius: 20,
             offset: const Offset(0, 5),
+          ),
+        ],
           ),
         ],
       ),
@@ -505,7 +513,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildSettingsSection() {
+  Widget _buildSettingsSection(ThemeData theme) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
@@ -516,6 +524,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
             blurRadius: 20,
             offset: const Offset(0, 5),
+          ),
+        ],
           ),
         ],
       ),
@@ -550,7 +560,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildPreferencesSection() {
+  Widget _buildPreferencesSection(ThemeData theme) {
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
@@ -562,6 +572,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
             blurRadius: 20,
             offset: const Offset(0, 5),
+          ),
+        ],
           ),
         ],
       ),
