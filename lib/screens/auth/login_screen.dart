@@ -16,7 +16,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
-  bool _rememberMe = false;
 
   @override
   void dispose() {
@@ -68,61 +67,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<void> _signInWithGoogle() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      await Supabase.instance.client.auth.signInWithOAuth(
-        OAuthProvider.google,
-        redirectTo: 'io.supabase.woofyapp://login-callback/',
-      );
-    } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al iniciar sesión con Google'),
-            backgroundColor: Color(0xFFF44336),
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _signInWithApple() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      await Supabase.instance.client.auth.signInWithOAuth(
-        OAuthProvider.apple,
-        redirectTo: 'io.supabase.woofyapp://login-callback/',
-      );
-    } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al iniciar sesión con Apple'),
-            backgroundColor: Color(0xFFF44336),
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -136,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
+          child: Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: 24.0,
               vertical: 16.0,
@@ -186,21 +130,22 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 48),
                 // Formulario de login
-                Container(
-                  width: double.infinity,
-                  constraints: const BoxConstraints(maxWidth: 400),
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF1E88E5).withOpacity(0.08),
-                        blurRadius: 32,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
+                Expanded(
+                  child: Container(
+                    width: double.infinity,
+                    constraints: const BoxConstraints(maxWidth: 400),
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF1E88E5).withOpacity(0.08),
+                          blurRadius: 32,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
                   child: Form(
                     key: _formKey,
                     child: Column(
@@ -289,44 +234,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 16),
                         // Recordar y olvidar contraseña
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Checkbox(
-                                  value: _rememberMe,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _rememberMe = value ?? false;
-                                    });
-                                  },
-                                  activeColor: const Color(0xFF1E88E5),
-                                ),
-                                const Text(
-                                  'Recordarme',
-                                  style: TextStyle(
-                                    color: Color(0xFF616161),
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                // TODO: Implementar recuperar contraseña
-                              },
-                              child: const Text(
-                                '¿Olvidaste tu contraseña?',
-                                style: TextStyle(
-                                  color: Color(0xFF1E88E5),
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
                         const SizedBox(height: 24),
                         // Botón de iniciar sesión
                         SizedBox(
@@ -362,60 +269,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                           ),
                         ),
-                        const SizedBox(height: 24),
-                        // Divider
-                        Row(
-                          children: [
-                            const Expanded(
-                              child: Divider(
-                                color: Color(0xFFE0E0E0),
-                                thickness: 1,
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              child: Text(
-                                'O inicia sesión con',
-                                style: TextStyle(
-                                  color: const Color(0xFF9E9E9E),
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ),
-                            const Expanded(
-                              child: Divider(
-                                color: Color(0xFFE0E0E0),
-                                thickness: 1,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                        // Botones sociales
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildSocialButton(
-                                icon: Icons.g_mobiledata,
-                                label: 'Google',
-                                onPressed: _signInWithGoogle,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildSocialButton(
-                                icon: Icons.apple,
-                                label: 'Apple',
-                                onPressed: _signInWithApple,
-                              ),
-                            ),
-                          ],
-                        ),
                       ],
                     ),
                   ),
+                ),
                 ),
                 const SizedBox(height: 32),
                 // Enlace a registro
@@ -449,35 +306,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildSocialButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onPressed,
-  }) {
-    return SizedBox(
-      height: 56,
-      child: OutlinedButton(
-        onPressed: _isLoading ? null : onPressed,
-        style: OutlinedButton.styleFrom(
-          backgroundColor: Colors.white,
-          foregroundColor: const Color(0xFF616161),
-          side: const BorderSide(color: Color(0xFFE0E0E0), width: 1),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 20),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

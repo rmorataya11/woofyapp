@@ -528,12 +528,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             _editProfile,
           ),
           _buildSettingItem(
-            Icons.notifications,
-            'Notificaciones',
-            'Configura tus preferencias de notificación',
-            _openNotifications,
-          ),
-          _buildSettingItem(
             Icons.security,
             'Privacidad',
             'Gestiona tu privacidad y seguridad',
@@ -681,33 +675,281 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   void _editProfile() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Próximamente: Editar perfil'),
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Editar Perfil'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              decoration: const InputDecoration(
+                labelText: 'Nombre',
+                border: OutlineInputBorder(),
+              ),
+              controller: TextEditingController(text: _userProfile['name']),
+              onChanged: (value) => _userProfile['name'] = value,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                border: OutlineInputBorder(),
+              ),
+              controller: TextEditingController(text: _userProfile['email']),
+              onChanged: (value) => _userProfile['email'] = value,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              decoration: const InputDecoration(
+                labelText: 'Teléfono',
+                border: OutlineInputBorder(),
+              ),
+              controller: TextEditingController(text: _userProfile['phone']),
+              onChanged: (value) => _userProfile['phone'] = value,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              decoration: const InputDecoration(
+                labelText: 'Ubicación',
+                border: OutlineInputBorder(),
+              ),
+              controller: TextEditingController(text: _userProfile['location']),
+              onChanged: (value) => _userProfile['location'] = value,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              setState(() {});
+              Navigator.of(context).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Perfil actualizado')),
+              );
+            },
+            child: const Text('Guardar'),
+          ),
+        ],
       ),
     );
   }
 
-  void _openNotifications() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Próximamente: Configuración de notificaciones'),
-      ),
-    );
-  }
 
   void _openPrivacy() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Próximamente: Configuración de privacidad'),
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Configuración de Privacidad'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Configuración de Datos',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            SwitchListTile(
+              title: const Text('Compartir Ubicación'),
+              subtitle: const Text('Permitir compartir ubicación con veterinarias'),
+              value: _userProfile['preferences']['share_location'] ?? false,
+              onChanged: (value) {
+                setState(() {
+                  _userProfile['preferences']['share_location'] = value;
+                });
+              },
+            ),
+            SwitchListTile(
+              title: const Text('Análisis de Datos'),
+              subtitle: const Text('Permitir análisis para mejorar la app'),
+              value: _userProfile['preferences']['data_analytics'] ?? true,
+              onChanged: (value) {
+                setState(() {
+                  _userProfile['preferences']['data_analytics'] = value;
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cerrar'),
+          ),
+        ],
       ),
     );
   }
 
   void _openHelp() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Próximamente: Ayuda y soporte'),
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Ayuda y Soporte'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Recursos de Ayuda',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: const Icon(Icons.contact_support),
+              title: const Text('Contactar Soporte'),
+              subtitle: const Text('Envía un mensaje al equipo de soporte'),
+              onTap: () {
+                Navigator.of(context).pop();
+                _showContactSupportDialog();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.bug_report),
+              title: const Text('Reportar Problema'),
+              subtitle: const Text('Reporta un error o problema'),
+              onTap: () {
+                Navigator.of(context).pop();
+                _showBugReportDialog();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.info_outline),
+              title: const Text('Acerca de la App'),
+              subtitle: const Text('Información de la aplicación'),
+              onTap: () {
+                Navigator.of(context).pop();
+                _openAbout();
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cerrar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteAccountDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Eliminar Cuenta'),
+        content: const Text(
+          '¿Estás seguro de que quieres eliminar tu cuenta? Esta acción no se puede deshacer y se perderán todos tus datos.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Cuenta eliminada (simulado)'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            },
+            child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showContactSupportDialog() {
+    final TextEditingController messageController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Contactar Soporte'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Envía un mensaje al equipo de soporte:'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: messageController,
+              decoration: const InputDecoration(
+                labelText: 'Mensaje',
+                border: OutlineInputBorder(),
+                hintText: 'Describe tu problema o consulta...',
+              ),
+              maxLines: 4,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Mensaje enviado al soporte')),
+              );
+            },
+            child: const Text('Enviar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showBugReportDialog() {
+    final TextEditingController bugController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Reportar Problema'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Describe el problema que encontraste:'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: bugController,
+              decoration: const InputDecoration(
+                labelText: 'Descripción del problema',
+                border: OutlineInputBorder(),
+                hintText: 'Explica qué pasó y cómo reproducir el problema...',
+              ),
+              maxLines: 4,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Problema reportado al equipo')),
+              );
+            },
+            child: const Text('Reportar'),
+          ),
+        ],
       ),
     );
   }

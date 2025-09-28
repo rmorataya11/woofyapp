@@ -328,74 +328,8 @@ class _LoginScreenOfflineState extends State<LoginScreenOffline> {
                           ),
                         ),
                         const SizedBox(height: 24),
-                        // Divider
-                        Row(
-                          children: [
-                            const Expanded(
-                              child: Divider(
-                                color: Color(0xFFE0E0E0),
-                                thickness: 1,
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              child: Text(
-                                'O inicia sesión con',
-                                style: TextStyle(
-                                  color: const Color(0xFF9E9E9E),
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ),
-                            const Expanded(
-                              child: Divider(
-                                color: Color(0xFFE0E0E0),
-                                thickness: 1,
-                              ),
-                            ),
-                          ],
-                        ),
+
                         const SizedBox(height: 24),
-                        // Botones sociales (deshabilitados en modo offline)
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildSocialButton(
-                                icon: Icons.g_mobiledata,
-                                label: 'Google',
-                                onPressed: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Login social no disponible en modo offline',
-                                      ),
-                                      backgroundColor: Color(0xFFF44336),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildSocialButton(
-                                icon: Icons.apple,
-                                label: 'Apple',
-                                onPressed: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Login social no disponible en modo offline',
-                                      ),
-                                      backgroundColor: Color(0xFFF44336),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
                       ],
                     ),
                   ),

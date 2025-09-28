@@ -19,7 +19,6 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-  bool _acceptTerms = false;
 
   @override
   void dispose() {
@@ -32,15 +31,6 @@ class _SignupScreenState extends State<SignupScreen> {
 
   Future<void> _signUpWithEmail() async {
     if (!_formKey.currentState!.validate()) return;
-    if (!_acceptTerms) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Debes aceptar los términos y condiciones'),
-          backgroundColor: Color(0xFFF44336),
-        ),
-      );
-      return;
-    }
 
     setState(() {
       _isLoading = true;
@@ -89,61 +79,6 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
-  Future<void> _signUpWithGoogle() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      await Supabase.instance.client.auth.signInWithOAuth(
-        OAuthProvider.google,
-        redirectTo: 'io.supabase.woofyapp://login-callback/',
-      );
-    } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al registrarse con Google'),
-            backgroundColor: Color(0xFFF44336),
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _signUpWithApple() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      await Supabase.instance.client.auth.signInWithOAuth(
-        OAuthProvider.apple,
-        redirectTo: 'io.supabase.woofyapp://login-callback/',
-      );
-    } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al registrarse con Apple'),
-            backgroundColor: Color(0xFFF44336),
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -157,7 +92,7 @@ class _SignupScreenState extends State<SignupScreen> {
           ),
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
+          child: Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: 24.0,
               vertical: 16.0,
@@ -207,21 +142,22 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 const SizedBox(height: 32),
                 // Formulario de registro
-                Container(
-                  width: double.infinity,
-                  constraints: const BoxConstraints(maxWidth: 400),
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF1E88E5).withOpacity(0.08),
-                        blurRadius: 32,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
+                Expanded(
+                  child: Container(
+                    width: double.infinity,
+                    constraints: const BoxConstraints(maxWidth: 400),
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF1E88E5).withOpacity(0.08),
+                          blurRadius: 32,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
                   child: Form(
                     key: _formKey,
                     child: Column(
@@ -392,49 +328,6 @@ class _SignupScreenState extends State<SignupScreen> {
                             return null;
                           },
                         ),
-                        const SizedBox(height: 16),
-                        // Términos y condiciones
-                        Row(
-                          children: [
-                            Checkbox(
-                              value: _acceptTerms,
-                              onChanged: (value) {
-                                setState(() {
-                                  _acceptTerms = value ?? false;
-                                });
-                              },
-                              activeColor: const Color(0xFF1E88E5),
-                            ),
-                            Expanded(
-                              child: RichText(
-                                text: const TextSpan(
-                                  style: TextStyle(
-                                    color: Color(0xFF616161),
-                                    fontSize: 14,
-                                  ),
-                                  children: [
-                                    TextSpan(text: 'Acepto los '),
-                                    TextSpan(
-                                      text: 'términos y condiciones',
-                                      style: TextStyle(
-                                        color: Color(0xFF1E88E5),
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    TextSpan(text: ' y la '),
-                                    TextSpan(
-                                      text: 'política de privacidad',
-                                      style: TextStyle(
-                                        color: Color(0xFF1E88E5),
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
                         const SizedBox(height: 24),
                         // Botón de registro
                         SizedBox(
@@ -470,60 +363,10 @@ class _SignupScreenState extends State<SignupScreen> {
                                   ),
                           ),
                         ),
-                        const SizedBox(height: 24),
-                        // Divider
-                        Row(
-                          children: [
-                            const Expanded(
-                              child: Divider(
-                                color: Color(0xFFE0E0E0),
-                                thickness: 1,
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              child: Text(
-                                'O regístrate con',
-                                style: TextStyle(
-                                  color: const Color(0xFF9E9E9E),
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ),
-                            const Expanded(
-                              child: Divider(
-                                color: Color(0xFFE0E0E0),
-                                thickness: 1,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                        // Botones sociales
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildSocialButton(
-                                icon: Icons.g_mobiledata,
-                                label: 'Google',
-                                onPressed: _signUpWithGoogle,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildSocialButton(
-                                icon: Icons.apple,
-                                label: 'Apple',
-                                onPressed: _signUpWithApple,
-                              ),
-                            ),
-                          ],
-                        ),
                       ],
                     ),
                   ),
+                ),
                 ),
                 const SizedBox(height: 32),
                 // Enlace a login
@@ -557,35 +400,4 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  Widget _buildSocialButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onPressed,
-  }) {
-    return SizedBox(
-      height: 56,
-      child: OutlinedButton(
-        onPressed: _isLoading ? null : onPressed,
-        style: OutlinedButton.styleFrom(
-          backgroundColor: Colors.white,
-          foregroundColor: const Color(0xFF616161),
-          side: const BorderSide(color: Color(0xFFE0E0E0), width: 1),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 20),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

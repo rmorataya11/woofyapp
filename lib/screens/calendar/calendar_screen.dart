@@ -760,8 +760,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _AppointmentFormModal(
-        onSave: _saveAppointment,
+      builder: (context) => _EventFormModal(
+        onSave: _saveEvent,
       ),
     );
   }
@@ -771,9 +771,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _AppointmentFormModal(
-        appointment: appointment,
-        onSave: _saveAppointment,
+      builder: (context) => _EventFormModal(
+        event: appointment,
+        onSave: _saveEvent,
       ),
     );
   }
@@ -809,67 +809,83 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  void _saveAppointment(Map<String, dynamic> appointmentData) {
+  void _saveEvent(Map<String, dynamic> eventData) {
     setState(() {
-      if (appointmentData['id'] == null) {
-        // Nueva cita
-        appointmentData['id'] = DateTime.now().millisecondsSinceEpoch.toString();
-        _events.add(appointmentData);
+      if (eventData['id'] == null) {
+        // Nuevo evento
+        eventData['id'] = DateTime.now().millisecondsSinceEpoch.toString();
+        _events.add(eventData);
       } else {
-        // Editar cita existente
-        final index = _events.indexWhere((event) => event['id'] == appointmentData['id']);
+        // Editar evento existente
+        final index = _events.indexWhere((event) => event['id'] == eventData['id']);
         if (index != -1) {
-          _events[index] = appointmentData;
+          _events[index] = eventData;
         }
       }
     });
     
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(appointmentData['id'] == null ? 'Cita agregada' : 'Cita actualizada'),
+        content: Text(eventData['id'] == null ? 'Evento agregado' : 'Evento actualizado'),
         backgroundColor: Colors.green,
       ),
     );
   }
 }
 
-// Modal para agregar/editar citas
-class _AppointmentFormModal extends StatefulWidget {
-  final Map<String, dynamic>? appointment;
+// Modal para agregar/editar eventos
+class _EventFormModal extends StatefulWidget {
+  final Map<String, dynamic>? event;
   final Function(Map<String, dynamic>) onSave;
 
-  const _AppointmentFormModal({
-    this.appointment,
+  const _EventFormModal({
+    this.event,
     required this.onSave,
   });
 
   @override
-  State<_AppointmentFormModal> createState() => _AppointmentFormModalState();
+  State<_EventFormModal> createState() => _EventFormModalState();
 }
 
-class _AppointmentFormModalState extends State<_AppointmentFormModal> {
+class _EventFormModalState extends State<_EventFormModal> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
-  final _clinicController = TextEditingController();
-  final _petController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _locationController = TextEditingController();
   final _notesController = TextEditingController();
   
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
-  String _type = 'vaccine';
+  String _eventType = 'appointment';
+  String _petName = 'Max';
   bool _urgent = false;
+  bool _isAllDay = false;
+
+  // Lista de mascotas mockeadas
+  final List<String> _mockPets = [
+    'Max',
+    'Luna',
+    'Bella',
+    'Rocky',
+    'Mia',
+    'Charlie',
+    'Daisy',
+    'Buddy'
+  ];
 
   @override
   void initState() {
     super.initState();
-    if (widget.appointment != null) {
-      _titleController.text = widget.appointment!['title'] ?? '';
-      _clinicController.text = widget.appointment!['clinic_name'] ?? '';
-      _petController.text = widget.appointment!['pet_name'] ?? '';
-      _notesController.text = widget.appointment!['notes'] ?? '';
-      _type = widget.appointment!['type'] ?? 'vaccine';
-      _urgent = widget.appointment!['urgent'] ?? false;
-      _selectedDate = DateTime.parse(widget.appointment!['appointment_date']);
+    if (widget.event != null) {
+      _titleController.text = widget.event!['title'] ?? '';
+      _descriptionController.text = widget.event!['description'] ?? '';
+      _locationController.text = widget.event!['location'] ?? '';
+      _notesController.text = widget.event!['notes'] ?? '';
+      _eventType = widget.event!['event_type'] ?? 'appointment';
+      _petName = widget.event!['pet_name'] ?? 'Max';
+      _urgent = widget.event!['urgent'] ?? false;
+      _isAllDay = widget.event!['is_all_day'] ?? false;
+      _selectedDate = DateTime.parse(widget.event!['appointment_date']);
       _selectedTime = TimeOfDay.fromDateTime(_selectedDate);
     }
   }
@@ -877,8 +893,8 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
   @override
   void dispose() {
     _titleController.dispose();
-    _clinicController.dispose();
-    _petController.dispose();
+    _descriptionController.dispose();
+    _locationController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -886,7 +902,7 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.8,
+      height: MediaQuery.of(context).size.height * 0.85,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
@@ -909,13 +925,13 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
             child: Row(
               children: [
                 Icon(
-                  Icons.calendar_today,
+                  Icons.event,
                   color: Theme.of(context).colorScheme.primary,
                   size: 28,
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  widget.appointment == null ? 'Nueva Cita' : 'Editar Cita',
+                  widget.event == null ? 'Nuevo Evento' : 'Editar Evento',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -938,10 +954,31 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
                 key: _formKey,
                 child: Column(
                   children: [
+                    // Tipo de evento
+                    DropdownButtonFormField<String>(
+                      value: _eventType,
+                      decoration: const InputDecoration(
+                        labelText: 'Tipo de evento',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.category),
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 'appointment', child: Text('Cita Veterinaria')),
+                        DropdownMenuItem(value: 'reminder', child: Text('Recordatorio')),
+                        DropdownMenuItem(value: 'event', child: Text('Evento')),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          _eventType = value!;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    // Título
                     TextFormField(
                       controller: _titleController,
                       decoration: const InputDecoration(
-                        labelText: 'Título de la cita',
+                        labelText: 'Título del evento',
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.title),
                       ),
@@ -953,36 +990,57 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
                       },
                     ),
                     const SizedBox(height: 16),
+                    // Descripción
                     TextFormField(
-                      controller: _clinicController,
+                      controller: _descriptionController,
                       decoration: const InputDecoration(
-                        labelText: 'Clínica',
+                        labelText: 'Descripción',
                         border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.local_hospital),
+                        prefixIcon: Icon(Icons.description),
                       ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Por favor ingresa el nombre de la clínica';
-                        }
-                        return null;
-                      },
+                      maxLines: 2,
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _petController,
+                    // Mascota (dropdown)
+                    DropdownButtonFormField<String>(
+                      value: _petName,
                       decoration: const InputDecoration(
                         labelText: 'Mascota',
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.pets),
                       ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Por favor ingresa el nombre de la mascota';
-                        }
-                        return null;
+                      items: _mockPets.map((pet) {
+                        return DropdownMenuItem(
+                          value: pet,
+                          child: Text(pet),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _petName = value!;
+                        });
                       },
                     ),
                     const SizedBox(height: 16),
+                    // Ubicación (solo para citas)
+                    if (_eventType == 'appointment') ...[
+                      TextFormField(
+                        controller: _locationController,
+                        decoration: const InputDecoration(
+                          labelText: 'Clínica/Ubicación',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.location_on),
+                        ),
+                        validator: (value) {
+                          if (_eventType == 'appointment' && (value == null || value.isEmpty)) {
+                            return 'Por favor ingresa la ubicación';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                    // Fecha y hora
                     Row(
                       children: [
                         Expanded(
@@ -1001,45 +1059,40 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
                           ),
                         ),
                         const SizedBox(width: 16),
-                        Expanded(
-                          child: InkWell(
-                            onTap: _selectTime,
-                            child: InputDecorator(
-                              decoration: const InputDecoration(
-                                labelText: 'Hora',
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(Icons.access_time),
+                        if (!_isAllDay) ...[
+                          Expanded(
+                            child: InkWell(
+                              onTap: _selectTime,
+                              child: InputDecorator(
+                                decoration: const InputDecoration(
+                                  labelText: 'Hora',
+                                  border: OutlineInputBorder(),
+                                  prefixIcon: Icon(Icons.access_time),
+                                ),
+                                child: Text(_selectedTime.format(context)),
                               ),
-                              child: Text(_selectedTime.format(context)),
                             ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
                     const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      value: _type,
-                      decoration: const InputDecoration(
-                        labelText: 'Tipo de cita',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.medical_services),
-                      ),
-                      items: const [
-                        DropdownMenuItem(value: 'vaccine', child: Text('Vacuna')),
-                        DropdownMenuItem(value: 'checkup', child: Text('Revisión')),
-                        DropdownMenuItem(value: 'surgery', child: Text('Cirugía')),
-                        DropdownMenuItem(value: 'emergency', child: Text('Emergencia')),
-                      ],
+                    // Todo el día
+                    SwitchListTile(
+                      title: const Text('Todo el día'),
+                      subtitle: const Text('Evento que dura todo el día'),
+                      value: _isAllDay,
                       onChanged: (value) {
                         setState(() {
-                          _type = value!;
+                          _isAllDay = value;
                         });
                       },
                     ),
                     const SizedBox(height: 16),
+                    // Urgente
                     SwitchListTile(
                       title: const Text('Urgente'),
-                      subtitle: const Text('Marcar como cita urgente'),
+                      subtitle: const Text('Marcar como evento urgente'),
                       value: _urgent,
                       onChanged: (value) {
                         setState(() {
@@ -1048,16 +1101,18 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
                       },
                     ),
                     const SizedBox(height: 16),
+                    // Notas
                     TextFormField(
                       controller: _notesController,
                       decoration: const InputDecoration(
-                        labelText: 'Notas (opcional)',
+                        labelText: 'Notas adicionales (opcional)',
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.note),
                       ),
                       maxLines: 3,
                     ),
                     const SizedBox(height: 24),
+                    // Botones
                     Row(
                       children: [
                         Expanded(
@@ -1072,8 +1127,8 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: _saveAppointment,
-                            child: Text(widget.appointment == null ? 'Agregar' : 'Actualizar'),
+                            onPressed: _saveEvent,
+                            child: Text(widget.event == null ? 'Agregar' : 'Actualizar'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Theme.of(context).colorScheme.primary,
                               foregroundColor: Theme.of(context).colorScheme.onPrimary,
@@ -1120,28 +1175,33 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
     }
   }
 
-  void _saveAppointment() {
+  void _saveEvent() {
     if (_formKey.currentState!.validate()) {
-      final appointmentData = {
-        'id': widget.appointment?['id'],
+      final eventData = {
+        'id': widget.event?['id'],
         'title': _titleController.text,
-        'clinic_name': _clinicController.text,
-        'pet_name': _petController.text,
+        'description': _descriptionController.text,
+        'location': _locationController.text,
         'notes': _notesController.text,
-        'type': _type,
+        'event_type': _eventType,
+        'pet_name': _petName,
         'urgent': _urgent,
+        'is_all_day': _isAllDay,
         'appointment_date': DateTime(
           _selectedDate.year,
           _selectedDate.month,
           _selectedDate.day,
-          _selectedTime.hour,
-          _selectedTime.minute,
+          _isAllDay ? 0 : _selectedTime.hour,
+          _isAllDay ? 0 : _selectedTime.minute,
         ).toIso8601String(),
-        'time': _selectedTime.format(context),
+        'time': _isAllDay ? 'Todo el día' : _selectedTime.format(context),
         'status': 'scheduled',
+        // Campos adicionales para compatibilidad
+        'clinic_name': _locationController.text,
+        'type': _eventType == 'appointment' ? 'vaccine' : _eventType,
       };
       
-      widget.onSave(appointmentData);
+      widget.onSave(eventData);
       Navigator.of(context).pop();
     }
   }

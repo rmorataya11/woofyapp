@@ -943,20 +943,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
                 ),
               ),
             ] else if (status == 'completed') ...[
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => _viewAppointmentDetails(appointment),
-                  icon: const Icon(Icons.info, size: 18),
-                  label: const Text('Ver Detalles'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF1E88E5),
-                    side: const BorderSide(color: Color(0xFF1E88E5)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ),
+              // Citas completadas no necesitan botones adicionales
             ] else if (status == 'cancelled') ...[
               Expanded(
                 child: OutlinedButton.icon(
@@ -976,33 +963,17 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
           ],
         ),
         const SizedBox(height: 12),
-        // Botones de editar y eliminar
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () => _editAppointment(appointment),
-                icon: const Icon(Icons.edit, size: 16),
-                label: const Text('Editar'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                ),
-              ),
+        // Botón de más acciones
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () => _showMoreActions(appointment),
+            icon: const Icon(Icons.more_horiz, size: 16),
+            label: const Text('Más opciones'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 12),
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () => _deleteAppointment(appointment['id']),
-                icon: const Icon(Icons.delete, size: 16),
-                label: const Text('Eliminar'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.red,
-                  side: const BorderSide(color: Colors.red),
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ],
     );
@@ -1069,43 +1040,138 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
   }
 
   void _confirmAppointment(Map<String, dynamic> appointment) {
+    setState(() {
+      final index = _appointments.indexWhere((apt) => apt['id'] == appointment['id']);
+      if (index != -1) {
+        _appointments[index]['status'] = 'confirmed';
+      }
+    });
+    _filterAppointments();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Confirmando cita: ${appointment['title']}'),
+        content: Text('Cita confirmada: ${appointment['title']}'),
         backgroundColor: const Color(0xFF4CAF50),
       ),
     );
-    // TODO: Implementar confirmación de cita
   }
 
   void _rescheduleAppointment(Map<String, dynamic> appointment) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Reagendando cita: ${appointment['title']}'),
-        backgroundColor: const Color(0xFF2196F3),
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _AppointmentFormModal(
+        appointment: appointment,
+        onSave: _saveAppointment,
       ),
     );
-    // TODO: Implementar reagendamiento de cita
   }
 
   void _cancelAppointment(Map<String, dynamic> appointment) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Cancelando cita: ${appointment['title']}'),
-        backgroundColor: const Color(0xFFF44336),
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancelar Cita'),
+        content: const Text('¿Estás seguro de que quieres cancelar esta cita?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                final index = _appointments.indexWhere((apt) => apt['id'] == appointment['id']);
+                if (index != -1) {
+                  _appointments[index]['status'] = 'cancelled';
+                }
+              });
+              _filterAppointments();
+              Navigator.of(context).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Cita cancelada: ${appointment['title']}'),
+                  backgroundColor: const Color(0xFFF44336),
+                ),
+              );
+            },
+            child: const Text('Sí, cancelar', style: TextStyle(color: Colors.red)),
+          ),
+        ],
       ),
     );
-    // TODO: Implementar cancelación de cita
   }
 
-  void _viewAppointmentDetails(Map<String, dynamic> appointment) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Viendo detalles: ${appointment['title']}'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
+
+  void _showMoreActions(Map<String, dynamic> appointment) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Acciones para: ${appointment['title']}',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      _editAppointment(appointment);
+                    },
+                    icon: const Icon(Icons.edit),
+                    label: const Text('Editar'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      _deleteAppointment(appointment['id']);
+                    },
+                    icon: const Icon(Icons.delete),
+                    label: const Text('Eliminar'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.red),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
       ),
     );
-    // TODO: Implementar vista de detalles
   }
 
   void _addNewAppointment() {
@@ -1198,7 +1264,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
   }
 }
 
-// Modal para agregar/editar citas
 class _AppointmentFormModal extends StatefulWidget {
   final Map<String, dynamic>? appointment;
   final Function(Map<String, dynamic>) onSave;
@@ -1216,14 +1281,31 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _clinicController = TextEditingController();
-  final _petController = TextEditingController();
+  final _doctorController = TextEditingController();
+  final _specialtyController = TextEditingController();
   final _notesController = TextEditingController();
   
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
   String _type = 'vaccine';
   String _status = 'scheduled';
+  String _petName = 'Max';
+  String _petBreed = 'Golden Retriever';
+  int _petAge = 3;
+  int _estimatedDuration = 30;
+  double _cost = 50.0;
   bool _urgent = false;
+
+  final List<Map<String, dynamic>> _mockPets = [
+    {'name': 'Max', 'breed': 'Golden Retriever', 'age': 3},
+    {'name': 'Luna', 'breed': 'Labrador', 'age': 2},
+    {'name': 'Bella', 'breed': 'Pastor Alemán', 'age': 4},
+    {'name': 'Rocky', 'breed': 'Bulldog', 'age': 5},
+    {'name': 'Mia', 'breed': 'Chihuahua', 'age': 1},
+    {'name': 'Charlie', 'breed': 'Beagle', 'age': 6},
+    {'name': 'Daisy', 'breed': 'Poodle', 'age': 2},
+    {'name': 'Buddy', 'breed': 'Husky', 'age': 3},
+  ];
 
   @override
   void initState() {
@@ -1231,13 +1313,33 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
     if (widget.appointment != null) {
       _titleController.text = widget.appointment!['title'] ?? '';
       _clinicController.text = widget.appointment!['clinic_name'] ?? '';
-      _petController.text = widget.appointment!['pet_name'] ?? '';
+      _doctorController.text = widget.appointment!['doctor_name'] ?? '';
+      _specialtyController.text = widget.appointment!['specialty'] ?? '';
       _notesController.text = widget.appointment!['notes'] ?? '';
       _type = widget.appointment!['type'] ?? 'vaccine';
       _status = widget.appointment!['status'] ?? 'scheduled';
+      final appointmentPetName = widget.appointment!['pet_name'] ?? 'Max';
+      // Verificar que la mascota esté en la lista disponible
+      if (_mockPets.any((pet) => pet['name'] == appointmentPetName)) {
+        _petName = appointmentPetName;
+        final selectedPet = _mockPets.firstWhere((pet) => pet['name'] == appointmentPetName);
+        _petBreed = selectedPet['breed'];
+        _petAge = selectedPet['age'];
+      } else {
+        _petName = 'Max';
+        _petBreed = 'Golden Retriever';
+        _petAge = 3;
+      }
+      _estimatedDuration = widget.appointment!['estimated_duration'] ?? 30;
+      _cost = widget.appointment!['cost']?.toDouble() ?? 50.0;
       _urgent = widget.appointment!['urgent'] ?? false;
-      _selectedDate = DateTime.parse(widget.appointment!['appointment_date']);
-      _selectedTime = TimeOfDay.fromDateTime(_selectedDate);
+      try {
+        _selectedDate = DateTime.parse(widget.appointment!['appointment_date']);
+        _selectedTime = TimeOfDay.fromDateTime(_selectedDate);
+      } catch (e) {
+        _selectedDate = DateTime.now();
+        _selectedTime = TimeOfDay.now();
+      }
     }
   }
 
@@ -1245,7 +1347,8 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
   void dispose() {
     _titleController.dispose();
     _clinicController.dispose();
-    _petController.dispose();
+    _doctorController.dispose();
+    _specialtyController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -1335,18 +1438,66 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _petController,
+                    // Doctor y Especialidad
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _doctorController,
+                            decoration: const InputDecoration(
+                              labelText: 'Doctor',
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.person),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Requerido';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _specialtyController,
+                            decoration: const InputDecoration(
+                              labelText: 'Especialidad',
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.medical_services),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Requerido';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    // Mascota (dropdown)
+                    DropdownButtonFormField<String>(
+                      value: _petName,
                       decoration: const InputDecoration(
                         labelText: 'Mascota',
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.pets),
                       ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Por favor ingresa el nombre de la mascota';
-                        }
-                        return null;
+                      items: _mockPets.map<DropdownMenuItem<String>>((pet) {
+                        return DropdownMenuItem<String>(
+                          value: pet['name'] as String,
+                          child: Text('${pet['name']} (${pet['breed']}, ${pet['age']} años)'),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _petName = value!;
+                          final selectedPet = _mockPets.firstWhere((pet) => pet['name'] == value);
+                          _petBreed = selectedPet['breed'];
+                          _petAge = selectedPet['age'];
+                        });
                       },
                     ),
                     const SizedBox(height: 16),
@@ -1443,6 +1594,41 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
                       },
                     ),
                     const SizedBox(height: 16),
+                    // Duración y Costo
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            initialValue: _estimatedDuration.toString(),
+                            decoration: const InputDecoration(
+                              labelText: 'Duración (min)',
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.timer),
+                            ),
+                            keyboardType: TextInputType.number,
+                            onChanged: (value) {
+                              _estimatedDuration = int.tryParse(value) ?? 30;
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: TextFormField(
+                            initialValue: _cost.toString(),
+                            decoration: const InputDecoration(
+                              labelText: 'Costo (\$)',
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.attach_money),
+                            ),
+                            keyboardType: TextInputType.number,
+                            onChanged: (value) {
+                              _cost = double.tryParse(value) ?? 50.0;
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
                     TextFormField(
                       controller: _notesController,
                       decoration: const InputDecoration(
@@ -1521,11 +1707,17 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
         'id': widget.appointment?['id'],
         'title': _titleController.text,
         'clinic_name': _clinicController.text,
-        'pet_name': _petController.text,
+        'doctor_name': _doctorController.text,
+        'specialty': _specialtyController.text,
+        'pet_name': _petName,
+        'pet_breed': _petBreed,
+        'pet_age': _petAge,
         'notes': _notesController.text,
         'type': _type,
         'status': _status,
         'urgent': _urgent,
+        'estimated_duration': _estimatedDuration,
+        'cost': _cost,
         'appointment_date': DateTime(
           _selectedDate.year,
           _selectedDate.month,
