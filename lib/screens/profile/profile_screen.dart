@@ -154,19 +154,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
       child: Column(
         children: [
           // Avatar
-              CircleAvatar(
-                radius: 60,
+          CircleAvatar(
+            radius: 60,
             backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                backgroundImage: _userProfile['avatar_url'] != null
-                    ? NetworkImage(_userProfile['avatar_url'])
-                    : null,
-                child: _userProfile['avatar_url'] == null
+            backgroundImage: _userProfile['avatar_url'] != null
+                ? NetworkImage(_userProfile['avatar_url'])
+                : null,
+            child: _userProfile['avatar_url'] == null
                 ? Icon(
-                        Icons.person,
-                        size: 60,
+                    Icons.person,
+                    size: 60,
                     color: Theme.of(context).colorScheme.primary,
-                      )
-                    : null,
+                  )
+                : null,
           ),
           const SizedBox(height: 16),
           // Nombre y email
@@ -210,6 +210,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                 'Teléfono',
               ),
             ],
+          ),
+        ],
       ),
     );
   }
@@ -292,6 +294,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                 ),
               ),
             ],
+          ),
+        ],
       ),
     );
   }
