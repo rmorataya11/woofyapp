@@ -22,47 +22,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   Future<void> _loadEvents() async {
-    try {
-      final user = _supabase.auth.currentUser;
-      if (user != null) {
-        // Cargar eventos del usuario
-        final eventsResponse = await _supabase
-            .from('appointments')
-            .select('*, pets(name), clinics(name)')
-            .eq('user_id', user.id)
-            .gte(
-              'appointment_date',
-              DateTime.now()
-                  .subtract(const Duration(days: 30))
-                  .toIso8601String(),
-            )
-            .lte(
-              'appointment_date',
-              DateTime.now().add(const Duration(days: 365)).toIso8601String(),
-            );
-
-        // Cargar recordatorios
-        final remindersResponse = await _supabase
-            .from('reminders')
-            .select('*, pets(name)')
-            .eq('user_id', user.id)
-            .eq('is_active', true);
-
-        setState(() {
-          _events = List<Map<String, dynamic>>.from(eventsResponse);
-          _reminders = List<Map<String, dynamic>>.from(remindersResponse);
-        });
-      }
-    } catch (e) {
-      print('Error cargando eventos: $e');
-      // Datos mock si hay error
-      setState(() {
-        _events = _getMockEvents();
-        _reminders = _getMockReminders();
-      });
-    } finally {
-      // Eventos cargados
-    }
+    // Usar solo datos hardcodeados
+    setState(() {
+      _events = _getMockEvents();
+      _reminders = _getMockReminders();
+    });
   }
 
   List<Map<String, dynamic>> _getMockEvents() {
@@ -182,28 +146,34 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFFE3F2FD), Color(0xFFFFFFFF)],
+            colors: [
+              Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              Theme.of(context).colorScheme.background,
+            ],
           ),
         ),
         child: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(),
-              _buildMonthSelector(),
-              _buildCalendar(),
-              Expanded(child: _buildEventsList()),
-            ],
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                _buildHeader(),
+                _buildMonthSelector(),
+                _buildCalendar(),
+                _buildEventsList(),
+                const SizedBox(height: 100), // Espacio para el FAB
+              ],
+            ),
           ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _addNewEvent,
-        backgroundColor: const Color(0xFF1E88E5),
-        child: const Icon(Icons.add, color: Colors.white),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        child: Icon(Icons.add, color: Theme.of(context).colorScheme.onPrimary),
       ),
     );
   }
@@ -213,21 +183,21 @@ class _CalendarScreenState extends State<CalendarScreen> {
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
-          const Icon(Icons.calendar_today, color: Color(0xFF1E88E5), size: 28),
+          Icon(Icons.calendar_today, color: Theme.of(context).colorScheme.primary, size: 28),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Text(
               'Mi Calendario',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF212121),
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ),
           IconButton(
             onPressed: _showToday,
-            icon: const Icon(Icons.today, color: Color(0xFF1E88E5), size: 24),
+            icon: Icon(Icons.today, color: Theme.of(context).colorScheme.primary, size: 24),
           ),
         ],
       ),
@@ -242,25 +212,25 @@ class _CalendarScreenState extends State<CalendarScreen> {
         children: [
           IconButton(
             onPressed: _previousMonth,
-            icon: const Icon(
+            icon: Icon(
               Icons.chevron_left,
-              color: Color(0xFF1E88E5),
+              color: Theme.of(context).colorScheme.primary,
               size: 28,
             ),
           ),
           Text(
             _getMonthYearString(_currentMonth),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF212121),
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           IconButton(
             onPressed: _nextMonth,
-            icon: const Icon(
+            icon: Icon(
               Icons.chevron_right,
-              color: Color(0xFF1E88E5),
+              color: Theme.of(context).colorScheme.primary,
               size: 28,
             ),
           ),
@@ -273,11 +243,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1E88E5).withOpacity(0.1),
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
             blurRadius: 20,
             offset: const Offset(0, 5),
           ),
@@ -297,10 +267,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
             child: Center(
               child: Text(
                 day,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF616161),
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                 ),
               ),
             ),
@@ -376,9 +346,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
           margin: const EdgeInsets.all(2),
           decoration: BoxDecoration(
             color: isSelected
-                ? const Color(0xFF1E88E5)
+                ? Theme.of(context).colorScheme.primary
                 : isToday
-                ? const Color(0xFF1E88E5).withOpacity(0.1)
+                ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
             border: isToday && !isSelected
@@ -398,7 +368,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     color: isSelected
                         ? Colors.white
                         : isToday
-                        ? const Color(0xFF1E88E5)
+                        ? Theme.of(context).colorScheme.primary
                         : const Color(0xFF212121),
                   ),
                 ),
@@ -432,11 +402,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return Container(
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1E88E5).withOpacity(0.1),
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
             blurRadius: 20,
             offset: const Offset(0, 5),
           ),
@@ -444,82 +414,90 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E88E5).withOpacity(0.05),
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(20),
               ),
             ),
             child: Row(
               children: [
-                const Icon(Icons.event, color: Color(0xFF1E88E5), size: 20),
+                Icon(Icons.event, color: Theme.of(context).colorScheme.primary, size: 20),
                 const SizedBox(width: 8),
                 Text(
                   _getSelectedDateString(),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF212121),
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const Spacer(),
                 Text(
                   '${selectedEvents.length + selectedReminders.length} eventos',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: Color(0xFF616161),
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                   ),
                 ),
               ],
             ),
           ),
-          Expanded(
-            child: selectedEvents.isEmpty && selectedReminders.isEmpty
-                ? _buildEmptyState()
-                : ListView(
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      ...selectedEvents.map((event) => _buildEventCard(event)),
-                      ...selectedReminders.map(
-                        (reminder) => _buildReminderCard(reminder),
-                      ),
-                    ],
+          if (selectedEvents.isEmpty && selectedReminders.isEmpty)
+            _buildEmptyState()
+          else
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  ...selectedEvents.map((event) => _buildEventCard(event)),
+                  ...selectedReminders.map(
+                    (reminder) => _buildReminderCard(reminder),
                   ),
-          ),
+                ],
+              ),
+            ),
         ],
       ),
     );
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.event_available,
-            size: 80,
-            color: const Color(0xFF616161).withOpacity(0.5),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'No hay eventos para este día',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF616161),
+    return Padding(
+      padding: const EdgeInsets.all(32),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.event_available,
+              size: 80,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
             ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Toca el botón + para agregar un evento',
-            style: TextStyle(fontSize: 14, color: Color(0xFF616161)),
-            textAlign: TextAlign.center,
-          ),
-        ],
+            const SizedBox(height: 16),
+            Text(
+              'No hay eventos para este día',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Toca el botón + para agregar un evento',
+              style: TextStyle(
+                fontSize: 14, 
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -529,7 +507,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: _getEventColor(event['type']).withOpacity(0.3),
@@ -560,10 +538,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
               Expanded(
                 child: Text(
                   event['title'],
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF212121),
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ),
@@ -574,13 +552,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF44336),
+                    color: Theme.of(context).colorScheme.error,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Urgente',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.surface,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -603,9 +581,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
               Expanded(
                 child: Text(
                   event['clinic_name'],
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: Color(0xFF616161),
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                   ),
                 ),
               ),
@@ -622,6 +600,34 @@ class _CalendarScreenState extends State<CalendarScreen> {
               ),
             ),
           ],
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _editAppointment(event),
+                  icon: const Icon(Icons.edit, size: 16),
+                  label: const Text('Editar'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _deleteAppointment(event['id']),
+                  icon: const Icon(Icons.delete, size: 16),
+                  label: const Text('Eliminar'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: const BorderSide(color: Colors.red),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -656,24 +662,24 @@ class _CalendarScreenState extends State<CalendarScreen> {
               children: [
                 Text(
                   reminder['title'],
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF212121),
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   reminder['description'],
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: Color(0xFF616161),
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                   ),
                 ),
               ],
             ),
           ),
-          Icon(Icons.notifications, color: const Color(0xFFFF9800), size: 20),
+          Icon(Icons.notifications, color: Theme.of(context).colorScheme.primary, size: 20),
         ],
       ),
     );
@@ -750,12 +756,393 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   void _addNewEvent() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Próximamente: Agregar nuevo evento'),
-        backgroundColor: Color(0xFF4CAF50),
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _AppointmentFormModal(
+        onSave: _saveAppointment,
       ),
     );
-    // TODO: Navegar a pantalla de agregar evento
+  }
+
+  void _editAppointment(Map<String, dynamic> appointment) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _AppointmentFormModal(
+        appointment: appointment,
+        onSave: _saveAppointment,
+      ),
+    );
+  }
+
+  void _deleteAppointment(String appointmentId) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Eliminar Cita'),
+        content: const Text('¿Estás seguro de que quieres eliminar esta cita?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                _events.removeWhere((event) => event['id'] == appointmentId);
+              });
+              Navigator.of(context).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Cita eliminada'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            },
+            child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _saveAppointment(Map<String, dynamic> appointmentData) {
+    setState(() {
+      if (appointmentData['id'] == null) {
+        // Nueva cita
+        appointmentData['id'] = DateTime.now().millisecondsSinceEpoch.toString();
+        _events.add(appointmentData);
+      } else {
+        // Editar cita existente
+        final index = _events.indexWhere((event) => event['id'] == appointmentData['id']);
+        if (index != -1) {
+          _events[index] = appointmentData;
+        }
+      }
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(appointmentData['id'] == null ? 'Cita agregada' : 'Cita actualizada'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+}
+
+// Modal para agregar/editar citas
+class _AppointmentFormModal extends StatefulWidget {
+  final Map<String, dynamic>? appointment;
+  final Function(Map<String, dynamic>) onSave;
+
+  const _AppointmentFormModal({
+    this.appointment,
+    required this.onSave,
+  });
+
+  @override
+  State<_AppointmentFormModal> createState() => _AppointmentFormModalState();
+}
+
+class _AppointmentFormModalState extends State<_AppointmentFormModal> {
+  final _formKey = GlobalKey<FormState>();
+  final _titleController = TextEditingController();
+  final _clinicController = TextEditingController();
+  final _petController = TextEditingController();
+  final _notesController = TextEditingController();
+  
+  DateTime _selectedDate = DateTime.now();
+  TimeOfDay _selectedTime = TimeOfDay.now();
+  String _type = 'vaccine';
+  bool _urgent = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.appointment != null) {
+      _titleController.text = widget.appointment!['title'] ?? '';
+      _clinicController.text = widget.appointment!['clinic_name'] ?? '';
+      _petController.text = widget.appointment!['pet_name'] ?? '';
+      _notesController.text = widget.appointment!['notes'] ?? '';
+      _type = widget.appointment!['type'] ?? 'vaccine';
+      _urgent = widget.appointment!['urgent'] ?? false;
+      _selectedDate = DateTime.parse(widget.appointment!['appointment_date']);
+      _selectedTime = TimeOfDay.fromDateTime(_selectedDate);
+    }
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _clinicController.dispose();
+    _petController.dispose();
+    _notesController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.8,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        children: [
+          // Handle
+          Container(
+            margin: const EdgeInsets.only(top: 12),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          // Header
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.calendar_today,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 28,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  widget.appointment == null ? 'Nueva Cita' : 'Editar Cita',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                const Spacer(),
+                IconButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+          ),
+          // Form
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    TextFormField(
+                      controller: _titleController,
+                      decoration: const InputDecoration(
+                        labelText: 'Título de la cita',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.title),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Por favor ingresa un título';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _clinicController,
+                      decoration: const InputDecoration(
+                        labelText: 'Clínica',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.local_hospital),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Por favor ingresa el nombre de la clínica';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _petController,
+                      decoration: const InputDecoration(
+                        labelText: 'Mascota',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.pets),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Por favor ingresa el nombre de la mascota';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: InkWell(
+                            onTap: _selectDate,
+                            child: InputDecorator(
+                              decoration: const InputDecoration(
+                                labelText: 'Fecha',
+                                border: OutlineInputBorder(),
+                                prefixIcon: Icon(Icons.calendar_today),
+                              ),
+                              child: Text(
+                                '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: InkWell(
+                            onTap: _selectTime,
+                            child: InputDecorator(
+                              decoration: const InputDecoration(
+                                labelText: 'Hora',
+                                border: OutlineInputBorder(),
+                                prefixIcon: Icon(Icons.access_time),
+                              ),
+                              child: Text(_selectedTime.format(context)),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      value: _type,
+                      decoration: const InputDecoration(
+                        labelText: 'Tipo de cita',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.medical_services),
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 'vaccine', child: Text('Vacuna')),
+                        DropdownMenuItem(value: 'checkup', child: Text('Revisión')),
+                        DropdownMenuItem(value: 'surgery', child: Text('Cirugía')),
+                        DropdownMenuItem(value: 'emergency', child: Text('Emergencia')),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          _type = value!;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    SwitchListTile(
+                      title: const Text('Urgente'),
+                      subtitle: const Text('Marcar como cita urgente'),
+                      value: _urgent,
+                      onChanged: (value) {
+                        setState(() {
+                          _urgent = value;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _notesController,
+                      decoration: const InputDecoration(
+                        labelText: 'Notas (opcional)',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.note),
+                      ),
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: const Text('Cancelar'),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: _saveAppointment,
+                            child: Text(widget.appointment == null ? 'Agregar' : 'Actualizar'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Theme.of(context).colorScheme.primary,
+                              foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _selectDate() async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (date != null) {
+      setState(() {
+        _selectedDate = date;
+      });
+    }
+  }
+
+  Future<void> _selectTime() async {
+    final time = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime,
+    );
+    if (time != null) {
+      setState(() {
+        _selectedTime = time;
+      });
+    }
+  }
+
+  void _saveAppointment() {
+    if (_formKey.currentState!.validate()) {
+      final appointmentData = {
+        'id': widget.appointment?['id'],
+        'title': _titleController.text,
+        'clinic_name': _clinicController.text,
+        'pet_name': _petController.text,
+        'notes': _notesController.text,
+        'type': _type,
+        'urgent': _urgent,
+        'appointment_date': DateTime(
+          _selectedDate.year,
+          _selectedDate.month,
+          _selectedDate.day,
+          _selectedTime.hour,
+          _selectedTime.minute,
+        ).toIso8601String(),
+        'time': _selectedTime.format(context),
+        'status': 'scheduled',
+      };
+      
+      widget.onSave(appointmentData);
+      Navigator.of(context).pop();
+    }
   }
 }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../../router/app_router.dart';
 
 class LoginScreenOffline extends StatefulWidget {
   const LoginScreenOffline({super.key});
@@ -38,12 +40,12 @@ class _LoginScreenOfflineState extends State<LoginScreenOffline> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('Modo offline - Login simulado exitoso'),
-          backgroundColor: Color(0xFF4CAF50),
+          backgroundColor: Theme.of(context).colorScheme.primary,
         ),
       );
-      Navigator.of(context).pushReplacementNamed('/home');
+      context.go(AppRouter.home);
     }
   }
 
@@ -51,11 +53,14 @@ class _LoginScreenOfflineState extends State<LoginScreenOffline> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFFE3F2FD), Color(0xFFFFFFFF)],
+            colors: [
+              Theme.of(context).colorScheme.primaryContainer,
+              Theme.of(context).colorScheme.surface,
+            ],
           ),
         ),
         child: SafeArea(
@@ -74,20 +79,20 @@ class _LoginScreenOfflineState extends State<LoginScreenOffline> {
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E88E5),
+                        color: Theme.of(context).colorScheme.primary,
                         borderRadius: BorderRadius.circular(40),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF1E88E5).withOpacity(0.3),
+                            color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
                             blurRadius: 20,
                             offset: const Offset(0, 10),
                           ),
                         ],
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.pets,
                         size: 40,
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.onPrimary,
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -96,13 +101,13 @@ class _LoginScreenOfflineState extends State<LoginScreenOffline> {
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF212121),
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       'Inicia sesión para continuar cuidando a tu perrito',
-                      style: TextStyle(fontSize: 16, color: Color(0xFF616161)),
+                      style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 16),
@@ -406,7 +411,7 @@ class _LoginScreenOfflineState extends State<LoginScreenOffline> {
                     ),
                     TextButton(
                       onPressed: () {
-                        Navigator.of(context).pushNamed('/signup');
+                        context.go(AppRouter.signup);
                       },
                       child: const Text(
                         'Regístrate',

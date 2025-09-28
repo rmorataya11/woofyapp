@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:go_router/go_router.dart';
+import '../../router/app_router.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -58,7 +60,7 @@ class _SignupScreenState extends State<SignupScreen> {
             backgroundColor: Color(0xFF4CAF50),
           ),
         );
-        Navigator.of(context).pushReplacementNamed('/home');
+        context.go(AppRouter.home);
       }
     } on AuthException catch (error) {
       if (mounted) {
@@ -534,7 +536,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                     TextButton(
                       onPressed: () {
-                        Navigator.of(context).pop();
+                        context.go(AppRouter.login);
                       },
                       child: const Text(
                         'Inicia sesión',

@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../router/app_router.dart';
+import '../../providers/navigation_provider.dart';
 import '../home/home_screen.dart';
 import '../map/map_screen.dart';
 import '../calendar/calendar_screen.dart';
 import '../appointments/appointments_screen.dart';
 import '../profile/profile_screen.dart';
 
-class MainNavigation extends StatefulWidget {
+class MainNavigation extends ConsumerStatefulWidget {
   const MainNavigation({super.key});
 
   @override
-  State<MainNavigation> createState() => _MainNavigationState();
+  ConsumerState<MainNavigation> createState() => _MainNavigationState();
 }
 
-class _MainNavigationState extends State<MainNavigation> {
-  int _currentIndex = 0;
+class _MainNavigationState extends ConsumerState<MainNavigation> {
 
   final List<Widget> _screens = [
     const HomeScreen(),
@@ -25,14 +28,16 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
+    final currentIndex = ref.watch(navigationNotifierProvider);
+    
     return Scaffold(
-      body: _screens[_currentIndex],
+      body: _screens[currentIndex],
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF1E88E5).withOpacity(0.1),
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
               blurRadius: 20,
               offset: const Offset(0, -5),
             ),
@@ -58,19 +63,18 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 
   Widget _buildNavItem(int index, IconData icon, String label) {
-    final isSelected = _currentIndex == index;
+    final currentIndex = ref.watch(navigationNotifierProvider);
+    final isSelected = currentIndex == index;
 
     return GestureDetector(
       onTap: () {
-        setState(() {
-          _currentIndex = index;
-        });
+        ref.read(navigationNotifierProvider.notifier).changeTab(index);
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? const Color(0xFF1E88E5).withOpacity(0.1)
+              ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
@@ -80,8 +84,8 @@ class _MainNavigationState extends State<MainNavigation> {
             Icon(
               icon,
               color: isSelected
-                  ? const Color(0xFF1E88E5)
-                  : const Color(0xFF616161),
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.onSurface,
               size: 24,
             ),
             const SizedBox(height: 4),
@@ -91,8 +95,8 @@ class _MainNavigationState extends State<MainNavigation> {
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                 color: isSelected
-                    ? const Color(0xFF1E88E5)
-                    : const Color(0xFF616161),
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ],

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:go_router/go_router.dart';
+import '../../router/app_router.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -47,10 +49,10 @@ class _SplashScreenState extends State<SplashScreen>
       final session = Supabase.instance.client.auth.currentSession;
       if (session != null) {
         // Usuario ya autenticado, ir al home
-        Navigator.of(context).pushReplacementNamed('/home');
+        context.go(AppRouter.home);
       } else {
         // Usuario no autenticado, ir a onboarding
-        Navigator.of(context).pushReplacementNamed('/onboarding');
+        context.go(AppRouter.onboarding);
       }
     }
   }

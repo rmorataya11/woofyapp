@@ -1,153 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../providers/theme_notifier.dart';
+import '../../providers/pet_provider.dart';
+import '../../router/app_router.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen>
-    with TickerProviderStateMixin {
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  Map<String, dynamic> _userProfile = {};
-  List<Map<String, dynamic>> _userPets = [];
-  Map<String, dynamic> _userStats = {};
-  bool _isLoading = true;
-
-  // Animaciones
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
-    );
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
-          CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
-        );
-
-    _loadUserData();
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _loadUserData() async {
-    try {
-      final user = _supabase.auth.currentUser;
-      if (user != null) {
-        // Cargar perfil del usuario
-        final profileResponse = await _supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single();
-
-        // Cargar mascotas del usuario
-        final petsResponse = await _supabase
-            .from('pets')
-            .select('*')
-            .eq('user_id', user.id);
-
-        // Calcular estadísticas
-        final stats = await _calculateUserStats(user.id);
-
-        setState(() {
-          _userProfile = profileResponse;
-          _userPets = List<Map<String, dynamic>>.from(petsResponse);
-          _userStats = stats;
-        });
-      }
-    } catch (e) {
-      print('Error cargando datos del usuario: $e');
-      setState(() {
-        _userProfile = _getMockProfile();
-        _userPets = _getMockPets();
-        _userStats = _getMockStats();
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-      _animationController.forward();
-    }
-  }
-
-  Future<Map<String, dynamic>> _calculateUserStats(String userId) async {
-    try {
-      // Contar citas
-      final appointmentsResponse = await _supabase
-          .from('appointments')
-          .select('id')
-          .eq('user_id', userId);
-
-      // Contar citas completadas
-      final completedResponse = await _supabase
-          .from('appointments')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('status', 'completed');
-
-      // Contar recordatorios activos
-      final remindersResponse = await _supabase
-          .from('reminders')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('is_active', true);
-
-      return {
-        'total_appointments': appointmentsResponse.length,
-        'completed_appointments': completedResponse.length,
-        'active_reminders': remindersResponse.length,
-        'member_since': DateTime.now()
-            .subtract(const Duration(days: 365))
-            .toIso8601String(),
-      };
-    } catch (e) {
-      return _getMockStats();
-    }
-  }
-
-  Map<String, dynamic> _getMockProfile() {
-    return {
-      'id': '1',
-      'name': 'María González',
-      'email': 'maria.gonzalez@email.com',
-      'phone': '+1-555-0123',
-      'avatar_url':
-          'https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
-      'bio':
-          'Amante de los animales y dueña responsable de 3 perritos adorables.',
-      'location': 'Ciudad de México, México',
+  Map<String, dynamic> _userProfile = {
+    'name': 'Usuario',
+    'email': 'usuario@ejemplo.com',
+    'phone': 'No especificado',
+    'location': 'No especificada',
+    'bio': 'Usuario de Woofy',
       'preferences': {
-        'notifications': true,
-        'email_updates': true,
         'push_notifications': true,
+      'email_updates': true,
         'dark_mode': false,
-        'language': 'es',
       },
-      'created_at': DateTime.now()
-          .subtract(const Duration(days: 365))
-          .toIso8601String(),
     };
-  }
 
-  List<Map<String, dynamic>> _getMockPets() {
-    return [
+  List<Map<String, dynamic>> _userPets = [
       {
         'id': '1',
         'name': 'Max',
@@ -156,13 +38,9 @@ class _ProfileScreenState extends State<ProfileScreen>
         'gender': 'male',
         'weight': 25.5,
         'color': 'Dorado',
-        'avatar_url':
-            'https://images.unsplash.com/photo-1552053831-71594a27632d?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
         'medical_notes': 'Alérgico al polen, necesita medicamento diario',
         'vaccination_status': 'up_to_date',
-        'last_vet_visit': DateTime.now()
-            .subtract(const Duration(days: 30))
-            .toIso8601String(),
+      'last_vet_visit': DateTime.now().subtract(const Duration(days: 30)).toIso8601String(),
       },
       {
         'id': '2',
@@ -172,13 +50,9 @@ class _ProfileScreenState extends State<ProfileScreen>
         'gender': 'female',
         'weight': 22.0,
         'color': 'Negro',
-        'avatar_url':
-            'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
         'medical_notes': 'Saludable, necesita ejercicio diario',
         'vaccination_status': 'up_to_date',
-        'last_vet_visit': DateTime.now()
-            .subtract(const Duration(days: 15))
-            .toIso8601String(),
+      'last_vet_visit': DateTime.now().subtract(const Duration(days: 15)).toIso8601String(),
       },
       {
         'id': '3',
@@ -188,53 +62,57 @@ class _ProfileScreenState extends State<ProfileScreen>
         'gender': 'male',
         'weight': 18.0,
         'color': 'Marrón y Negro',
-        'avatar_url':
-            'https://images.unsplash.com/photo-1605568427561-40dd23c2acea?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
         'medical_notes': 'Cachorro activo, en proceso de socialización',
         'vaccination_status': 'in_progress',
-        'last_vet_visit': DateTime.now()
-            .subtract(const Duration(days: 7))
-            .toIso8601String(),
+      'last_vet_visit': DateTime.now().subtract(const Duration(days: 7)).toIso8601String(),
       },
     ];
-  }
 
-  Map<String, dynamic> _getMockStats() {
-    return {
+  Map<String, dynamic> _userStats = {
       'total_appointments': 24,
       'completed_appointments': 22,
       'active_reminders': 5,
-      'member_since': DateTime.now()
-          .subtract(const Duration(days: 365))
-          .toIso8601String(),
-    };
+    'member_since': DateTime.now().subtract(const Duration(days: 365)).toIso8601String(),
+  };
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    // Usar solo datos hardcodeados
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFFE3F2FD), Color(0xFFFFFFFF)],
+            colors: [
+              Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              Theme.of(context).colorScheme.background,
+            ],
           ),
         ),
         child: SafeArea(
           child: _isLoading
-              ? const Center(
+              ? Center(
                   child: CircularProgressIndicator(
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      Color(0xFF1E88E5),
+                      Theme.of(context).colorScheme.primary,
                     ),
                   ),
                 )
-              : FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: SlideTransition(
-                    position: _slideAnimation,
-                    child: SingleChildScrollView(
+              : SingleChildScrollView(
                       child: Column(
                         children: [
                           _buildProfileHeader(),
@@ -246,8 +124,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                             height: 100,
                           ), // Espacio para bottom nav
                         ],
-                      ),
-                    ),
                   ),
                 ),
         ),
@@ -260,11 +136,11 @@ class _ProfileScreenState extends State<ProfileScreen>
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1E88E5).withOpacity(0.1),
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
             blurRadius: 20,
             offset: const Offset(0, 5),
           ),
@@ -272,59 +148,35 @@ class _ProfileScreenState extends State<ProfileScreen>
       ),
       child: Column(
         children: [
-          // Avatar y botón de editar
-          Stack(
-            children: [
+          // Avatar
               CircleAvatar(
                 radius: 60,
-                backgroundColor: const Color(0xFF1E88E5).withOpacity(0.1),
+            backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                 backgroundImage: _userProfile['avatar_url'] != null
                     ? NetworkImage(_userProfile['avatar_url'])
                     : null,
                 child: _userProfile['avatar_url'] == null
-                    ? const Icon(
+                ? Icon(
                         Icons.person,
                         size: 60,
-                        color: Color(0xFF1E88E5),
+                    color: Theme.of(context).colorScheme.primary,
                       )
                     : null,
-              ),
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: GestureDetector(
-                  onTap: _editProfile,
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1E88E5),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.white, width: 2),
-                    ),
-                    child: const Icon(
-                      Icons.edit,
-                      color: Colors.white,
-                      size: 16,
-                    ),
-                  ),
-                ),
-              ),
-            ],
           ),
           const SizedBox(height: 16),
           // Nombre y email
           Text(
             _userProfile['name'] ?? 'Usuario',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF212121),
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             _userProfile['email'] ?? '',
-            style: const TextStyle(fontSize: 16, color: Color(0xFF616161)),
+            style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
           ),
           const SizedBox(height: 8),
           // Bio
@@ -334,7 +186,6 @@ class _ProfileScreenState extends State<ProfileScreen>
               style: const TextStyle(
                 fontSize: 14,
                 color: Color(0xFF616161),
-                fontStyle: FontStyle.italic,
               ),
               textAlign: TextAlign.center,
             ),
@@ -353,11 +204,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                 _userProfile['phone'] ?? 'No especificado',
                 'Teléfono',
               ),
-              _buildInfoItem(
-                Icons.calendar_today,
-                _formatMemberSince(),
-                'Miembro desde',
-              ),
             ],
           ),
         ],
@@ -368,20 +214,20 @@ class _ProfileScreenState extends State<ProfileScreen>
   Widget _buildInfoItem(IconData icon, String value, String label) {
     return Column(
       children: [
-        Icon(icon, color: const Color(0xFF1E88E5), size: 20),
+        Icon(icon, color: Theme.of(context).colorScheme.primary, size: 20),
         const SizedBox(height: 4),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF212121),
+            color: Theme.of(context).colorScheme.onSurface,
           ),
           textAlign: TextAlign.center,
         ),
         Text(
           label,
-          style: const TextStyle(fontSize: 10, color: Color(0xFF616161)),
+          style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
         ),
       ],
     );
@@ -392,25 +238,25 @@ class _ProfileScreenState extends State<ProfileScreen>
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1E88E5).withOpacity(0.1),
-            blurRadius: 15,
-            offset: const Offset(0, 3),
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Mis Estadísticas',
+          Text(
+            'Estadísticas',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF212121),
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 16),
@@ -420,7 +266,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                 child: _buildStatCard(
                   'Citas Totales',
                   _userStats['total_appointments'].toString(),
-                  Icons.event_note,
+                  Icons.event,
                   const Color(0xFF1E88E5),
                 ),
               ),
@@ -433,26 +279,13 @@ class _ProfileScreenState extends State<ProfileScreen>
                   const Color(0xFF4CAF50),
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
+              const SizedBox(width: 12),
               Expanded(
                 child: _buildStatCard(
                   'Recordatorios',
                   _userStats['active_reminders'].toString(),
                   Icons.notifications,
                   const Color(0xFFFF9800),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatCard(
-                  'Mascotas',
-                  _userPets.length.toString(),
-                  Icons.pets,
-                  const Color(0xFF9C27B0),
                 ),
               ),
             ],
@@ -462,18 +295,12 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Widget _buildStatCard(
-    String title,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
+  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.3)),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
@@ -489,7 +316,10 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
           Text(
             title,
-            style: const TextStyle(fontSize: 12, color: Color(0xFF616161)),
+            style: TextStyle(
+              fontSize: 12,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -498,17 +328,19 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   Widget _buildPetsSection() {
+    final pets = ref.watch(petNotifierProvider);
+    
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1E88E5).withOpacity(0.1),
-            blurRadius: 15,
-            offset: const Offset(0, 3),
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
@@ -518,117 +350,155 @@ class _ProfileScreenState extends State<ProfileScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Mis Mascotas',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF212121),
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               TextButton.icon(
-                onPressed: _addNewPet,
+                onPressed: () => _showAddPetDialog(),
                 icon: const Icon(Icons.add, size: 18),
                 label: const Text('Agregar'),
                 style: TextButton.styleFrom(
-                  foregroundColor: const Color(0xFF1E88E5),
+                  foregroundColor: Theme.of(context).colorScheme.primary,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          ..._userPets.map((pet) => _buildPetCard(pet)),
+          if (pets.isEmpty)
+            Center(
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.pets,
+                    size: 48,
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'No tienes mascotas registradas',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () => _showAddPetDialog(),
+                    child: const Text('Agregar tu primera mascota'),
+                  ),
+                ],
+              ),
+            )
+          else
+            ...pets.map((pet) => _buildPetCard(pet)),
         ],
       ),
     );
   }
 
-  Widget _buildPetCard(Map<String, dynamic> pet) {
+  Widget _buildPetCard(Pet pet) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF1E88E5).withOpacity(0.2)),
+        color: Theme.of(context).colorScheme.background,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+        ),
       ),
       child: Row(
         children: [
-          // Avatar de la mascota
           CircleAvatar(
-            radius: 30,
-            backgroundColor: const Color(0xFF1E88E5).withOpacity(0.1),
-            backgroundImage: pet['avatar_url'] != null
-                ? NetworkImage(pet['avatar_url'])
-                : null,
-            child: pet['avatar_url'] == null
-                ? const Icon(Icons.pets, size: 30, color: Color(0xFF1E88E5))
-                : null,
+            radius: 25,
+            backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            child: Icon(
+              Icons.pets,
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
-          const SizedBox(width: 16),
-          // Información de la mascota
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  pet['name'],
-                  style: const TextStyle(
+                  pet.name,
+                  style: TextStyle(
                     fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF212121),
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
-                const SizedBox(height: 4),
                 Text(
-                  '${pet['breed']} • ${pet['age']} años • ${pet['gender'] == 'male' ? 'Macho' : 'Hembra'}',
-                  style: const TextStyle(
+                  '${pet.breed} • ${pet.age} años',
+                  style: TextStyle(
                     fontSize: 14,
-                    color: Color(0xFF616161),
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                   ),
                 ),
-                const SizedBox(height: 4),
                 Text(
-                  '${pet['weight']} kg • ${pet['color']}',
-                  style: const TextStyle(
+                  _getVaccinationText(pet.vaccinationStatus),
+                  style: TextStyle(
                     fontSize: 12,
-                    color: Color(0xFF616161),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                // Estado de vacunación
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _getVaccinationColor(
-                      pet['vaccination_status'],
-                    ).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: _getVaccinationColor(
-                        pet['vaccination_status'],
-                      ).withOpacity(0.3),
-                    ),
-                  ),
-                  child: Text(
-                    _getVaccinationText(pet['vaccination_status']),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: _getVaccinationColor(pet['vaccination_status']),
-                      fontWeight: FontWeight.w600,
-                    ),
+                    color: _getVaccinationColor(pet.vaccinationStatus),
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
             ),
           ),
-          // Botón de editar
-          IconButton(
-            onPressed: () => _editPet(pet),
-            icon: const Icon(Icons.edit, color: Color(0xFF1E88E5), size: 20),
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'edit') {
+                _showEditPetDialog(pet);
+              } else if (value == 'delete') {
+                _showDeletePetDialog(pet);
+              } else if (value == 'details') {
+                _showPetDetailsModal(pet);
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'details',
+                child: Row(
+                  children: [
+                    Icon(Icons.info, size: 18),
+                    SizedBox(width: 8),
+                    Text('Ver detalles'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'edit',
+                child: Row(
+                  children: [
+                    Icon(Icons.edit, size: 18),
+                    SizedBox(width: 8),
+                    Text('Editar'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    Icon(Icons.delete, size: 18, color: Colors.red),
+                    SizedBox(width: 8),
+                    Text('Eliminar', style: TextStyle(color: Colors.red)),
+              ],
+            ),
+          ),
+            ],
+            child: Icon(
+              Icons.more_vert,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+              size: 20,
+            ),
           ),
         ],
       ),
@@ -638,53 +508,48 @@ class _ProfileScreenState extends State<ProfileScreen>
   Widget _buildSettingsSection() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1E88E5).withOpacity(0.1),
-            blurRadius: 15,
-            offset: const Offset(0, 3),
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Configuración',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF212121),
-            ),
+          _buildSettingItem(
+            Icons.edit,
+            'Editar Perfil',
+            'Actualiza tu información personal',
+            _editProfile,
           ),
-          const SizedBox(height: 16),
           _buildSettingItem(
             Icons.notifications,
             'Notificaciones',
-            'Gestionar alertas y recordatorios',
-            () => _manageNotifications(),
+            'Configura tus preferencias de notificación',
+            _openNotifications,
           ),
           _buildSettingItem(
             Icons.security,
             'Privacidad',
-            'Configurar privacidad y seguridad',
-            () => _managePrivacy(),
+            'Gestiona tu privacidad y seguridad',
+            _openPrivacy,
           ),
           _buildSettingItem(
             Icons.help,
             'Ayuda y Soporte',
-            'Centro de ayuda y contacto',
-            () => _showHelp(),
+            'Obtén ayuda cuando la necesites',
+            _openHelp,
           ),
           _buildSettingItem(
             Icons.info,
             'Acerca de',
             'Información de la aplicación',
-            () => _showAbout(),
+            _openAbout,
           ),
         ],
       ),
@@ -696,28 +561,29 @@ class _ProfileScreenState extends State<ProfileScreen>
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1E88E5).withOpacity(0.1),
-            blurRadius: 15,
-            offset: const Offset(0, 3),
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Preferencias',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF212121),
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 16),
+          _buildThemeSelector(),
           _buildPreferenceSwitch(
             'Notificaciones Push',
             'Recibir notificaciones en tiempo real',
@@ -730,11 +596,132 @@ class _ProfileScreenState extends State<ProfileScreen>
             _userProfile['preferences']?['email_updates'] ?? true,
             (value) => _updatePreference('email_updates', value),
           ),
-          _buildPreferenceSwitch(
-            'Modo Oscuro',
-            'Usar tema oscuro en la aplicación',
-            _userProfile['preferences']?['dark_mode'] ?? false,
-            (value) => _updatePreference('dark_mode', value),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildThemeSelector() {
+    final themeMode = ref.watch(themeNotifierProvider);
+    final themeNotifier = ref.read(themeNotifierProvider.notifier);
+    
+    return ListTile(
+      leading: Icon(
+        themeNotifier.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+        color: Theme.of(context).colorScheme.primary,
+      ),
+      title: Text(
+        'Tema de la aplicación',
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
+      ),
+      subtitle: Text(
+        _getThemeDescription(themeMode),
+        style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
+      ),
+      trailing: PopupMenuButton<ThemeMode>(
+        icon: Icon(Icons.arrow_drop_down, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
+        onSelected: (ThemeMode mode) {
+          themeNotifier.setThemeMode(mode);
+        },
+        itemBuilder: (BuildContext context) => [
+          PopupMenuItem<ThemeMode>(
+            value: ThemeMode.light,
+            child: Row(
+              children: [
+                Icon(Icons.light_mode, color: Theme.of(context).colorScheme.primary),
+                const SizedBox(width: 12),
+                const Text('Claro'),
+                if (themeMode == ThemeMode.light)
+                  Icon(Icons.check, color: Theme.of(context).colorScheme.primary),
+              ],
+            ),
+          ),
+          PopupMenuItem<ThemeMode>(
+            value: ThemeMode.dark,
+            child: Row(
+              children: [
+                Icon(Icons.dark_mode, color: Theme.of(context).colorScheme.primary),
+                const SizedBox(width: 12),
+                const Text('Oscuro'),
+                if (themeMode == ThemeMode.dark)
+                  Icon(Icons.check, color: Theme.of(context).colorScheme.primary),
+              ],
+            ),
+          ),
+          PopupMenuItem<ThemeMode>(
+            value: ThemeMode.system,
+            child: Row(
+              children: [
+                Icon(Icons.settings, color: Theme.of(context).colorScheme.primary),
+                const SizedBox(width: 12),
+                const Text('Sistema'),
+                if (themeMode == ThemeMode.system)
+                  Icon(Icons.check, color: Theme.of(context).colorScheme.primary),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getThemeDescription(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.light:
+        return 'Tema claro activado';
+      case ThemeMode.dark:
+        return 'Tema oscuro activado';
+      case ThemeMode.system:
+        return 'Sigue la configuración del sistema';
+    }
+  }
+
+  void _editProfile() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Próximamente: Editar perfil'),
+      ),
+    );
+  }
+
+  void _openNotifications() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Próximamente: Configuración de notificaciones'),
+      ),
+    );
+  }
+
+  void _openPrivacy() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Próximamente: Configuración de privacidad'),
+      ),
+    );
+  }
+
+  void _openHelp() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Próximamente: Ayuda y soporte'),
+      ),
+    );
+  }
+
+  void _openAbout() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Acerca de Woofy'),
+        content: const Text('Versión 1.0.0\n\nUna aplicación para el cuidado de tus mascotas.'),
+        actions: [
+          TextButton(
+            onPressed: () => context.pop(),
+            child: const Text('Cerrar'),
           ),
         ],
       ),
@@ -748,22 +735,22 @@ class _ProfileScreenState extends State<ProfileScreen>
     VoidCallback onTap,
   ) {
     return ListTile(
-      leading: Icon(icon, color: const Color(0xFF1E88E5)),
+      leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
       title: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
-          color: Color(0xFF212121),
+          color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
       subtitle: Text(
         subtitle,
-        style: const TextStyle(fontSize: 14, color: Color(0xFF616161)),
+        style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
       ),
-      trailing: const Icon(
+      trailing: Icon(
         Icons.arrow_forward_ios,
-        color: Color(0xFF616161),
+        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
         size: 16,
       ),
       onTap: onTap,
@@ -779,33 +766,20 @@ class _ProfileScreenState extends State<ProfileScreen>
     return SwitchListTile(
       title: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
-          color: Color(0xFF212121),
+          color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
       subtitle: Text(
         subtitle,
-        style: const TextStyle(fontSize: 14, color: Color(0xFF616161)),
+        style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
       ),
       value: value,
       onChanged: onChanged,
-      activeColor: const Color(0xFF1E88E5),
+      activeColor: Theme.of(context).colorScheme.primary,
     );
-  }
-
-  Color _getVaccinationColor(String status) {
-    switch (status) {
-      case 'up_to_date':
-        return const Color(0xFF4CAF50);
-      case 'in_progress':
-        return const Color(0xFFFF9800);
-      case 'overdue':
-        return const Color(0xFFF44336);
-      default:
-        return const Color(0xFF616161);
-    }
   }
 
   String _getVaccinationText(String status) {
@@ -821,80 +795,27 @@ class _ProfileScreenState extends State<ProfileScreen>
     }
   }
 
+  Color _getVaccinationColor(String status) {
+    switch (status) {
+      case 'up_to_date':
+        return const Color(0xFF4CAF50);
+      case 'in_progress':
+        return const Color(0xFFFF9800);
+      case 'overdue':
+        return const Color(0xFFF44336);
+      default:
+        return const Color(0xFF616161);
+    }
+  }
+
   String _formatMemberSince() {
-    final memberSince = DateTime.parse(_userStats['member_since']);
+    final memberSinceStr = _userStats['member_since'] as String?;
+    if (memberSinceStr == null || memberSinceStr.isEmpty) {
+      return '1 año';
+    }
+    final memberSince = DateTime.parse(memberSinceStr);
     final months = DateTime.now().difference(memberSince).inDays ~/ 30;
     return '$months meses';
-  }
-
-  void _editProfile() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Próximamente: Editar perfil'),
-        backgroundColor: Color(0xFF1E88E5),
-      ),
-    );
-    // TODO: Navegar a pantalla de editar perfil
-  }
-
-  void _addNewPet() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Próximamente: Agregar nueva mascota'),
-        backgroundColor: Color(0xFF4CAF50),
-      ),
-    );
-    // TODO: Navegar a pantalla de agregar mascota
-  }
-
-  void _editPet(Map<String, dynamic> pet) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Editando mascota: ${pet['name']}'),
-        backgroundColor: const Color(0xFF1E88E5),
-      ),
-    );
-    // TODO: Navegar a pantalla de editar mascota
-  }
-
-  void _manageNotifications() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Próximamente: Gestionar notificaciones'),
-        backgroundColor: Color(0xFF1E88E5),
-      ),
-    );
-    // TODO: Navegar a configuración de notificaciones
-  }
-
-  void _managePrivacy() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Próximamente: Configuración de privacidad'),
-        backgroundColor: const Color(0xFF1E88E5),
-      ),
-    );
-    // TODO: Navegar a configuración de privacidad
-  }
-
-  void _showHelp() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Próximamente: Centro de ayuda'),
-        backgroundColor: const Color(0xFF1E88E5),
-      ),
-    );
-    // TODO: Navegar a centro de ayuda
-  }
-
-  void _showAbout() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Próximamente: Información de la app'),
-        backgroundColor: const Color(0xFF1E88E5),
-      ),
-    );
-    // TODO: Navegar a información de la app
   }
 
   void _updatePreference(String key, bool value) {
@@ -904,13 +825,541 @@ class _ProfileScreenState extends State<ProfileScreen>
       }
       _userProfile['preferences'][key] = value;
     });
+  }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Preferencia actualizada: $key = $value'),
-        backgroundColor: const Color(0xFF4CAF50),
+  void _showAddPetDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => _PetFormDialog(
+        onSave: (pet) {
+          ref.read(petNotifierProvider.notifier).addPet(pet);
+        },
       ),
     );
-    // TODO: Guardar preferencia en Supabase
+  }
+
+  void _showEditPetDialog(Pet pet) {
+    showDialog(
+      context: context,
+      builder: (context) => _PetFormDialog(
+        pet: pet,
+        onSave: (updatedPet) {
+          ref.read(petNotifierProvider.notifier).updatePet(updatedPet);
+        },
+      ),
+    );
+  }
+
+  void _showDeletePetDialog(Pet pet) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Eliminar Mascota'),
+        content: Text('¿Estás seguro de que quieres eliminar a ${pet.name}?'),
+        actions: [
+          TextButton(
+            onPressed: () => context.pop(),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              ref.read(petNotifierProvider.notifier).deletePet(pet.id);
+              context.pop();
+            },
+            child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPetDetailsModal(Pet pet) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => _PetDetailsModal(pet: pet),
+    );
+  }
+}
+
+// Widget para el formulario de mascotas (reutilizado del HomeScreen)
+class _PetFormDialog extends StatefulWidget {
+  final Pet? pet;
+  final Function(Pet) onSave;
+
+  const _PetFormDialog({
+    this.pet,
+    required this.onSave,
+  });
+
+  @override
+  State<_PetFormDialog> createState() => _PetFormDialogState();
+}
+
+class _PetFormDialogState extends State<_PetFormDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _breedController = TextEditingController();
+  final _ageController = TextEditingController();
+  final _weightController = TextEditingController();
+  final _colorController = TextEditingController();
+  final _medicalNotesController = TextEditingController();
+  
+  String _gender = 'male';
+  String _vaccinationStatus = 'up_to_date';
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.pet != null) {
+      _nameController.text = widget.pet!.name;
+      _breedController.text = widget.pet!.breed;
+      _ageController.text = widget.pet!.age.toString();
+      _weightController.text = widget.pet!.weight.toString();
+      _colorController.text = widget.pet!.color;
+      _medicalNotesController.text = widget.pet!.medicalNotes;
+      _gender = widget.pet!.gender;
+      _vaccinationStatus = widget.pet!.vaccinationStatus;
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _breedController.dispose();
+    _ageController.dispose();
+    _weightController.dispose();
+    _colorController.dispose();
+    _medicalNotesController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(widget.pet == null ? 'Agregar Mascota' : 'Editar Mascota'),
+      content: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Nombre',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'El nombre es requerido';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _breedController,
+                decoration: const InputDecoration(
+                  labelText: 'Raza',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'La raza es requerida';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _ageController,
+                      decoration: const InputDecoration(
+                        labelText: 'Edad (años)',
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'La edad es requerida';
+                        }
+                        if (int.tryParse(value) == null) {
+                          return 'Ingresa un número válido';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _weightController,
+                      decoration: const InputDecoration(
+                        labelText: 'Peso (kg)',
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'El peso es requerido';
+                        }
+                        if (double.tryParse(value) == null) {
+                          return 'Ingresa un número válido';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: _gender,
+                decoration: const InputDecoration(
+                  labelText: 'Género',
+                  border: OutlineInputBorder(),
+                ),
+                items: const [
+                  DropdownMenuItem(value: 'male', child: Text('Macho')),
+                  DropdownMenuItem(value: 'female', child: Text('Hembra')),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _gender = value!;
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _colorController,
+                decoration: const InputDecoration(
+                  labelText: 'Color',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'El color es requerido';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: _vaccinationStatus,
+                decoration: const InputDecoration(
+                  labelText: 'Estado de Vacunación',
+                  border: OutlineInputBorder(),
+                ),
+                items: const [
+                  DropdownMenuItem(value: 'up_to_date', child: Text('Al día')),
+                  DropdownMenuItem(value: 'in_progress', child: Text('En proceso')),
+                  DropdownMenuItem(value: 'overdue', child: Text('Vencidas')),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _vaccinationStatus = value!;
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _medicalNotesController,
+                decoration: const InputDecoration(
+                  labelText: 'Notas Médicas',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 3,
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => context.pop(),
+          child: const Text('Cancelar'),
+        ),
+        ElevatedButton(
+          onPressed: _savePet,
+          child: Text(widget.pet == null ? 'Agregar' : 'Guardar'),
+        ),
+      ],
+    );
+  }
+
+  void _savePet() {
+    if (_formKey.currentState!.validate()) {
+      final pet = Pet(
+        id: widget.pet?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        name: _nameController.text,
+        breed: _breedController.text,
+        age: int.parse(_ageController.text),
+        gender: _gender,
+        weight: double.parse(_weightController.text),
+        color: _colorController.text,
+        medicalNotes: _medicalNotesController.text,
+        vaccinationStatus: _vaccinationStatus,
+        lastVetVisit: widget.pet?.lastVetVisit ?? DateTime.now(),
+        createdAt: widget.pet?.createdAt ?? DateTime.now(),
+      );
+      
+      widget.onSave(pet);
+      context.pop();
+    }
+  }
+}
+
+// Widget para mostrar detalles de la mascota (reutilizado del HomeScreen)
+class _PetDetailsModal extends StatelessWidget {
+  final Pet pet;
+
+  const _PetDetailsModal({required this.pet});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.8,
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 30,
+                backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                child: Icon(
+                  Icons.pets,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 30,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      pet.name,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF212121),
+                      ),
+                    ),
+                    Text(
+                      '${pet.breed} • ${pet.age} años',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Color(0xFF616161),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                onPressed: () => context.pop(),
+                icon: const Icon(Icons.close),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildInfoSection('Información General', [
+                    _buildInfoItem('Raza', pet.breed),
+                    _buildInfoItem('Edad', '${pet.age} años'),
+                    _buildInfoItem('Género', pet.gender == 'male' ? 'Macho' : 'Hembra'),
+                    _buildInfoItem('Peso', '${pet.weight} kg'),
+                    _buildInfoItem('Color', pet.color),
+                  ]),
+                  const SizedBox(height: 20),
+                  _buildInfoSection('Estado de Salud', [
+                    _buildInfoItem('Vacunación', _getVaccinationText(pet.vaccinationStatus)),
+                    _buildInfoItem('Última visita', _formatDate(pet.lastVetVisit)),
+                    _buildInfoItem('Notas médicas', pet.medicalNotes),
+                  ]),
+                  const SizedBox(height: 20),
+                  _buildAppointmentHistory(),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoSection(String title, List<Widget> items) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF212121),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF5F5F5),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            children: items,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInfoItem(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              '$label:',
+              style: const TextStyle(
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF616161),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                color: Color(0xFF212121),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppointmentHistory() {
+    // Datos mock de historial de citas
+    final appointments = [
+      {
+        'date': DateTime.now().subtract(const Duration(days: 30)),
+        'type': 'Vacuna Triple',
+        'clinic': 'Clínica Veterinaria Central',
+        'status': 'completed',
+      },
+      {
+        'date': DateTime.now().subtract(const Duration(days: 60)),
+        'type': 'Control General',
+        'clinic': 'Hospital San Patricio',
+        'status': 'completed',
+      },
+      {
+        'date': DateTime.now().add(const Duration(days: 7)),
+        'type': 'Revisión Anual',
+        'clinic': 'Centro Médico Animal',
+        'status': 'scheduled',
+      },
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Historial de Citas',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF212121),
+          ),
+        ),
+        const SizedBox(height: 12),
+        ...appointments.map((appointment) => Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF5F5F5),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: appointment['status'] == 'scheduled' 
+                ? const Color(0xFF1E88E5).withOpacity(0.3)
+                : const Color(0xFF4CAF50).withOpacity(0.3),
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                appointment['status'] == 'scheduled' 
+                  ? Icons.schedule 
+                  : Icons.check_circle,
+                color: appointment['status'] == 'scheduled' 
+                  ? const Color(0xFF1E88E5)
+                  : const Color(0xFF4CAF50),
+                size: 20,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      appointment['type'] as String,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF212121),
+                      ),
+                    ),
+                    Text(
+                      appointment['clinic'] as String,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF616161),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                _formatDate(appointment['date'] as DateTime),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF616161),
+                ),
+              ),
+            ],
+          ),
+        )),
+      ],
+    );
+  }
+
+  String _getVaccinationText(String status) {
+    switch (status) {
+      case 'up_to_date':
+        return 'Al día';
+      case 'in_progress':
+        return 'En proceso';
+      case 'overdue':
+        return 'Vencidas';
+      default:
+        return 'Desconocido';
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
   }
 }
