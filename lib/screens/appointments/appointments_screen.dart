@@ -17,11 +17,9 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
   List<Map<String, dynamic>> _filteredAppointments = [];
   bool _isLoading = true;
 
-  // Filtros y estado
   String _selectedFilter = 'all';
   String _selectedSort = 'date';
 
-  // Animaciones
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -91,7 +89,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
   }
 
   Future<void> _loadAppointments() async {
-    // Usar solo datos hardcodeados
     setState(() {
       _appointments = _getMockAppointments();
       _filteredAppointments = List.from(_appointments);
@@ -211,7 +208,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
   void _filterAppointments() {
     setState(() {
       _filteredAppointments = _appointments.where((appointment) {
-        // Filtro por estado
         bool matchesFilter = true;
         if (_selectedFilter == 'scheduled') {
           matchesFilter = appointment['status'] == 'scheduled';
@@ -225,7 +221,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
           matchesFilter = appointment['urgent'] == true;
         }
 
-        // Filtro por búsqueda
         bool matchesSearch = true;
         if (_searchController.text.isNotEmpty) {
           final searchText = _searchController.text.toLowerCase();
@@ -239,7 +234,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
         return matchesFilter && matchesSearch;
       }).toList();
 
-      // Ordenar resultados
       _filteredAppointments.sort((a, b) {
         switch (_selectedSort) {
           case 'date':
@@ -426,7 +420,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         children: [
-          // Barra de búsqueda
           Container(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -464,7 +457,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
             ),
           ),
           const SizedBox(height: 16),
-          // Filtros
           SizedBox(
             height: 50,
             child: ListView.builder(
@@ -510,7 +502,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
             ),
           ),
           const SizedBox(height: 8),
-          // Ordenar por
           Row(
             children: [
               const Text(
@@ -612,7 +603,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header con estado y urgencia
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -685,13 +675,11 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
               ],
             ),
           ),
-          // Información de la cita
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Fecha y hora
                 Row(
                   children: [
                     Icon(
@@ -721,7 +709,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
                   ],
                 ),
                 const SizedBox(height: 8),
-                // Clínica
                 Row(
                   children: [
                     Icon(
@@ -742,7 +729,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
                   ],
                 ),
                 const SizedBox(height: 8),
-                // Mascota
                 Row(
                   children: [
                     Icon(Icons.pets, size: 16, color: const Color(0xFF616161)),
@@ -757,7 +743,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
                   ],
                 ),
                 const SizedBox(height: 8),
-                // Doctor
                 Row(
                   children: [
                     Icon(
@@ -776,7 +761,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
                   ],
                 ),
                 const SizedBox(height: 12),
-                // Información adicional
                 Row(
                   children: [
                     _buildInfoChip(
@@ -824,7 +808,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
                   ),
                 ],
                 const SizedBox(height: 16),
-                // Botones de acción
                 _buildActionButtons(appointment),
               ],
             ),
@@ -865,7 +848,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
 
     return Column(
       children: [
-        // Botones de estado específicos
         Row(
           children: [
             if (status == 'scheduled' &&
@@ -946,7 +928,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
                 ),
               ),
             ] else if (status == 'completed') ...[
-              // Citas completadas no necesitan botones adicionales
             ] else if (status == 'cancelled') ...[
               Expanded(
                 child: OutlinedButton.icon(
@@ -966,7 +947,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
           ],
         ),
         const SizedBox(height: 12),
-        // Botón de más acciones
         SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
@@ -1235,11 +1215,9 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
   void _saveAppointment(Map<String, dynamic> appointmentData) {
     setState(() {
       if (appointmentData['id'] == null) {
-        // Nueva cita
         appointmentData['id'] = DateTime.now().millisecondsSinceEpoch.toString();
         _appointments.add(appointmentData);
       } else {
-        // Editar cita existente
         final index = _appointments.indexWhere((appointment) => appointment['id'] == appointmentData['id']);
         if (index != -1) {
           _appointments[index] = appointmentData;
@@ -1263,7 +1241,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
         backgroundColor: Color(0xFF1E88E5),
       ),
     );
-    // TODO: Navegar a vista de calendario
   }
 }
 
@@ -1322,7 +1299,6 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
       _type = widget.appointment!['type'] ?? 'vaccine';
       _status = widget.appointment!['status'] ?? 'scheduled';
       final appointmentPetName = widget.appointment!['pet_name'] ?? 'Max';
-      // Verificar que la mascota esté en la lista disponible
       if (_mockPets.any((pet) => pet['name'] == appointmentPetName)) {
         _petName = appointmentPetName;
         final selectedPet = _mockPets.firstWhere((pet) => pet['name'] == appointmentPetName);
@@ -1366,7 +1342,6 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
       ),
       child: Column(
         children: [
-          // Handle
           Container(
             margin: const EdgeInsets.only(top: 12),
             width: 40,
@@ -1376,7 +1351,6 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-          // Header
           Padding(
             padding: const EdgeInsets.all(20),
             child: Row(
@@ -1403,7 +1377,6 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
               ],
             ),
           ),
-          // Form
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -1441,7 +1414,6 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    // Doctor y Especialidad
                     Row(
                       children: [
                         Expanded(
@@ -1480,7 +1452,6 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    // Mascota (dropdown)
                     DropdownButtonFormField<String>(
                       value: _petName,
                       decoration: const InputDecoration(
@@ -1597,7 +1568,6 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    // Duración y Costo
                     Row(
                       children: [
                         Expanded(

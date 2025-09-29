@@ -3,17 +3,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class AuthService {
   static final SupabaseClient _client = Supabase.instance.client;
 
-  // Obtener el usuario actual
   static User? get currentUser => _client.auth.currentUser;
 
-  // Verificar si el usuario está autenticado
   static bool get isAuthenticated => currentUser != null;
 
-  // Stream de cambios de autenticación
   static Stream<AuthState> get authStateChanges =>
       _client.auth.onAuthStateChange;
 
-  // Iniciar sesión con email y contraseña
   static Future<AuthResponse> signInWithEmail({
     required String email,
     required String password,
@@ -29,7 +25,6 @@ class AuthService {
     }
   }
 
-  // Registrarse con email y contraseña
   static Future<AuthResponse> signUpWithEmail({
     required String email,
     required String password,
@@ -47,7 +42,6 @@ class AuthService {
     }
   }
 
-  // Iniciar sesión con Google
   static Future<bool> signInWithGoogle() async {
     try {
       await _client.auth.signInWithOAuth(
@@ -60,7 +54,6 @@ class AuthService {
     }
   }
 
-  // Iniciar sesión con Apple
   static Future<bool> signInWithApple() async {
     try {
       await _client.auth.signInWithOAuth(
@@ -73,7 +66,6 @@ class AuthService {
     }
   }
 
-  // Cerrar sesión
   static Future<void> signOut() async {
     try {
       await _client.auth.signOut();
@@ -82,7 +74,6 @@ class AuthService {
     }
   }
 
-  // Enviar email de recuperación de contraseña
   static Future<void> resetPassword(String email) async {
     try {
       await _client.auth.resetPasswordForEmail(email);
@@ -91,7 +82,6 @@ class AuthService {
     }
   }
 
-  // Actualizar perfil del usuario
   static Future<UserResponse> updateProfile({
     String? name,
     String? avatarUrl,
@@ -111,7 +101,6 @@ class AuthService {
     }
   }
 
-  // Obtener datos del usuario
   static Map<String, dynamic>? getUserData() {
     final user = currentUser;
     if (user == null) return null;

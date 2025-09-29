@@ -100,7 +100,6 @@ class _SignupScreenState extends State<SignupScreen> {
             child: Column(
               children: [
                 const SizedBox(height: 20),
-                // Logo y título
                 Column(
                   children: [
                     Container(
@@ -141,7 +140,6 @@ class _SignupScreenState extends State<SignupScreen> {
                   ],
                 ),
                 const SizedBox(height: 32),
-                // Formulario de registro
                 Expanded(
                   child: Container(
                     width: double.infinity,
@@ -162,7 +160,6 @@ class _SignupScreenState extends State<SignupScreen> {
                     key: _formKey,
                     child: Column(
                       children: [
-                        // Campo de nombre
                         TextFormField(
                           controller: _nameController,
                           textCapitalization: TextCapitalization.words,
@@ -197,7 +194,6 @@ class _SignupScreenState extends State<SignupScreen> {
                           },
                         ),
                         const SizedBox(height: 16),
-                        // Campo de email
                         TextFormField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
@@ -232,7 +228,6 @@ class _SignupScreenState extends State<SignupScreen> {
                           },
                         ),
                         const SizedBox(height: 16),
-                        // Campo de contraseña
                         TextFormField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
@@ -280,7 +275,6 @@ class _SignupScreenState extends State<SignupScreen> {
                           },
                         ),
                         const SizedBox(height: 16),
-                        // Campo de confirmar contraseña
                         TextFormField(
                           controller: _confirmPasswordController,
                           obscureText: _obscureConfirmPassword,
@@ -329,7 +323,6 @@ class _SignupScreenState extends State<SignupScreen> {
                           },
                         ),
                         const SizedBox(height: 24),
-                        // Botón de registro
                         SizedBox(
                           width: double.infinity,
                           height: 56,
@@ -369,7 +362,6 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 ),
                 const SizedBox(height: 32),
-                // Enlace a login
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

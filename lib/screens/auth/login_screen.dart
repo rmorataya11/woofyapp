@@ -97,7 +97,6 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               children: [
                 const SizedBox(height: 40),
-                // Logo y título
                 Column(
                   children: [
                     Container(
@@ -138,7 +137,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                 ),
                 const SizedBox(height: 48),
-                // Formulario de login
                 Expanded(
                   child: Container(
                     width: double.infinity,
@@ -159,7 +157,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     key: _formKey,
                     child: Column(
                       children: [
-                        // Campo de email
                         TextFormField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
@@ -194,7 +191,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           },
                         ),
                         const SizedBox(height: 16),
-                        // Campo de contraseña
                         TextFormField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
@@ -242,9 +238,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           },
                         ),
                         const SizedBox(height: 16),
-                        // Recordar y olvidar contraseña
                         const SizedBox(height: 24),
-                        // Botón de iniciar sesión
                         SizedBox(
                           width: double.infinity,
                           height: 56,
@@ -284,7 +278,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 ),
                 const SizedBox(height: 32),
-                // Enlace a registro
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

@@ -3,20 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
 
-// Provider para el estado del tema
 final themeModeProvider = StateNotifierProvider<ThemeNotifier, ThemeMode>((
   ref,
 ) {
   return ThemeNotifier();
 });
 
-// Provider para obtener el tema actual
 final currentThemeProvider = Provider<ThemeData>((ref) {
   final themeMode = ref.watch(themeModeProvider);
   return themeMode == ThemeMode.dark ? AppTheme.darkTheme : AppTheme.lightTheme;
 });
 
-// Provider para verificar si está en modo oscuro
 final isDarkModeProvider = Provider<bool>((ref) {
   final themeMode = ref.watch(themeModeProvider);
   return themeMode == ThemeMode.dark;

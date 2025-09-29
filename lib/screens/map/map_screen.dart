@@ -40,7 +40,6 @@ class _MapScreenState extends State<MapScreen> {
 
   Future<void> _loadClinics() async {
     try {
-      // Cargar clínicas desde Supabase
       final response = await _supabase
           .from('clinics')
           .select('*')
@@ -53,7 +52,6 @@ class _MapScreenState extends State<MapScreen> {
         _isLoading = false;
       });
     } catch (e) {
-      // Si hay error, usar datos mockeados
       setState(() {
         _clinics = _getMockClinics();
         _filteredClinics = _clinics;
@@ -129,7 +127,6 @@ class _MapScreenState extends State<MapScreen> {
 
   void _filterClinics() {
     setState(() {
-      // Aplicar filtros
       List<Map<String, dynamic>> filtered = _clinics.where((clinic) {
         bool matchesFilter = true;
         if (_selectedFilter == 'open') {
@@ -160,7 +157,6 @@ class _MapScreenState extends State<MapScreen> {
         return matchesFilter && matchesSearch;
       }).toList();
 
-      // Aplicar ordenamiento
       filtered.sort((a, b) {
         switch (_selectedSort) {
           case 'distance':
@@ -259,7 +255,6 @@ class _MapScreenState extends State<MapScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
-          // Barra de búsqueda
           TextField(
             controller: _searchController,
             decoration: InputDecoration(
@@ -286,7 +281,6 @@ class _MapScreenState extends State<MapScreen> {
             onChanged: (value) => _filterClinics(),
           ),
           const SizedBox(height: 16),
-          // Filtros
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -371,7 +365,6 @@ class _MapScreenState extends State<MapScreen> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          // Título con número de clínicas encontradas
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             padding: const EdgeInsets.all(16),
@@ -427,7 +420,6 @@ class _MapScreenState extends State<MapScreen> {
               ],
             ),
           ),
-          // Mapa grande
           Container(
             margin: const EdgeInsets.all(16),
             height: MediaQuery.of(context).size.height * 0.5,
@@ -481,7 +473,6 @@ class _MapScreenState extends State<MapScreen> {
               ),
             ),
           ),
-          // Lista de clínicas
           _buildClinicsList(),
         ],
       ),
@@ -667,7 +658,6 @@ class _MapScreenState extends State<MapScreen> {
   }
 }
 
-// Modal de Contacto
 class _ContactModal extends StatefulWidget {
   final Map<String, dynamic> clinic;
 
@@ -702,7 +692,6 @@ class _ContactModalState extends State<_ContactModal> {
       ),
       child: Column(
         children: [
-          // Handle
           Container(
             margin: const EdgeInsets.only(top: 12),
             width: 40,
@@ -712,7 +701,6 @@ class _ContactModalState extends State<_ContactModal> {
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-          // Header
           Padding(
             padding: const EdgeInsets.all(20),
             child: Row(
@@ -752,7 +740,6 @@ class _ContactModalState extends State<_ContactModal> {
               ],
             ),
           ),
-          // Form
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -853,7 +840,6 @@ class _ContactModalState extends State<_ContactModal> {
       return;
     }
 
-    // Simular envío de mensaje
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Mensaje enviado a ${widget.clinic['name']}'),

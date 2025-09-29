@@ -48,10 +48,8 @@ class _SplashScreenState extends State<SplashScreen>
     if (mounted) {
       final session = Supabase.instance.client.auth.currentSession;
       if (session != null) {
-        // Usuario ya autenticado, ir al home
         context.go(AppRouter.home);
       } else {
-        // Usuario no autenticado, ir a onboarding
         context.go(AppRouter.onboarding);
       }
     }

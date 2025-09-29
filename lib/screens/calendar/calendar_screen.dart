@@ -22,7 +22,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   Future<void> _loadEvents() async {
-    // Usar solo datos hardcodeados
     setState(() {
       _events = _getMockEvents();
       _reminders = _getMockReminders();
@@ -167,7 +166,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 _buildMonthSelector(),
                 _buildCalendar(),
                 _buildEventsList(),
-                const SizedBox(height: 100), // Espacio para el FAB
+                const SizedBox(height: 100),
               ],
             ),
           ),
@@ -815,11 +814,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
   void _saveEvent(Map<String, dynamic> eventData) {
     setState(() {
       if (eventData['id'] == null) {
-        // Nuevo evento
         eventData['id'] = DateTime.now().millisecondsSinceEpoch.toString();
         _events.add(eventData);
       } else {
-        // Editar evento existente
         final index = _events.indexWhere((event) => event['id'] == eventData['id']);
         if (index != -1) {
           _events[index] = eventData;
@@ -836,7 +833,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 }
 
-// Modal para agregar/editar eventos
 class _EventFormModal extends StatefulWidget {
   final Map<String, dynamic>? event;
   final Function(Map<String, dynamic>) onSave;
@@ -864,7 +860,6 @@ class _EventFormModalState extends State<_EventFormModal> {
   bool _urgent = false;
   bool _isAllDay = false;
 
-  // Lista de mascotas mockeadas
   final List<String> _mockPets = [
     'Max',
     'Luna',
@@ -912,7 +907,6 @@ class _EventFormModalState extends State<_EventFormModal> {
       ),
       child: Column(
         children: [
-          // Handle
           Container(
             margin: const EdgeInsets.only(top: 12),
             width: 40,
@@ -922,7 +916,6 @@ class _EventFormModalState extends State<_EventFormModal> {
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-          // Header
           Padding(
             padding: const EdgeInsets.all(20),
             child: Row(
@@ -949,7 +942,6 @@ class _EventFormModalState extends State<_EventFormModal> {
               ],
             ),
           ),
-          // Form
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -957,7 +949,6 @@ class _EventFormModalState extends State<_EventFormModal> {
                 key: _formKey,
                 child: Column(
                   children: [
-                    // Tipo de evento
                     DropdownButtonFormField<String>(
                       value: _eventType,
                       decoration: const InputDecoration(
@@ -977,7 +968,6 @@ class _EventFormModalState extends State<_EventFormModal> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    // Título
                     TextFormField(
                       controller: _titleController,
                       decoration: const InputDecoration(
@@ -993,7 +983,6 @@ class _EventFormModalState extends State<_EventFormModal> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    // Descripción
                     TextFormField(
                       controller: _descriptionController,
                       decoration: const InputDecoration(
@@ -1004,7 +993,6 @@ class _EventFormModalState extends State<_EventFormModal> {
                       maxLines: 2,
                     ),
                     const SizedBox(height: 16),
-                    // Mascota (dropdown)
                     DropdownButtonFormField<String>(
                       value: _petName,
                       decoration: const InputDecoration(
@@ -1025,7 +1013,6 @@ class _EventFormModalState extends State<_EventFormModal> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    // Ubicación (solo para citas)
                     if (_eventType == 'appointment') ...[
                       TextFormField(
                         controller: _locationController,
@@ -1043,7 +1030,6 @@ class _EventFormModalState extends State<_EventFormModal> {
                       ),
                       const SizedBox(height: 16),
                     ],
-                    // Fecha y hora
                     Row(
                       children: [
                         Expanded(
@@ -1080,7 +1066,6 @@ class _EventFormModalState extends State<_EventFormModal> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    // Todo el día
                     SwitchListTile(
                       title: const Text('Todo el día'),
                       subtitle: const Text('Evento que dura todo el día'),
@@ -1092,7 +1077,6 @@ class _EventFormModalState extends State<_EventFormModal> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    // Urgente
                     SwitchListTile(
                       title: const Text('Urgente'),
                       subtitle: const Text('Marcar como evento urgente'),
@@ -1104,7 +1088,6 @@ class _EventFormModalState extends State<_EventFormModal> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    // Notas
                     TextFormField(
                       controller: _notesController,
                       decoration: const InputDecoration(
@@ -1115,7 +1098,6 @@ class _EventFormModalState extends State<_EventFormModal> {
                       maxLines: 3,
                     ),
                     const SizedBox(height: 24),
-                    // Botones
                     Row(
                       children: [
                         Expanded(
@@ -1199,7 +1181,6 @@ class _EventFormModalState extends State<_EventFormModal> {
         ).toIso8601String(),
         'time': _isAllDay ? 'Todo el día' : _selectedTime.format(context),
         'status': 'scheduled',
-        // Campos adicionales para compatibilidad
         'clinic_name': _locationController.text,
         'type': _eventType == 'appointment' ? 'vaccine' : _eventType,
       };

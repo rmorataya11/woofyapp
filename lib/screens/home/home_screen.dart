@@ -2031,8 +2031,7 @@ class _ClinicDetailsModal extends ConsumerWidget {
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: () {
-              context.pop(); // Cerrar el modal
-              // Cambiar a la pestaña de mapa (índice 1)
+              context.pop();
               ref.read(navigationNotifierProvider.notifier).changeTab(1);
             },
             icon: const Icon(Icons.directions),

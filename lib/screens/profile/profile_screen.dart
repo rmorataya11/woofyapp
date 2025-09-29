@@ -85,7 +85,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   }
 
   Future<void> _loadUserData() async {
-    // Usar solo datos hardcodeados
     setState(() {
       _isLoading = false;
     });
@@ -127,7 +126,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                           _buildPreferencesSection(theme),
                           const SizedBox(
                             height: 100,
-                          ), // Espacio para bottom nav
+                          ), 
                         ],
                   ),
                 ),
@@ -153,7 +152,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
       ),
       child: Column(
         children: [
-          // Avatar
           CircleAvatar(
             radius: 60,
             backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
@@ -169,7 +167,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                 : null,
           ),
           const SizedBox(height: 16),
-          // Nombre y email
           Text(
             _userProfile['name'] ?? 'Usuario',
             style: TextStyle(
@@ -184,7 +181,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
           ),
           const SizedBox(height: 8),
-          // Bio
           if (_userProfile['bio'] != null && _userProfile['bio'].isNotEmpty)
             Text(
               _userProfile['bio'],
@@ -195,7 +191,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               textAlign: TextAlign.center,
             ),
           const SizedBox(height: 16),
-          // Información adicional
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -1128,7 +1123,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   }
 }
 
-// Widget para el formulario de mascotas (reutilizado del HomeScreen)
 class _PetFormDialog extends StatefulWidget {
   final Pet? pet;
   final Function(Pet) onSave;
@@ -1358,7 +1352,6 @@ class _PetFormDialogState extends State<_PetFormDialog> {
   }
 }
 
-// Widget para mostrar detalles de la mascota (reutilizado del HomeScreen)
 class _PetDetailsModal extends StatelessWidget {
   final Pet pet;
 
@@ -1499,7 +1492,6 @@ class _PetDetailsModal extends StatelessWidget {
   }
 
   Widget _buildAppointmentHistory() {
-    // Datos mock de historial de citas
     final appointments = [
       {
         'date': DateTime.now().subtract(const Duration(days: 30)),

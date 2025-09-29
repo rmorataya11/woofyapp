@@ -79,7 +79,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              // Skip button
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Align(
@@ -97,7 +96,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                 ),
               ),
-              // Page content
               Expanded(
                 child: PageView.builder(
                   controller: _pageController,
@@ -112,12 +110,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   },
                 ),
               ),
-              // Bottom section
               Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: Column(
                   children: [
-                    // Page indicators
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(
@@ -136,7 +132,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                     ),
                     const SizedBox(height: 32),
-                    // Next/Get Started button
                     SizedBox(
                       width: double.infinity,
                       height: 56,
@@ -177,7 +172,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Hero image container
           Container(
             width: 250,
             height: 250,
@@ -198,7 +192,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ),
           const SizedBox(height: 48),
-          // Title
           Text(
             data.title,
             style: const TextStyle(
@@ -210,7 +203,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
-          // Description
           Text(
             data.description,
             style: const TextStyle(
