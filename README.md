@@ -187,18 +187,6 @@ ThemeUtils.getCardColor(context, ref)
 
 ---
 
-## 📄 Licencia
-
-Este proyecto está bajo la Licencia MIT. Ver el archivo [LICENSE](LICENSE) para más detalles.
-
----
-
-## 👨‍💻 Desarrollado por
-
-**Tu Nombre** - [@tu-usuario](https://github.com/tu-usuario)
-
----
-
 ## 🙏 Agradecimientos
 
 - Flutter Team por el increíble framework
