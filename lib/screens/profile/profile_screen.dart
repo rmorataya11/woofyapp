@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../providers/pet_provider.dart';
 import '../../router/app_router.dart';
 import '../../providers/theme_provider.dart';
+import '../../config/theme_utils.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -91,21 +92,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Theme.of(context).colorScheme.primary.withOpacity(0.1),
-              Theme.of(context).colorScheme.background,
-            ],
-          ),
-        ),
+        decoration: ThemeUtils.getBackgroundDecoration(context, ref),
         child: SafeArea(
           child: _isLoading
               ? Center(
@@ -118,11 +107,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               : SingleChildScrollView(
                       child: Column(
                         children: [
-                          _buildProfileHeader(theme),
-                          _buildStatsSection(theme),
-                          _buildPetsSection(theme),
-                          _buildSettingsSection(theme),
-                          _buildPreferencesSection(theme),
+                          _buildProfileHeader(),
+                          _buildStatsSection(),
+                          _buildPetsSection(),
+                          _buildSettingsSection(),
+                          _buildPreferencesSection(),
                           const SizedBox(
                             height: 100,
                           ), 
@@ -134,16 +123,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     );
   }
 
-  Widget _buildProfileHeader(ThemeData theme) {
+  Widget _buildProfileHeader() {
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: ThemeUtils.getCardColor(context, ref),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            color: ThemeUtils.getShadowColor(context, ref),
             blurRadius: 20,
             offset: const Offset(0, 5),
           ),
@@ -171,21 +160,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.onSurface,
+              color: ThemeUtils.getTextPrimaryColor(context, ref),
             ),
           ),
           const SizedBox(height: 4),
           Text(
             _userProfile['email'] ?? '',
-            style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
+            style: TextStyle(fontSize: 16, color: ThemeUtils.getTextSecondaryColor(context, ref)),
           ),
           const SizedBox(height: 8),
           if (_userProfile['bio'] != null && _userProfile['bio'].isNotEmpty)
             Text(
               _userProfile['bio'],
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: Color(0xFF616161),
+                color: ThemeUtils.getTextSecondaryColor(context, ref),
               ),
               textAlign: TextAlign.center,
             ),
@@ -220,28 +209,28 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: Theme.of(context).colorScheme.onSurface,
+            color: ThemeUtils.getTextPrimaryColor(context, ref),
           ),
           textAlign: TextAlign.center,
         ),
         Text(
           label,
-          style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
+          style: TextStyle(fontSize: 10, color: ThemeUtils.getTextSecondaryColor(context, ref)),
         ),
       ],
     );
   }
 
-  Widget _buildStatsSection(ThemeData theme) {
+  Widget _buildStatsSection() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: ThemeUtils.getCardColor(context, ref),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            color: ThemeUtils.getShadowColor(context, ref),
             blurRadius: 20,
             offset: const Offset(0, 5),
           ),
@@ -255,7 +244,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.onSurface,
+              color: ThemeUtils.getTextPrimaryColor(context, ref),
             ),
           ),
           const SizedBox(height: 16),
@@ -317,7 +306,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             title,
             style: TextStyle(
               fontSize: 12,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              color: ThemeUtils.getTextSecondaryColor(context, ref),
             ),
             textAlign: TextAlign.center,
           ),
@@ -326,17 +315,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     );
   }
 
-  Widget _buildPetsSection(ThemeData theme) {
+  Widget _buildPetsSection() {
     final pets = ref.watch(petNotifierProvider);
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: ThemeUtils.getCardColor(context, ref),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            color: ThemeUtils.getShadowColor(context, ref),
             blurRadius: 20,
             offset: const Offset(0, 5),
           ),
@@ -353,7 +342,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onSurface,
+                  color: ThemeUtils.getTextPrimaryColor(context, ref),
                 ),
               ),
               TextButton.icon(
@@ -374,13 +363,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   Icon(
                     Icons.pets,
                     size: 48,
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+                    color: ThemeUtils.getTextSecondaryColor(context, ref).withOpacity(0.3),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'No tienes mascotas registradas',
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                      color: ThemeUtils.getTextSecondaryColor(context, ref),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -403,7 +392,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.background,
+        color: ThemeUtils.getCardColor(context, ref),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
@@ -429,14 +418,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.onSurface,
+                    color: ThemeUtils.getTextPrimaryColor(context, ref),
                   ),
                 ),
                 Text(
                   '${pet.breed} • ${pet.age} años',
                   style: TextStyle(
                     fontSize: 14,
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                    color: ThemeUtils.getTextSecondaryColor(context, ref),
                   ),
                 ),
                 Text(
@@ -494,7 +483,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             ],
             child: Icon(
               Icons.more_vert,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+              color: ThemeUtils.getTextSecondaryColor(context, ref),
               size: 20,
             ),
           ),
@@ -503,15 +492,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     );
   }
 
-  Widget _buildSettingsSection(ThemeData theme) {
+  Widget _buildSettingsSection() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: ThemeUtils.getCardColor(context, ref),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            color: ThemeUtils.getShadowColor(context, ref),
             blurRadius: 20,
             offset: const Offset(0, 5),
           ),
@@ -548,16 +537,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     );
   }
 
-  Widget _buildPreferencesSection(ThemeData theme) {
+  Widget _buildPreferencesSection() {
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: ThemeUtils.getCardColor(context, ref),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            color: ThemeUtils.getShadowColor(context, ref),
             blurRadius: 20,
             offset: const Offset(0, 5),
           ),
@@ -571,7 +560,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.onSurface,
+              color: ThemeUtils.getTextPrimaryColor(context, ref),
             ),
           ),
           const SizedBox(height: 16),
@@ -607,15 +596,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
-          color: Theme.of(context).colorScheme.onSurface,
+          color: ThemeUtils.getTextPrimaryColor(context, ref),
         ),
       ),
       subtitle: Text(
         _getThemeDescription(themeMode),
-        style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
+        style: TextStyle(fontSize: 14, color: ThemeUtils.getTextSecondaryColor(context, ref)),
       ),
       trailing: PopupMenuButton<ThemeMode>(
-        icon: Icon(Icons.arrow_drop_down, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
+        icon: Icon(Icons.arrow_drop_down, color: ThemeUtils.getTextSecondaryColor(context, ref)),
         onSelected: (ThemeMode mode) {
           themeNotifier.setTheme(mode);
         },
@@ -981,16 +970,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
-          color: Theme.of(context).colorScheme.onSurface,
+          color: ThemeUtils.getTextPrimaryColor(context, ref),
         ),
       ),
       subtitle: Text(
         subtitle,
-        style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
+        style: TextStyle(fontSize: 14, color: ThemeUtils.getTextSecondaryColor(context, ref)),
       ),
       trailing: Icon(
         Icons.arrow_forward_ios,
-        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+        color: ThemeUtils.getTextSecondaryColor(context, ref),
         size: 16,
       ),
       onTap: onTap,
@@ -1009,12 +998,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
-          color: Theme.of(context).colorScheme.onSurface,
+          color: ThemeUtils.getTextPrimaryColor(context, ref),
         ),
       ),
       subtitle: Text(
         subtitle,
-        style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
+        style: TextStyle(fontSize: 14, color: ThemeUtils.getTextSecondaryColor(context, ref)),
       ),
       value: value,
       onChanged: onChanged,
@@ -1351,13 +1340,13 @@ class _PetFormDialogState extends State<_PetFormDialog> {
   }
 }
 
-class _PetDetailsModal extends StatelessWidget {
+class _PetDetailsModal extends ConsumerWidget {
   final Pet pet;
 
   const _PetDetailsModal({required this.pet});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.8,
       padding: const EdgeInsets.all(20),
@@ -1382,17 +1371,17 @@ class _PetDetailsModal extends StatelessWidget {
                   children: [
                     Text(
                       pet.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF212121),
+                        color: ThemeUtils.getTextPrimaryColor(context, ref),
                       ),
                     ),
                     Text(
                       '${pet.breed} • ${pet.age} años',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
-                        color: Color(0xFF616161),
+                        color: ThemeUtils.getTextSecondaryColor(context, ref),
                       ),
                     ),
                   ],
@@ -1410,21 +1399,21 @@ class _PetDetailsModal extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildInfoSection('Información General', [
-                    _buildInfoItem('Raza', pet.breed),
-                    _buildInfoItem('Edad', '${pet.age} años'),
-                    _buildInfoItem('Género', pet.gender == 'male' ? 'Macho' : 'Hembra'),
-                    _buildInfoItem('Peso', '${pet.weight} kg'),
-                    _buildInfoItem('Color', pet.color),
+                  _buildInfoSection(context, ref, 'Información General', [
+                    _buildInfoItem(context, ref, 'Raza', pet.breed),
+                    _buildInfoItem(context, ref, 'Edad', '${pet.age} años'),
+                    _buildInfoItem(context, ref, 'Género', pet.gender == 'male' ? 'Macho' : 'Hembra'),
+                    _buildInfoItem(context, ref, 'Peso', '${pet.weight} kg'),
+                    _buildInfoItem(context, ref, 'Color', pet.color),
                   ]),
                   const SizedBox(height: 20),
-                  _buildInfoSection('Estado de Salud', [
-                    _buildInfoItem('Vacunación', _getVaccinationText(pet.vaccinationStatus)),
-                    _buildInfoItem('Última visita', _formatDate(pet.lastVetVisit)),
-                    _buildInfoItem('Notas médicas', pet.medicalNotes),
+                  _buildInfoSection(context, ref, 'Estado de Salud', [
+                    _buildInfoItem(context, ref, 'Vacunación', _getVaccinationText(pet.vaccinationStatus)),
+                    _buildInfoItem(context, ref, 'Última visita', _formatDate(pet.lastVetVisit)),
+                    _buildInfoItem(context, ref, 'Notas médicas', pet.medicalNotes),
                   ]),
                   const SizedBox(height: 20),
-                  _buildAppointmentHistory(),
+                  _buildAppointmentHistory(context, ref),
                 ],
               ),
             ),
@@ -1434,23 +1423,23 @@ class _PetDetailsModal extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoSection(String title, List<Widget> items) {
+  Widget _buildInfoSection(BuildContext context, WidgetRef ref, String title, List<Widget> items) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF212121),
+            color: ThemeUtils.getTextPrimaryColor(context, ref),
           ),
         ),
         const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFFF5F5F5),
+            color: ThemeUtils.getCardColor(context, ref),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
@@ -1461,7 +1450,7 @@ class _PetDetailsModal extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoItem(String label, String value) {
+  Widget _buildInfoItem(BuildContext context, WidgetRef ref, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -1471,17 +1460,17 @@ class _PetDetailsModal extends StatelessWidget {
             width: 100,
             child: Text(
               '$label:',
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.w500,
-                color: Color(0xFF616161),
+                color: ThemeUtils.getTextSecondaryColor(context, ref),
               ),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
-                color: Color(0xFF212121),
+              style: TextStyle(
+                color: ThemeUtils.getTextPrimaryColor(context, ref),
               ),
             ),
           ),
@@ -1490,7 +1479,7 @@ class _PetDetailsModal extends StatelessWidget {
     );
   }
 
-  Widget _buildAppointmentHistory() {
+  Widget _buildAppointmentHistory(BuildContext context, WidgetRef ref) {
     final appointments = [
       {
         'date': DateTime.now().subtract(const Duration(days: 30)),
@@ -1515,12 +1504,12 @@ class _PetDetailsModal extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Historial de Citas',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF212121),
+            color: ThemeUtils.getTextPrimaryColor(context, ref),
           ),
         ),
         const SizedBox(height: 12),
@@ -1528,7 +1517,7 @@ class _PetDetailsModal extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 8),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFFF5F5F5),
+            color: ThemeUtils.getCardColor(context, ref),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: appointment['status'] == 'scheduled' 
@@ -1554,16 +1543,16 @@ class _PetDetailsModal extends StatelessWidget {
                   children: [
                     Text(
                       appointment['type'] as String,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF212121),
+                        color: ThemeUtils.getTextPrimaryColor(context, ref),
                       ),
                     ),
                     Text(
                       appointment['clinic'] as String,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: Color(0xFF616161),
+                        color: ThemeUtils.getTextSecondaryColor(context, ref),
                       ),
                     ),
                   ],
@@ -1571,9 +1560,9 @@ class _PetDetailsModal extends StatelessWidget {
               ),
               Text(
                 _formatDate(appointment['date'] as DateTime),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: Color(0xFF616161),
+                  color: ThemeUtils.getTextSecondaryColor(context, ref),
                 ),
               ),
             ],
