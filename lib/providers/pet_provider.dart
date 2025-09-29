@@ -138,8 +138,6 @@ class PetNotifier extends StateNotifier<List<Pet>> {
   }
 
   void _loadPets() {
-    // En una app real, aquí cargarías desde SharedPreferences o base de datos
-    // Por ahora usamos los datos iniciales
   }
 
   void addPet(Pet pet) {
