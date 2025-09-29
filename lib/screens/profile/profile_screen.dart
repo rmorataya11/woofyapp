@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
-import '../../providers/theme_notifier.dart';
 import '../../providers/pet_provider.dart';
 import '../../router/app_router.dart';
 import '../../providers/theme_provider.dart';
@@ -595,12 +594,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   }
 
   Widget _buildThemeSelector() {
-    final themeMode = ref.watch(themeNotifierProvider);
-    final themeNotifier = ref.read(themeNotifierProvider.notifier);
+    final themeMode = ref.watch(themeModeProvider);
+    final themeNotifier = ref.read(themeModeProvider.notifier);
     
     return ListTile(
       leading: Icon(
-        themeNotifier.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+        themeMode == ThemeMode.dark ? Icons.dark_mode : Icons.light_mode,
         color: Theme.of(context).colorScheme.primary,
       ),
       title: Text(
@@ -618,7 +617,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
       trailing: PopupMenuButton<ThemeMode>(
         icon: Icon(Icons.arrow_drop_down, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
         onSelected: (ThemeMode mode) {
-          themeNotifier.setThemeMode(mode);
+          themeNotifier.setTheme(mode);
         },
         itemBuilder: (BuildContext context) => [
           PopupMenuItem<ThemeMode>(

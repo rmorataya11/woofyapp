@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
+import '../../config/theme_utils.dart';
 
-class MapScreen extends StatefulWidget {
+class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
 
   @override
-  State<MapScreen> createState() => _MapScreenState();
+  ConsumerState<MapScreen> createState() => _MapScreenState();
 }
 
-class _MapScreenState extends State<MapScreen> {
+class _MapScreenState extends ConsumerState<MapScreen> {
   final SupabaseClient _supabase = Supabase.instance.client;
   final TextEditingController _searchController = TextEditingController();
   List<Map<String, dynamic>> _clinics = [];
   List<Map<String, dynamic>> _filteredClinics = [];
-  bool _isLoading = true;
   String _selectedFilter = 'all';
   String _selectedSort = 'distance';
 
@@ -49,13 +50,11 @@ class _MapScreenState extends State<MapScreen> {
       setState(() {
         _clinics = response;
         _filteredClinics = _clinics;
-        _isLoading = false;
       });
     } catch (e) {
       setState(() {
         _clinics = _getMockClinics();
         _filteredClinics = _clinics;
-        _isLoading = false;
       });
     }
   }
@@ -71,7 +70,12 @@ class _MapScreenState extends State<MapScreen> {
         'distance': 2.5,
         'wait_time': 15,
         'is_open': true,
-        'specialties': ['Consulta General', 'Vacunación', 'Cirugía', 'Emergencias'],
+        'specialties': [
+          'Consulta General',
+          'Vacunación',
+          'Cirugía',
+          'Emergencias',
+        ],
         'image_url': 'https://via.placeholder.com/300x200',
       },
       {
@@ -182,32 +186,15 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
-          gradient: isDark
-              ? const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFF1A1A1A), Color(0xFF121212)],
-                )
-              : const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFFE3F2FD), Color(0xFFFFFFFF)],
-                ),
-        ),
+        decoration: ThemeUtils.getBackgroundDecoration(context, ref),
         child: SafeArea(
           child: Column(
             children: [
               _buildHeader(),
               _buildSearchAndFilters(),
-              Expanded(
-                child: _buildMapOnly(),
-              ),
+              Expanded(child: _buildMapOnly()),
             ],
           ),
         ),
@@ -220,7 +207,11 @@ class _MapScreenState extends State<MapScreen> {
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
-          Icon(Icons.location_on, color: Theme.of(context).colorScheme.primary, size: 28),
+          Icon(
+            Icons.location_on,
+            color: Theme.of(context).colorScheme.primary,
+            size: 28,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -240,10 +231,7 @@ class _MapScreenState extends State<MapScreen> {
                 ),
               );
             },
-            icon: Icon(
-              Icons.map,
-              color: Theme.of(context).colorScheme.primary,
-            ),
+            icon: Icon(Icons.map, color: Theme.of(context).colorScheme.primary),
           ),
         ],
       ),
@@ -259,7 +247,10 @@ class _MapScreenState extends State<MapScreen> {
             controller: _searchController,
             decoration: InputDecoration(
               hintText: 'Buscar veterinarias...',
-              prefixIcon: Icon(Icons.search, color: Theme.of(context).colorScheme.primary),
+              prefixIcon: Icon(
+                Icons.search,
+                color: Theme.of(context).colorScheme.primary,
+              ),
               suffixIcon: _searchController.text.isNotEmpty
                   ? IconButton(
                       onPressed: () {
@@ -271,11 +262,15 @@ class _MapScreenState extends State<MapScreen> {
                   : null,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
+                borderSide: BorderSide(
+                  color: Theme.of(context).colorScheme.outline,
+                ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
+                borderSide: BorderSide(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
               ),
             ),
             onChanged: (value) => _filterClinics(),
@@ -369,11 +364,11 @@ class _MapScreenState extends State<MapScreen> {
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: ThemeUtils.getCardColor(context, ref),
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: ThemeUtils.getShadowColor(context, ref),
                   blurRadius: 10,
                   offset: const Offset(0, 2),
                 ),
@@ -400,18 +395,21 @@ class _MapScreenState extends State<MapScreen> {
                     children: [
                       Text(
                         '${_filteredClinics.length} clínicas encontradas',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF212121),
+                          color: ThemeUtils.getTextPrimaryColor(context, ref),
                         ),
                       ),
                       if (_selectedFilter != 'all')
                         Text(
                           'Filtro: ${_getFilterLabel(_selectedFilter)}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
-                            color: Color(0xFF616161),
+                            color: ThemeUtils.getTextSecondaryColor(
+                              context,
+                              ref,
+                            ),
                           ),
                         ),
                     ],
@@ -427,7 +425,7 @@ class _MapScreenState extends State<MapScreen> {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: ThemeUtils.getShadowColor(context, ref),
                   blurRadius: 20,
                   offset: const Offset(0, 5),
                 ),
@@ -452,18 +450,11 @@ class _MapScreenState extends State<MapScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.map,
-                            size: 80,
-                            color: Colors.white,
-                          ),
+                          Icon(Icons.map, size: 80, color: Colors.white),
                           SizedBox(height: 16),
                           Text(
                             'Mapa no disponible',
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.white,
-                            ),
+                            style: TextStyle(fontSize: 18, color: Colors.white),
                           ),
                         ],
                       ),
@@ -509,7 +500,9 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          ..._filteredClinics.map((clinic) => _buildClinicCard(clinic)).toList(),
+          ..._filteredClinics
+              .map((clinic) => _buildClinicCard(clinic))
+              .toList(),
         ],
       ),
     );
@@ -519,11 +512,11 @@ class _MapScreenState extends State<MapScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: ThemeUtils.getCardColor(context, ref),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: ThemeUtils.getShadowColor(context, ref),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -548,10 +541,10 @@ class _MapScreenState extends State<MapScreen> {
                     children: [
                       Text(
                         clinic['name'],
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF212121),
+                          color: ThemeUtils.getTextPrimaryColor(context, ref),
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -566,9 +559,12 @@ class _MapScreenState extends State<MapScreen> {
                           Expanded(
                             child: Text(
                               clinic['address'],
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 14,
-                                color: Color(0xFF616161),
+                                color: ThemeUtils.getTextSecondaryColor(
+                                  context,
+                                  ref,
+                                ),
                               ),
                             ),
                           ),
@@ -578,9 +574,12 @@ class _MapScreenState extends State<MapScreen> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
-                    color: (clinic['is_open'] ?? false) 
+                    color: (clinic['is_open'] ?? false)
                         ? Colors.green.withOpacity(0.1)
                         : Colors.red.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
@@ -589,7 +588,9 @@ class _MapScreenState extends State<MapScreen> {
                     (clinic['is_open'] ?? false) ? 'Abierto' : 'Cerrado',
                     style: TextStyle(
                       fontSize: 12,
-                      color: (clinic['is_open'] ?? false) ? Colors.green : Colors.red,
+                      color: (clinic['is_open'] ?? false)
+                          ? Colors.green
+                          : Colors.red,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -599,17 +600,13 @@ class _MapScreenState extends State<MapScreen> {
             const SizedBox(height: 12),
             Row(
               children: [
-                const Icon(
-                  Icons.star,
-                  size: 16,
-                  color: Colors.amber,
-                ),
+                const Icon(Icons.star, size: 16, color: Colors.amber),
                 const SizedBox(width: 4),
                 Text(
                   '${clinic['rating']} ⭐',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: Color(0xFF616161),
+                    color: ThemeUtils.getTextSecondaryColor(context, ref),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -621,9 +618,9 @@ class _MapScreenState extends State<MapScreen> {
                 const SizedBox(width: 4),
                 Text(
                   '${clinic['wait_time']} min',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: Color(0xFF616161),
+                    color: ThemeUtils.getTextSecondaryColor(context, ref),
                   ),
                 ),
                 const Spacer(),
@@ -634,7 +631,10 @@ class _MapScreenState extends State<MapScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF1E88E5),
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -727,7 +727,9 @@ class _ContactModalState extends State<_ContactModal> {
                         widget.clinic['name'],
                         style: TextStyle(
                           fontSize: 14,
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withOpacity(0.7),
                         ),
                       ),
                     ],
@@ -809,8 +811,12 @@ class _ContactModalState extends State<_ContactModal> {
                           onPressed: _sendMessage,
                           child: const Text('Enviar'),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(context).colorScheme.primary,
-                            foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.primary,
+                            foregroundColor: Theme.of(
+                              context,
+                            ).colorScheme.onPrimary,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
                         ),
@@ -828,8 +834,8 @@ class _ContactModalState extends State<_ContactModal> {
   }
 
   void _sendMessage() {
-    if (_nameController.text.isEmpty || 
-        _emailController.text.isEmpty || 
+    if (_nameController.text.isEmpty ||
+        _emailController.text.isEmpty ||
         _messageController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -846,7 +852,7 @@ class _ContactModalState extends State<_ContactModal> {
         backgroundColor: Colors.green,
       ),
     );
-    
+
     context.pop();
   }
 }
