@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../config/theme_utils.dart';
 
-class AppointmentsScreen extends StatefulWidget {
+class AppointmentsScreen extends ConsumerStatefulWidget {
   const AppointmentsScreen({super.key});
 
   @override
-  State<AppointmentsScreen> createState() => _AppointmentsScreenState();
+  ConsumerState<AppointmentsScreen> createState() => _AppointmentsScreenState();
 }
 
-class _AppointmentsScreenState extends State<AppointmentsScreen>
+class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
     with TickerProviderStateMixin {
-  final SupabaseClient _supabase = Supabase.instance.client;
   final TextEditingController _searchController = TextEditingController();
 
   List<Map<String, dynamic>> _appointments = [];
@@ -259,21 +259,9 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Theme.of(context).colorScheme.primaryContainer,
-              Theme.of(context).colorScheme.surface,
-            ],
-          ),
-        ),
+        decoration: ThemeUtils.getBackgroundDecoration(context, ref),
         child: SafeArea(
           child: Column(
             children: [
@@ -318,23 +306,27 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
-          const Icon(Icons.event_note, color: Color(0xFF1E88E5), size: 28),
+          Icon(
+            Icons.event_note,
+            color: Theme.of(context).colorScheme.primary,
+            size: 28,
+          ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Text(
               'Mis Citas',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF212121),
+                color: ThemeUtils.getTextPrimaryColor(context, ref),
               ),
             ),
           ),
           IconButton(
             onPressed: _showCalendarView,
-            icon: const Icon(
+            icon: Icon(
               Icons.calendar_today,
-              color: Color(0xFF1E88E5),
+              color: Theme.of(context).colorScheme.primary,
               size: 24,
             ),
           ),
@@ -390,11 +382,11 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: ThemeUtils.getCardColor(context, ref),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.1),
+            color: ThemeUtils.getShadowColor(context, ref),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -414,7 +406,10 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
           ),
           Text(
             title,
-            style: const TextStyle(fontSize: 12, color: Color(0xFF616161)),
+            style: TextStyle(
+              fontSize: 12,
+              color: ThemeUtils.getTextSecondaryColor(context, ref),
+            ),
           ),
         ],
       ),
@@ -429,11 +424,11 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
           // Barra de búsqueda
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: ThemeUtils.getCardColor(context, ref),
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF1E88E5).withOpacity(0.1),
+                  color: ThemeUtils.getShadowColor(context, ref),
                   blurRadius: 10,
                   offset: const Offset(0, 2),
                 ),
@@ -444,14 +439,23 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
               onChanged: (value) => _filterAppointments(),
               decoration: InputDecoration(
                 hintText: 'Buscar citas...',
-                prefixIcon: const Icon(Icons.search, color: Color(0xFF1E88E5)),
+                hintStyle: TextStyle(
+                  color: ThemeUtils.getTextSecondaryColor(context, ref),
+                ),
+                prefixIcon: Icon(
+                  Icons.search,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
                         onPressed: () {
                           _searchController.clear();
                           _filterAppointments();
                         },
-                        icon: const Icon(Icons.clear, color: Color(0xFF616161)),
+                        icon: Icon(
+                          Icons.clear,
+                          color: ThemeUtils.getTextSecondaryColor(context, ref),
+                        ),
                       )
                     : null,
                 border: OutlineInputBorder(
@@ -459,7 +463,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
                   borderSide: BorderSide.none,
                 ),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: ThemeUtils.getCardColor(context, ref),
               ),
             ),
           ),
@@ -513,12 +517,12 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
           // Ordenar por
           Row(
             children: [
-              const Text(
+              Text(
                 'Ordenar por:',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF616161),
+                  color: ThemeUtils.getTextSecondaryColor(context, ref),
                 ),
               ),
               const SizedBox(width: 12),
@@ -557,21 +561,27 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
             Icon(
               Icons.event_available,
               size: 80,
-              color: const Color(0xFF616161).withOpacity(0.5),
+              color: ThemeUtils.getTextSecondaryColor(
+                context,
+                ref,
+              ).withOpacity(0.5),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'No hay citas',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF616161),
+                color: ThemeUtils.getTextSecondaryColor(context, ref),
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Toca el botón + para agendar una nueva cita',
-              style: TextStyle(fontSize: 14, color: Color(0xFF616161)),
+              style: TextStyle(
+                fontSize: 14,
+                color: ThemeUtils.getTextSecondaryColor(context, ref),
+              ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -599,11 +609,11 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: ThemeUtils.getCardColor(context, ref),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: _getAppointmentColor(appointment['status']).withOpacity(0.1),
+            color: ThemeUtils.getShadowColor(context, ref),
             blurRadius: 20,
             offset: const Offset(0, 5),
           ),
@@ -637,10 +647,10 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
                 Expanded(
                   child: Text(
                     appointment['title'],
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF212121),
+                      color: ThemeUtils.getTextPrimaryColor(context, ref),
                     ),
                   ),
                 ),
@@ -697,7 +707,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
                     Icon(
                       Icons.access_time,
                       size: 16,
-                      color: const Color(0xFF616161),
+                      color: ThemeUtils.getTextSecondaryColor(context, ref),
                     ),
                     const SizedBox(width: 8),
                     Text(
@@ -705,17 +715,17 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
                       style: TextStyle(
                         fontSize: 14,
                         color: isToday
-                            ? const Color(0xFF1E88E5)
-                            : const Color(0xFF616161),
+                            ? Theme.of(context).colorScheme.primary
+                            : ThemeUtils.getTextSecondaryColor(context, ref),
                         fontWeight: isToday ? FontWeight.w600 : FontWeight.w400,
                       ),
                     ),
                     const SizedBox(width: 16),
                     Text(
                       appointment['time'],
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
-                        color: Color(0xFF616161),
+                        color: ThemeUtils.getTextSecondaryColor(context, ref),
                       ),
                     ),
                   ],
@@ -727,15 +737,15 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
                     Icon(
                       Icons.location_on,
                       size: 16,
-                      color: const Color(0xFF616161),
+                      color: ThemeUtils.getTextSecondaryColor(context, ref),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         appointment['clinic_name'],
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
-                          color: Color(0xFF616161),
+                          color: ThemeUtils.getTextSecondaryColor(context, ref),
                         ),
                       ),
                     ),
@@ -745,13 +755,17 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
                 // Mascota
                 Row(
                   children: [
-                    Icon(Icons.pets, size: 16, color: const Color(0xFF616161)),
+                    Icon(
+                      Icons.pets,
+                      size: 16,
+                      color: ThemeUtils.getTextSecondaryColor(context, ref),
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       '${appointment['pet_name']} (${appointment['pet_breed']}, ${appointment['pet_age']} años)',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
-                        color: Color(0xFF616161),
+                        color: ThemeUtils.getTextSecondaryColor(context, ref),
                       ),
                     ),
                   ],
@@ -763,14 +777,14 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
                     Icon(
                       Icons.person,
                       size: 16,
-                      color: const Color(0xFF616161),
+                      color: ThemeUtils.getTextSecondaryColor(context, ref),
                     ),
                     const SizedBox(width: 8),
                     Text(
                       '${appointment['doctor_name']} - ${appointment['specialty']}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
-                        color: Color(0xFF616161),
+                        color: ThemeUtils.getTextSecondaryColor(context, ref),
                       ),
                     ),
                   ],
@@ -798,24 +812,30 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF5F5F5),
+                      color: ThemeUtils.getTextSecondaryColor(
+                        context,
+                        ref,
+                      ).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.note,
                           size: 16,
-                          color: Color(0xFF616161),
+                          color: ThemeUtils.getTextSecondaryColor(context, ref),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             appointment['notes'],
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
-                              color: Color(0xFF616161),
+                              color: ThemeUtils.getTextSecondaryColor(
+                                context,
+                                ref,
+                              ),
                             ),
                           ),
                         ),
@@ -1044,7 +1064,9 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
 
   void _confirmAppointment(Map<String, dynamic> appointment) {
     setState(() {
-      final index = _appointments.indexWhere((apt) => apt['id'] == appointment['id']);
+      final index = _appointments.indexWhere(
+        (apt) => apt['id'] == appointment['id'],
+      );
       if (index != -1) {
         _appointments[index]['status'] = 'confirmed';
       }
@@ -1084,7 +1106,9 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
           TextButton(
             onPressed: () {
               setState(() {
-                final index = _appointments.indexWhere((apt) => apt['id'] == appointment['id']);
+                final index = _appointments.indexWhere(
+                  (apt) => apt['id'] == appointment['id'],
+                );
                 if (index != -1) {
                   _appointments[index]['status'] = 'cancelled';
                 }
@@ -1098,13 +1122,15 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
                 ),
               );
             },
-            child: const Text('Sí, cancelar', style: TextStyle(color: Colors.red)),
+            child: const Text(
+              'Sí, cancelar',
+              style: TextStyle(color: Colors.red),
+            ),
           ),
         ],
       ),
     );
   }
-
 
   void _showMoreActions(Map<String, dynamic> appointment) {
     showModalBottomSheet(
@@ -1182,9 +1208,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _AppointmentFormModal(
-        onSave: _saveAppointment,
-      ),
+      builder: (context) => _AppointmentFormModal(onSave: _saveAppointment),
     );
   }
 
@@ -1214,8 +1238,12 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
           TextButton(
             onPressed: () {
               setState(() {
-                _appointments.removeWhere((appointment) => appointment['id'] == appointmentId);
-                _filteredAppointments.removeWhere((appointment) => appointment['id'] == appointmentId);
+                _appointments.removeWhere(
+                  (appointment) => appointment['id'] == appointmentId,
+                );
+                _filteredAppointments.removeWhere(
+                  (appointment) => appointment['id'] == appointmentId,
+                );
               });
               Navigator.of(context).pop();
               ScaffoldMessenger.of(context).showSnackBar(
@@ -1236,21 +1264,26 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
     setState(() {
       if (appointmentData['id'] == null) {
         // Nueva cita
-        appointmentData['id'] = DateTime.now().millisecondsSinceEpoch.toString();
+        appointmentData['id'] = DateTime.now().millisecondsSinceEpoch
+            .toString();
         _appointments.add(appointmentData);
       } else {
         // Editar cita existente
-        final index = _appointments.indexWhere((appointment) => appointment['id'] == appointmentData['id']);
+        final index = _appointments.indexWhere(
+          (appointment) => appointment['id'] == appointmentData['id'],
+        );
         if (index != -1) {
           _appointments[index] = appointmentData;
         }
       }
       _filterAppointments();
     });
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(appointmentData['id'] == null ? 'Cita agregada' : 'Cita actualizada'),
+        content: Text(
+          appointmentData['id'] == null ? 'Cita agregada' : 'Cita actualizada',
+        ),
         backgroundColor: Colors.green,
       ),
     );
@@ -1271,10 +1304,7 @@ class _AppointmentFormModal extends StatefulWidget {
   final Map<String, dynamic>? appointment;
   final Function(Map<String, dynamic>) onSave;
 
-  const _AppointmentFormModal({
-    this.appointment,
-    required this.onSave,
-  });
+  const _AppointmentFormModal({this.appointment, required this.onSave});
 
   @override
   State<_AppointmentFormModal> createState() => _AppointmentFormModalState();
@@ -1287,7 +1317,7 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
   final _doctorController = TextEditingController();
   final _specialtyController = TextEditingController();
   final _notesController = TextEditingController();
-  
+
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
   String _type = 'vaccine';
@@ -1325,7 +1355,9 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
       // Verificar que la mascota esté en la lista disponible
       if (_mockPets.any((pet) => pet['name'] == appointmentPetName)) {
         _petName = appointmentPetName;
-        final selectedPet = _mockPets.firstWhere((pet) => pet['name'] == appointmentPetName);
+        final selectedPet = _mockPets.firstWhere(
+          (pet) => pet['name'] == appointmentPetName,
+        );
         _petBreed = selectedPet['breed'];
         _petAge = selectedPet['age'];
       } else {
@@ -1491,13 +1523,17 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
                       items: _mockPets.map<DropdownMenuItem<String>>((pet) {
                         return DropdownMenuItem<String>(
                           value: pet['name'] as String,
-                          child: Text('${pet['name']} (${pet['breed']}, ${pet['age']} años)'),
+                          child: Text(
+                            '${pet['name']} (${pet['breed']}, ${pet['age']} años)',
+                          ),
                         );
                       }).toList(),
                       onChanged: (value) {
                         setState(() {
                           _petName = value!;
-                          final selectedPet = _mockPets.firstWhere((pet) => pet['name'] == value);
+                          final selectedPet = _mockPets.firstWhere(
+                            (pet) => pet['name'] == value,
+                          );
                           _petBreed = selectedPet['breed'];
                           _petAge = selectedPet['age'];
                         });
@@ -1549,10 +1585,22 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
                               prefixIcon: Icon(Icons.medical_services),
                             ),
                             items: const [
-                              DropdownMenuItem(value: 'vaccine', child: Text('Vacuna')),
-                              DropdownMenuItem(value: 'checkup', child: Text('Revisión')),
-                              DropdownMenuItem(value: 'surgery', child: Text('Cirugía')),
-                              DropdownMenuItem(value: 'emergency', child: Text('Emergencia')),
+                              DropdownMenuItem(
+                                value: 'vaccine',
+                                child: Text('Vacuna'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'checkup',
+                                child: Text('Revisión'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'surgery',
+                                child: Text('Cirugía'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'emergency',
+                                child: Text('Emergencia'),
+                              ),
                             ],
                             onChanged: (value) {
                               setState(() {
@@ -1571,10 +1619,22 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
                               prefixIcon: Icon(Icons.info),
                             ),
                             items: const [
-                              DropdownMenuItem(value: 'scheduled', child: Text('Programada')),
-                              DropdownMenuItem(value: 'confirmed', child: Text('Confirmada')),
-                              DropdownMenuItem(value: 'completed', child: Text('Completada')),
-                              DropdownMenuItem(value: 'cancelled', child: Text('Cancelada')),
+                              DropdownMenuItem(
+                                value: 'scheduled',
+                                child: Text('Programada'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'confirmed',
+                                child: Text('Confirmada'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'completed',
+                                child: Text('Completada'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'cancelled',
+                                child: Text('Cancelada'),
+                              ),
                             ],
                             onChanged: (value) {
                               setState(() {
@@ -1657,10 +1717,18 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
                         Expanded(
                           child: ElevatedButton(
                             onPressed: _saveAppointment,
-                            child: Text(widget.appointment == null ? 'Agregar' : 'Actualizar'),
+                            child: Text(
+                              widget.appointment == null
+                                  ? 'Agregar'
+                                  : 'Actualizar',
+                            ),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Theme.of(context).colorScheme.primary,
-                              foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.primary,
+                              foregroundColor: Theme.of(
+                                context,
+                              ).colorScheme.onPrimary,
                               padding: const EdgeInsets.symmetric(vertical: 16),
                             ),
                           ),
@@ -1730,7 +1798,7 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
         ).toIso8601String(),
         'time': _selectedTime.format(context),
       };
-      
+
       widget.onSave(appointmentData);
       Navigator.of(context).pop();
     }

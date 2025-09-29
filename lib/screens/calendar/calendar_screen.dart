@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../config/theme_utils.dart';
 
-class CalendarScreen extends StatefulWidget {
+class CalendarScreen extends ConsumerStatefulWidget {
   const CalendarScreen({super.key});
 
   @override
-  State<CalendarScreen> createState() => _CalendarScreenState();
+  ConsumerState<CalendarScreen> createState() => _CalendarScreenState();
 }
 
-class _CalendarScreenState extends State<CalendarScreen> {
-  final SupabaseClient _supabase = Supabase.instance.client;
+class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   DateTime _selectedDate = DateTime.now();
   DateTime _currentMonth = DateTime.now();
   List<Map<String, dynamic>> _events = [];
@@ -144,21 +144,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Theme.of(context).colorScheme.primary.withOpacity(0.1),
-              Theme.of(context).colorScheme.background,
-            ],
-          ),
-        ),
+        decoration: ThemeUtils.getBackgroundDecoration(context, ref),
         child: SafeArea(
           child: SingleChildScrollView(
             child: Column(
@@ -186,7 +174,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
-          Icon(Icons.calendar_today, color: Theme.of(context).colorScheme.primary, size: 28),
+          Icon(
+            Icons.calendar_today,
+            color: Theme.of(context).colorScheme.primary,
+            size: 28,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -200,7 +192,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
           IconButton(
             onPressed: _showToday,
-            icon: Icon(Icons.today, color: Theme.of(context).colorScheme.primary, size: 24),
+            icon: Icon(
+              Icons.today,
+              color: Theme.of(context).colorScheme.primary,
+              size: 24,
+            ),
           ),
         ],
       ),
@@ -246,11 +242,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: ThemeUtils.getCardColor(context, ref),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            color: ThemeUtils.getShadowColor(context, ref),
             blurRadius: 20,
             offset: const Offset(0, 5),
           ),
@@ -273,7 +269,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  color: ThemeUtils.getTextSecondaryColor(context, ref),
                 ),
               ),
             ),
@@ -372,7 +368,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         ? Colors.white
                         : isToday
                         ? Theme.of(context).colorScheme.primary
-                        : const Color(0xFF212121),
+                        : ThemeUtils.getTextPrimaryColor(context, ref),
                   ),
                 ),
               ),
@@ -405,11 +401,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return Container(
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: ThemeUtils.getCardColor(context, ref),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            color: ThemeUtils.getShadowColor(context, ref),
             blurRadius: 20,
             offset: const Offset(0, 5),
           ),
@@ -429,14 +425,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ),
             child: Row(
               children: [
-                Icon(Icons.event, color: Theme.of(context).colorScheme.primary, size: 20),
+                Icon(
+                  Icons.event,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 20,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   _getSelectedDateString(),
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onSurface,
+                    color: ThemeUtils.getTextPrimaryColor(context, ref),
                   ),
                 ),
                 const Spacer(),
@@ -444,7 +444,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   '${selectedEvents.length + selectedReminders.length} eventos',
                   style: TextStyle(
                     fontSize: 14,
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                    color: ThemeUtils.getTextSecondaryColor(context, ref),
                   ),
                 ),
               ],
@@ -487,15 +487,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: Theme.of(context).colorScheme.onSurface,
+                color: ThemeUtils.getTextPrimaryColor(context, ref),
               ),
             ),
             const SizedBox(height: 8),
             Text(
               'Toca el botón + para agregar un evento',
               style: TextStyle(
-                fontSize: 14, 
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                fontSize: 14,
+                color: ThemeUtils.getTextSecondaryColor(context, ref),
               ),
               textAlign: TextAlign.center,
             ),
@@ -510,7 +510,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: ThemeUtils.getCardColor(context, ref),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: _getEventColor(event['type']).withOpacity(0.3),
@@ -518,7 +518,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: _getEventColor(event['type']).withOpacity(0.1),
+            color: ThemeUtils.getShadowColor(context, ref),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -544,7 +544,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onSurface,
+                    color: ThemeUtils.getTextPrimaryColor(context, ref),
                   ),
                 ),
               ),
@@ -586,7 +586,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   event['clinic_name'],
                   style: TextStyle(
                     fontSize: 14,
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                    color: ThemeUtils.getTextSecondaryColor(context, ref),
                   ),
                 ),
               ),
@@ -668,7 +668,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onSurface,
+                    color: ThemeUtils.getTextPrimaryColor(context, ref),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -676,13 +676,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   reminder['description'],
                   style: TextStyle(
                     fontSize: 14,
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                    color: ThemeUtils.getTextSecondaryColor(context, ref),
                   ),
                 ),
               ],
             ),
           ),
-          Icon(Icons.notifications, color: Theme.of(context).colorScheme.primary, size: 20),
+          Icon(
+            Icons.notifications,
+            color: Theme.of(context).colorScheme.primary,
+            size: 20,
+          ),
         ],
       ),
     );
@@ -763,9 +767,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _EventFormModal(
-        onSave: _saveEvent,
-      ),
+      builder: (context) => _EventFormModal(onSave: _saveEvent),
     );
   }
 
@@ -774,10 +776,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _EventFormModal(
-        event: appointment,
-        onSave: _saveEvent,
-      ),
+      builder: (context) =>
+          _EventFormModal(event: appointment, onSave: _saveEvent),
     );
   }
 
@@ -820,16 +820,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
         _events.add(eventData);
       } else {
         // Editar evento existente
-        final index = _events.indexWhere((event) => event['id'] == eventData['id']);
+        final index = _events.indexWhere(
+          (event) => event['id'] == eventData['id'],
+        );
         if (index != -1) {
           _events[index] = eventData;
         }
       }
     });
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(eventData['id'] == null ? 'Evento agregado' : 'Evento actualizado'),
+        content: Text(
+          eventData['id'] == null ? 'Evento agregado' : 'Evento actualizado',
+        ),
         backgroundColor: Colors.green,
       ),
     );
@@ -841,10 +845,7 @@ class _EventFormModal extends StatefulWidget {
   final Map<String, dynamic>? event;
   final Function(Map<String, dynamic>) onSave;
 
-  const _EventFormModal({
-    this.event,
-    required this.onSave,
-  });
+  const _EventFormModal({this.event, required this.onSave});
 
   @override
   State<_EventFormModal> createState() => _EventFormModalState();
@@ -856,7 +857,7 @@ class _EventFormModalState extends State<_EventFormModal> {
   final _descriptionController = TextEditingController();
   final _locationController = TextEditingController();
   final _notesController = TextEditingController();
-  
+
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
   String _eventType = 'appointment';
@@ -873,7 +874,7 @@ class _EventFormModalState extends State<_EventFormModal> {
     'Mia',
     'Charlie',
     'Daisy',
-    'Buddy'
+    'Buddy',
   ];
 
   @override
@@ -966,8 +967,14 @@ class _EventFormModalState extends State<_EventFormModal> {
                         prefixIcon: Icon(Icons.category),
                       ),
                       items: const [
-                        DropdownMenuItem(value: 'appointment', child: Text('Cita Veterinaria')),
-                        DropdownMenuItem(value: 'reminder', child: Text('Recordatorio')),
+                        DropdownMenuItem(
+                          value: 'appointment',
+                          child: Text('Cita Veterinaria'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'reminder',
+                          child: Text('Recordatorio'),
+                        ),
                         DropdownMenuItem(value: 'event', child: Text('Evento')),
                       ],
                       onChanged: (value) {
@@ -1013,10 +1020,7 @@ class _EventFormModalState extends State<_EventFormModal> {
                         prefixIcon: Icon(Icons.pets),
                       ),
                       items: _mockPets.map((pet) {
-                        return DropdownMenuItem(
-                          value: pet,
-                          child: Text(pet),
-                        );
+                        return DropdownMenuItem(value: pet, child: Text(pet));
                       }).toList(),
                       onChanged: (value) {
                         setState(() {
@@ -1035,7 +1039,8 @@ class _EventFormModalState extends State<_EventFormModal> {
                           prefixIcon: Icon(Icons.location_on),
                         ),
                         validator: (value) {
-                          if (_eventType == 'appointment' && (value == null || value.isEmpty)) {
+                          if (_eventType == 'appointment' &&
+                              (value == null || value.isEmpty)) {
                             return 'Por favor ingresa la ubicación';
                           }
                           return null;
@@ -1131,10 +1136,16 @@ class _EventFormModalState extends State<_EventFormModal> {
                         Expanded(
                           child: ElevatedButton(
                             onPressed: _saveEvent,
-                            child: Text(widget.event == null ? 'Agregar' : 'Actualizar'),
+                            child: Text(
+                              widget.event == null ? 'Agregar' : 'Actualizar',
+                            ),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Theme.of(context).colorScheme.primary,
-                              foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.primary,
+                              foregroundColor: Theme.of(
+                                context,
+                              ).colorScheme.onPrimary,
                               padding: const EdgeInsets.symmetric(vertical: 16),
                             ),
                           ),
@@ -1203,7 +1214,7 @@ class _EventFormModalState extends State<_EventFormModal> {
         'clinic_name': _locationController.text,
         'type': _eventType == 'appointment' ? 'vaccine' : _eventType,
       };
-      
+
       widget.onSave(eventData);
       Navigator.of(context).pop();
     }

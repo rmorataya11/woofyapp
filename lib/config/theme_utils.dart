@@ -47,7 +47,7 @@ class ThemeUtils {
   static Color getShadowColor(BuildContext context, WidgetRef ref) {
     final isDark = ref.watch(isDarkModeProvider);
     return isDark
-        ? AppConfig.darkShadowColor.withOpacity(0.3)
-        : AppConfig.lightShadowColor.withOpacity(0.1);
+        ? AppConfig.darkShadowColor.withValues(alpha: 0.3)
+        : AppConfig.lightShadowColor.withValues(alpha: 0.1);
   }
 }

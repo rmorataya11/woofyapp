@@ -5,9 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../router/app_router.dart';
 import '../../providers/pet_provider.dart';
 import '../../providers/navigation_provider.dart';
-import '../appointments/appointments_screen.dart';
-import '../map/map_screen.dart';
-import '../calendar/calendar_screen.dart';
 import '../../config/theme_utils.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -230,9 +227,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.white
-                : const Color(0xFF212121),
+            color: ThemeUtils.getTextPrimaryColor(context, ref),
           ),
         ),
         const SizedBox(height: 16),
@@ -303,13 +298,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Theme.of(context).brightness == Brightness.dark
-              ? const Color(0xFF1E1E1E)
-              : Colors.white,
+          color: ThemeUtils.getCardColor(context, ref),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(0.1),
+              color: ThemeUtils.getShadowColor(context, ref),
               blurRadius: 10,
               offset: const Offset(0, 2),
             ),
@@ -324,9 +317,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white
-                    : const Color(0xFF212121),
+                color: ThemeUtils.getTextPrimaryColor(context, ref),
               ),
               textAlign: TextAlign.center,
             ),
@@ -335,9 +326,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               subtitle,
               style: TextStyle(
                 fontSize: 12,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? const Color(0xFFB0B0B0)
-                    : const Color(0xFF616161),
+                color: ThemeUtils.getTextSecondaryColor(context, ref),
               ),
               textAlign: TextAlign.center,
             ),
@@ -354,12 +343,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               'Próximos Eventos',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF212121),
+                color: ThemeUtils.getTextPrimaryColor(context, ref),
               ),
             ),
             TextButton(
@@ -387,14 +376,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: ThemeUtils.getCardColor(context, ref),
         borderRadius: BorderRadius.circular(16),
         border: event['urgent']
             ? Border.all(color: const Color(0xFFF44336), width: 2)
             : null,
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1E88E5).withOpacity(0.1),
+            color: ThemeUtils.getShadowColor(context, ref),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -424,18 +413,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               children: [
                 Text(
                   event['title'],
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF212121),
+                    color: ThemeUtils.getTextPrimaryColor(context, ref),
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   '${event['pet']} • ${event['date']} a las ${event['time']}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: Color(0xFF616161),
+                    color: ThemeUtils.getTextSecondaryColor(context, ref),
                   ),
                 ),
               ],
@@ -469,12 +458,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               'Veterinarias Cercanas',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF212121),
+                color: ThemeUtils.getTextPrimaryColor(context, ref),
               ),
             ),
             TextButton(
@@ -502,11 +491,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: ThemeUtils.getCardColor(context, ref),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1E88E5).withOpacity(0.1),
+            color: ThemeUtils.getShadowColor(context, ref),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -532,10 +521,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               children: [
                 Text(
                   clinic['name'],
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF212121),
+                    color: ThemeUtils.getTextPrimaryColor(context, ref),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -549,9 +538,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     const SizedBox(width: 4),
                     Text(
                       clinic['distance'],
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
-                        color: Color(0xFF616161),
+                        color: ThemeUtils.getTextSecondaryColor(context, ref),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -559,9 +548,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     const SizedBox(width: 4),
                     Text(
                       clinic['rating'].toString(),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
-                        color: Color(0xFF616161),
+                        color: ThemeUtils.getTextSecondaryColor(context, ref),
                       ),
                     ),
                   ],
@@ -674,15 +663,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Widget _buildPetsSection() {
     final pets = ref.watch(petNotifierProvider);
-    
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: ThemeUtils.getCardColor(context, ref),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1E88E5).withOpacity(0.1),
+            color: ThemeUtils.getShadowColor(context, ref),
             blurRadius: 20,
             offset: const Offset(0, 5),
           ),
@@ -694,12 +683,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Mis Mascotas',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF212121),
+                  color: ThemeUtils.getTextPrimaryColor(context, ref),
                 ),
               ),
               TextButton.icon(
@@ -707,7 +696,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 icon: const Icon(Icons.add, size: 18),
                 label: const Text('Agregar'),
                 style: TextButton.styleFrom(
-                  foregroundColor: const Color(0xFF1E88E5),
+                  foregroundColor: Theme.of(context).colorScheme.primary,
                 ),
               ),
             ],
@@ -720,13 +709,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   Icon(
                     Icons.pets,
                     size: 48,
-                    color: const Color(0xFF616161).withOpacity(0.3),
+                    color: ThemeUtils.getTextSecondaryColor(
+                      context,
+                      ref,
+                    ).withOpacity(0.3),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'No tienes mascotas registradas',
                     style: TextStyle(
-                      color: Color(0xFF616161),
+                      color: ThemeUtils.getTextSecondaryColor(context, ref),
                       fontSize: 16,
                     ),
                   ),
@@ -750,20 +742,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: ThemeUtils.getCardColor(context, ref).withOpacity(0.5),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: const Color(0xFF1E88E5).withOpacity(0.2),
+          color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
         ),
       ),
       child: Row(
         children: [
           CircleAvatar(
             radius: 20,
-            backgroundColor: const Color(0xFF1E88E5).withOpacity(0.1),
+            backgroundColor: Theme.of(
+              context,
+            ).colorScheme.primary.withOpacity(0.1),
             child: Icon(
               Icons.pets,
-              color: const Color(0xFF1E88E5),
+              color: Theme.of(context).colorScheme.primary,
               size: 20,
             ),
           ),
@@ -774,17 +768,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               children: [
                 Text(
                   pet.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF212121),
+                    color: ThemeUtils.getTextPrimaryColor(context, ref),
                   ),
                 ),
                 Text(
                   '${pet.breed} • ${pet.age} años',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: Color(0xFF616161),
+                    color: ThemeUtils.getTextSecondaryColor(context, ref),
                   ),
                 ),
                 Text(
@@ -840,9 +834,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
             ],
-            child: const Icon(
+            child: Icon(
               Icons.more_vert,
-              color: Color(0xFF616161),
+              color: ThemeUtils.getTextSecondaryColor(context, ref),
               size: 20,
             ),
           ),
@@ -929,7 +923,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (context) => _PetDetailsModal(pet: pet),
+      builder: (context) => _PetDetailsModal(pet: pet, ref: ref),
     );
   }
 
@@ -965,10 +959,7 @@ class _PetFormDialog extends StatefulWidget {
   final Pet? pet;
   final Function(Pet) onSave;
 
-  const _PetFormDialog({
-    this.pet,
-    required this.onSave,
-  });
+  const _PetFormDialog({this.pet, required this.onSave});
 
   @override
   State<_PetFormDialog> createState() => _PetFormDialogState();
@@ -982,7 +973,7 @@ class _PetFormDialogState extends State<_PetFormDialog> {
   final _weightController = TextEditingController();
   final _colorController = TextEditingController();
   final _medicalNotesController = TextEditingController();
-  
+
   String _gender = 'male';
   String _vaccinationStatus = 'up_to_date';
 
@@ -1133,7 +1124,10 @@ class _PetFormDialogState extends State<_PetFormDialog> {
                 ),
                 items: const [
                   DropdownMenuItem(value: 'up_to_date', child: Text('Al día')),
-                  DropdownMenuItem(value: 'in_progress', child: Text('En proceso')),
+                  DropdownMenuItem(
+                    value: 'in_progress',
+                    child: Text('En proceso'),
+                  ),
                   DropdownMenuItem(value: 'overdue', child: Text('Vencidas')),
                 ],
                 onChanged: (value) {
@@ -1157,7 +1151,7 @@ class _PetFormDialogState extends State<_PetFormDialog> {
       ),
       actions: [
         TextButton(
-                onPressed: () => context.pop(),
+          onPressed: () => context.pop(),
           child: const Text('Cancelar'),
         ),
         ElevatedButton(
@@ -1183,7 +1177,7 @@ class _PetFormDialogState extends State<_PetFormDialog> {
         lastVetVisit: widget.pet?.lastVetVisit ?? DateTime.now(),
         createdAt: widget.pet?.createdAt ?? DateTime.now(),
       );
-      
+
       widget.onSave(pet);
       context.pop();
     }
@@ -1192,8 +1186,9 @@ class _PetFormDialogState extends State<_PetFormDialog> {
 
 class _PetDetailsModal extends StatelessWidget {
   final Pet pet;
+  final WidgetRef ref;
 
-  const _PetDetailsModal({required this.pet});
+  const _PetDetailsModal({required this.pet, required this.ref});
 
   @override
   Widget build(BuildContext context) {
@@ -1207,10 +1202,12 @@ class _PetDetailsModal extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 30,
-                backgroundColor: const Color(0xFF1E88E5).withOpacity(0.1),
+                backgroundColor: Theme.of(
+                  context,
+                ).colorScheme.primary.withOpacity(0.1),
                 child: Icon(
                   Icons.pets,
-                  color: const Color(0xFF1E88E5),
+                  color: Theme.of(context).colorScheme.primary,
                   size: 30,
                 ),
               ),
@@ -1221,17 +1218,17 @@ class _PetDetailsModal extends StatelessWidget {
                   children: [
                     Text(
                       pet.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF212121),
+                        color: ThemeUtils.getTextPrimaryColor(context, ref),
                       ),
                     ),
                     Text(
                       '${pet.breed} • ${pet.age} años',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
-                        color: Color(0xFF616161),
+                        color: ThemeUtils.getTextSecondaryColor(context, ref),
                       ),
                     ),
                   ],
@@ -1252,14 +1249,23 @@ class _PetDetailsModal extends StatelessWidget {
                   _buildInfoSection('Información General', [
                     _buildInfoItem('Raza', pet.breed),
                     _buildInfoItem('Edad', '${pet.age} años'),
-                    _buildInfoItem('Género', pet.gender == 'male' ? 'Macho' : 'Hembra'),
+                    _buildInfoItem(
+                      'Género',
+                      pet.gender == 'male' ? 'Macho' : 'Hembra',
+                    ),
                     _buildInfoItem('Peso', '${pet.weight} kg'),
                     _buildInfoItem('Color', pet.color),
                   ]),
                   const SizedBox(height: 20),
                   _buildInfoSection('Estado de Salud', [
-                    _buildInfoItem('Vacunación', _getVaccinationText(pet.vaccinationStatus)),
-                    _buildInfoItem('Última visita', _formatDate(pet.lastVetVisit)),
+                    _buildInfoItem(
+                      'Vacunación',
+                      _getVaccinationText(pet.vaccinationStatus),
+                    ),
+                    _buildInfoItem(
+                      'Última visita',
+                      _formatDate(pet.lastVetVisit),
+                    ),
                     _buildInfoItem('Notas médicas', pet.medicalNotes),
                   ]),
                   const SizedBox(height: 20),
@@ -1292,9 +1298,7 @@ class _PetDetailsModal extends StatelessWidget {
             color: const Color(0xFFF5F5F5),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Column(
-            children: items,
-          ),
+          child: Column(children: items),
         ),
       ],
     );
@@ -1319,9 +1323,7 @@ class _PetDetailsModal extends StatelessWidget {
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
-                color: Color(0xFF212121),
-              ),
+              style: const TextStyle(color: Color(0xFF212121)),
             ),
           ),
         ],
@@ -1363,61 +1365,63 @@ class _PetDetailsModal extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        ...appointments.map((appointment) => Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF5F5F5),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: appointment['status'] == 'scheduled' 
-                ? const Color(0xFF1E88E5).withOpacity(0.3)
-                : const Color(0xFF4CAF50).withOpacity(0.3),
+        ...appointments.map(
+          (appointment) => Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF5F5F5),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: appointment['status'] == 'scheduled'
+                    ? const Color(0xFF1E88E5).withOpacity(0.3)
+                    : const Color(0xFF4CAF50).withOpacity(0.3),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  appointment['status'] == 'scheduled'
+                      ? Icons.schedule
+                      : Icons.check_circle,
+                  color: appointment['status'] == 'scheduled'
+                      ? const Color(0xFF1E88E5)
+                      : const Color(0xFF4CAF50),
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        appointment['type'] as String,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF212121),
+                        ),
+                      ),
+                      Text(
+                        appointment['clinic'] as String,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF616161),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Text(
+                  _formatDate(appointment['date'] as DateTime),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF616161),
+                  ),
+                ),
+              ],
             ),
           ),
-          child: Row(
-            children: [
-              Icon(
-                appointment['status'] == 'scheduled' 
-                  ? Icons.schedule 
-                  : Icons.check_circle,
-                color: appointment['status'] == 'scheduled' 
-                  ? const Color(0xFF1E88E5)
-                  : const Color(0xFF4CAF50),
-                size: 20,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      appointment['type'] as String,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF212121),
-                      ),
-                    ),
-                    Text(
-                      appointment['clinic'] as String,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF616161),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Text(
-                _formatDate(appointment['date'] as DateTime),
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF616161),
-                ),
-              ),
-            ],
-          ),
-        )),
+        ),
       ],
     );
   }
@@ -1535,7 +1539,12 @@ class _AITipsModal extends StatelessWidget {
     );
   }
 
-  Widget _buildTipCard(BuildContext context, String title, String description, Color color) {
+  Widget _buildTipCard(
+    BuildContext context,
+    String title,
+    String description,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -1578,7 +1587,8 @@ class _AIAssistantModalState extends State<_AIAssistantModal> {
   final TextEditingController _messageController = TextEditingController();
   final List<Map<String, dynamic>> _messages = [
     {
-      'text': '¡Hola! Soy tu asistente IA. ¿En qué puedo ayudarte con el cuidado de tu mascota?',
+      'text':
+          '¡Hola! Soy tu asistente IA. ¿En qué puedo ayudarte con el cuidado de tu mascota?',
       'isUser': false,
       'timestamp': DateTime.now(),
     },
@@ -1667,7 +1677,9 @@ class _AIAssistantModalState extends State<_AIAssistantModal> {
                         borderSide: BorderSide.none,
                       ),
                       filled: true,
-                      fillColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+                      fillColor: Theme.of(
+                        context,
+                      ).colorScheme.surfaceVariant.withOpacity(0.3),
                     ),
                     onSubmitted: (value) => _sendMessage(),
                   ),
@@ -1689,17 +1701,24 @@ class _AIAssistantModalState extends State<_AIAssistantModal> {
     );
   }
 
-  Widget _buildMessageBubble(BuildContext context, Map<String, dynamic> message) {
+  Widget _buildMessageBubble(
+    BuildContext context,
+    Map<String, dynamic> message,
+  ) {
     final isUser = message['isUser'] as bool;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: Row(
-        mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isUser
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         children: [
           if (!isUser) ...[
             CircleAvatar(
               radius: 16,
-              backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.primary.withOpacity(0.1),
               child: Icon(
                 Icons.psychology,
                 size: 16,
@@ -1731,7 +1750,9 @@ class _AIAssistantModalState extends State<_AIAssistantModal> {
             const SizedBox(width: 8),
             CircleAvatar(
               radius: 16,
-              backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.primary.withOpacity(0.1),
               child: Icon(
                 Icons.person,
                 size: 16,
@@ -1761,7 +1782,8 @@ class _AIAssistantModalState extends State<_AIAssistantModal> {
       if (mounted) {
         setState(() {
           _messages.add({
-            'text': 'Gracias por tu pregunta. Como asistente IA, te recomiendo consultar con un veterinario profesional para obtener el mejor consejo para tu mascota.',
+            'text':
+                'Gracias por tu pregunta. Como asistente IA, te recomiendo consultar con un veterinario profesional para obtener el mejor consejo para tu mascota.',
             'isUser': false,
             'timestamp': DateTime.now(),
           });
@@ -1846,7 +1868,15 @@ class _ClinicDetailsModal extends ConsumerWidget {
     );
   }
 
-  Widget _buildClinicInfo(BuildContext context, String name, String address, String rating, String status, String hours, String phone) {
+  Widget _buildClinicInfo(
+    BuildContext context,
+    String name,
+    String address,
+    String rating,
+    String status,
+    String hours,
+    String phone,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -1881,7 +1911,9 @@ class _ClinicDetailsModal extends ConsumerWidget {
                   address,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withOpacity(0.7),
                   ),
                 ),
               ),
@@ -1890,17 +1922,15 @@ class _ClinicDetailsModal extends ConsumerWidget {
           const SizedBox(height: 4),
           Row(
             children: [
-              Icon(
-                Icons.star,
-                size: 16,
-                color: Colors.amber,
-              ),
+              Icon(Icons.star, size: 16, color: Colors.amber),
               const SizedBox(width: 4),
               Text(
                 rating,
                 style: TextStyle(
                   fontSize: 14,
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withOpacity(0.7),
                 ),
               ),
               const SizedBox(width: 16),
@@ -1935,7 +1965,9 @@ class _ClinicDetailsModal extends ConsumerWidget {
                   hours,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withOpacity(0.7),
                   ),
                 ),
               ),
@@ -1954,7 +1986,9 @@ class _ClinicDetailsModal extends ConsumerWidget {
                 phone,
                 style: TextStyle(
                   fontSize: 14,
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withOpacity(0.7),
                 ),
               ),
             ],
