@@ -17,7 +17,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final SupabaseClient _supabase = Supabase.instance.client;
   String _userName = '';
-  final List<Map<String, dynamic>> _pets = [];
   List<Map<String, dynamic>> _upcomingEvents = [];
   bool _isLoading = true;
 
@@ -74,21 +73,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                   ),
                 )
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(16.0),
+              : Padding(
+                  padding: const EdgeInsets.all(12.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildHeader(),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       _buildQuickActions(),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       _buildUpcomingEventsCompact(),
-                      const SizedBox(height: 16),
-                      _buildHealthTips(),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
+                      _buildTopVeterinaries(),
+                      const SizedBox(height: 12),
                       _buildAIAssistantCompact(),
-                      const SizedBox(height: 80),
                     ],
                   ),
                 ),
@@ -99,96 +97,64 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: ThemeUtils.getCardColor(context, ref),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: ThemeUtils.getShadowColor(context, ref),
-            blurRadius: 20,
-            offset: const Offset(0, 5),
+            blurRadius: 12,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            children: [
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1E88E5),
-                  borderRadius: BorderRadius.circular(25),
-                ),
-                child: const Icon(Icons.pets, color: Colors.white, size: 24),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '¡Hola, $_userName!',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: ThemeUtils.getTextPrimaryColor(context, ref),
-                      ),
-                    ),
-                    Text(
-                      '¿Cómo está tu perrito hoy?',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: ThemeUtils.getTextSecondaryColor(context, ref),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                onPressed: () async {
-                  await _supabase.auth.signOut();
-                  if (mounted) {
-                    context.go(AppRouter.splash);
-                  }
-                },
-                icon: const Icon(Icons.logout, color: Color(0xFF616161)),
-              ),
-            ],
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E88E5),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: const Icon(Icons.pets, color: Colors.white, size: 20),
           ),
-          if (_pets.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            Text(
-              'Tus mascotas:',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: ThemeUtils.getTextPrimaryColor(context, ref),
-              ),
-            ),
-            const SizedBox(height: 8),
-            ..._pets.map(
-              (pet) => Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Row(
-                  children: [
-                    const Icon(Icons.pets, size: 16, color: Color(0xFF1E88E5)),
-                    const SizedBox(width: 8),
-                    Text(
-                      pet['name'],
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: ThemeUtils.getTextSecondaryColor(context, ref),
-                      ),
-                    ),
-                  ],
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '¡Hola, $_userName!',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: ThemeUtils.getTextPrimaryColor(context, ref),
+                  ),
                 ),
-              ),
+                Text(
+                  '¿Cómo está tu perrito hoy?',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: ThemeUtils.getTextSecondaryColor(context, ref),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
+          IconButton(
+            onPressed: () async {
+              await _supabase.auth.signOut();
+              if (mounted) {
+                context.go(AppRouter.splash);
+              }
+            },
+            icon: const Icon(Icons.logout, size: 20),
+            color: const Color(0xFF616161),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
         ],
       ),
     );
@@ -198,33 +164,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final pets = ref.watch(petNotifierProvider);
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Acciones Rápidas',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: ThemeUtils.getTextPrimaryColor(context, ref),
-          ),
-        ),
-        const SizedBox(height: 12),
         Row(
           children: [
             Expanded(
               child: _buildActionCard(
                 icon: Icons.pets,
                 title: 'Mis Mascotas',
-                subtitle: pets.isEmpty
-                    ? 'Agregar'
-                    : '${pets.length} ${pets.length == 1 ? "mascota" : "mascotas"}',
+                subtitle: pets.isEmpty ? 'Agregar' : '${pets.length}',
                 color: const Color(0xFF1E88E5),
                 onTap: () {
                   ref.read(navigationNotifierProvider.notifier).changeTab(1);
                 },
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
             Expanded(
               child: _buildActionCard(
                 icon: Icons.calendar_today,
@@ -238,7 +192,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         Row(
           children: [
             Expanded(
@@ -252,7 +206,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 },
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
             Expanded(
               child: _buildActionCard(
                 icon: Icons.psychology,
@@ -291,26 +245,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ],
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, color: color, size: 28),
             const SizedBox(height: 6),
             Text(
               title,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 12,
                 fontWeight: FontWeight.w600,
                 color: ThemeUtils.getTextPrimaryColor(context, ref),
               ),
               textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 2),
             Text(
               subtitle,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 10,
                 color: ThemeUtils.getTextSecondaryColor(context, ref),
               ),
               textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -330,26 +289,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             Text(
               'Próximos Eventos',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: ThemeUtils.getTextPrimaryColor(context, ref),
               ),
             ),
-            TextButton(
-              onPressed: () {
+            GestureDetector(
+              onTap: () {
                 ref.read(navigationNotifierProvider.notifier).changeTab(3);
               },
-              child: const Text(
+              child: Text(
                 'Ver todo',
                 style: TextStyle(
-                  color: Color(0xFF1E88E5),
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         Row(
           children: compactEvents
               .map(
@@ -370,7 +330,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Widget _buildEventCardCompact(Map<String, dynamic> event) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: ThemeUtils.getCardColor(context, ref),
         borderRadius: BorderRadius.circular(12),
@@ -380,113 +340,81 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         boxShadow: [
           BoxShadow(
             color: ThemeUtils.getShadowColor(context, ref),
-            blurRadius: 8,
+            blurRadius: 6,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: event['urgent']
-                      ? const Color(0xFFF44336)
-                      : const Color(0xFF1E88E5),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Icon(
-                  _getEventIcon(event['type']),
-                  color: Colors.white,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 8),
-              if (event['urgent'])
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF44336),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Text(
-                    'Urgente',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-            ],
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: event['urgent']
+                  ? const Color(0xFFF44336)
+                  : const Color(0xFF1E88E5),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(
+              _getEventIcon(event['type']),
+              color: Colors.white,
+              size: 16,
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             event['title'],
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 12,
               fontWeight: FontWeight.w600,
               color: ThemeUtils.getTextPrimaryColor(context, ref),
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.pets,
-                      size: 14,
-                      color: ThemeUtils.getTextSecondaryColor(context, ref),
-                    ),
-                    const SizedBox(width: 4),
-                    Flexible(
-                      child: Text(
-                        event['pet'],
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: ThemeUtils.getTextSecondaryColor(context, ref),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
+              Icon(
+                Icons.pets,
+                size: 11,
+                color: ThemeUtils.getTextSecondaryColor(context, ref),
+              ),
+              const SizedBox(width: 2),
+              Flexible(
+                child: Text(
+                  event['pet'],
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: ThemeUtils.getTextSecondaryColor(context, ref),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.calendar_today,
-                      size: 14,
-                      color: ThemeUtils.getTextSecondaryColor(context, ref),
-                    ),
-                    const SizedBox(width: 4),
-                    Flexible(
-                      child: Text(
-                        event['date'],
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: ThemeUtils.getTextSecondaryColor(context, ref),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
+            ],
+          ),
+          const SizedBox(height: 2),
+          Row(
+            children: [
+              Icon(
+                Icons.calendar_today,
+                size: 11,
+                color: ThemeUtils.getTextSecondaryColor(context, ref),
+              ),
+              const SizedBox(width: 2),
+              Flexible(
+                child: Text(
+                  event['date'],
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: ThemeUtils.getTextSecondaryColor(context, ref),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -496,20 +424,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildHealthTips() {
-    final tips = [
-      {
-        'icon': Icons.water_drop,
-        'title': 'Hidratación',
-        'description': 'Agua fresca siempre',
-        'color': const Color(0xFF2196F3),
-      },
-      {
-        'icon': Icons.sunny,
-        'title': 'Ejercicio',
-        'description': '30 min diarios',
-        'color': const Color(0xFFFF9800),
-      },
+  Widget _buildTopVeterinaries() {
+    final topVets = [
+      {'name': 'Clínica Central', 'rating': 4.8, 'distance': '2.5 km'},
+      {'name': 'Hospital Elite', 'rating': 4.9, 'distance': '3.2 km'},
     ];
 
     return Column(
@@ -519,35 +437,38 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Consejos de Salud',
+              'Veterinarias Destacadas',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: ThemeUtils.getTextPrimaryColor(context, ref),
               ),
             ),
-            TextButton(
-              onPressed: () => _showAITipsModal(),
-              child: const Text(
-                'Ver todo',
+            GestureDetector(
+              onTap: () {
+                ref.read(navigationNotifierProvider.notifier).changeTab(2);
+              },
+              child: Text(
+                'Ver todas',
                 style: TextStyle(
-                  color: Color(0xFF1E88E5),
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         Row(
-          children: tips
+          children: topVets
               .map(
-                (tip) => Expanded(
+                (vet) => Expanded(
                   child: Padding(
                     padding: EdgeInsets.only(
-                      right: tips.indexOf(tip) == 0 ? 8 : 0,
+                      right: topVets.indexOf(vet) == 0 ? 8 : 0,
                     ),
-                    child: _buildHealthTipCard(tip),
+                    child: _buildVeterinaryCardCompact(vet),
                   ),
                 ),
               )
@@ -557,54 +478,88 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildHealthTipCard(Map<String, dynamic> tip) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: ThemeUtils.getCardColor(context, ref),
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: ThemeUtils.getShadowColor(context, ref),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+  Widget _buildVeterinaryCardCompact(Map<String, dynamic> vet) {
+    return GestureDetector(
+      onTap: () {
+        ref.read(navigationNotifierProvider.notifier).changeTab(2);
+      },
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              const Color(0xFF1E88E5).withValues(alpha: 0.1),
+              const Color(0xFF1565C0).withValues(alpha: 0.05),
+            ],
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: (tip['color'] as Color).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Icon(
-              tip['icon'] as IconData,
-              color: tip['color'] as Color,
-              size: 20,
-            ),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: const Color(0xFF1E88E5).withValues(alpha: 0.2),
           ),
-          const SizedBox(height: 8),
-          Text(
-            tip['title'] as String,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: ThemeUtils.getTextPrimaryColor(context, ref),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E88E5),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.local_hospital,
+                color: Colors.white,
+                size: 18,
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            tip['description'] as String,
-            style: TextStyle(
-              fontSize: 12,
-              color: ThemeUtils.getTextSecondaryColor(context, ref),
+            const SizedBox(height: 8),
+            Text(
+              vet['name'] as String,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: ThemeUtils.getTextPrimaryColor(context, ref),
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-          ),
-        ],
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                const Icon(Icons.star, color: Color(0xFFFFC107), size: 12),
+                const SizedBox(width: 2),
+                Text(
+                  '${vet['rating']}',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: ThemeUtils.getTextPrimaryColor(context, ref),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 2),
+            Row(
+              children: [
+                Icon(
+                  Icons.location_on,
+                  color: ThemeUtils.getTextSecondaryColor(context, ref),
+                  size: 12,
+                ),
+                const SizedBox(width: 2),
+                Text(
+                  vet['distance'] as String,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: ThemeUtils.getTextSecondaryColor(context, ref),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -613,61 +568,61 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return GestureDetector(
       onTap: () => _showAIAssistantModal(),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [Color(0xFF9C27B0), Color(0xFFBA68C8)],
           ),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
               color: const Color(0xFF9C27B0).withValues(alpha: 0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
             ),
           ],
         ),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(
                 Icons.psychology,
                 color: Colors.white,
-                size: 24,
+                size: 20,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   const Text(
                     'Asistente IA',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                   ),
-                  const SizedBox(height: 2),
                   Text(
                     '¿Tienes alguna pregunta?',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 11,
                       color: Colors.white.withValues(alpha: 0.9),
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
+            const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 14),
           ],
         ),
       ),
@@ -687,159 +642,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
-  void _showAITipsModal() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _AITipsModal(),
-    );
-  }
-
   void _showAIAssistantModal() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => _AIAssistantModal(),
-    );
-  }
-}
-
-class _AITipsModal extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.8,
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Column(
-        children: [
-          Container(
-            margin: const EdgeInsets.only(top: 12),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurface.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.psychology,
-                  color: Theme.of(context).colorScheme.primary,
-                  size: 28,
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  'Consejos del Asistente IA',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-                const Spacer(),
-                IconButton(
-                  onPressed: () => context.pop(),
-                  icon: const Icon(Icons.close),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                children: [
-                  _buildTipCard(
-                    context,
-                    'Ejercicio Diario',
-                    'Los perros necesitan al menos 30 minutos de ejercicio diario. Esto incluye caminatas, juegos y actividades que estimulen su mente.',
-                    const Color(0xFF4CAF50),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTipCard(
-                    context,
-                    'Alimentación Saludable',
-                    'Mantén horarios regulares de comida y evita darle comida humana. Consulta con tu veterinario sobre la dieta ideal para tu mascota.',
-                    const Color(0xFFFF9800),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTipCard(
-                    context,
-                    'Vacunación',
-                    'Mantén al día las vacunas de tu mascota. Esto previene enfermedades graves y protege su salud a largo plazo.',
-                    const Color(0xFF2196F3),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTipCard(
-                    context,
-                    'Higiene',
-                    'Baña a tu perro cada 4-6 semanas y cepilla su pelaje regularmente. Esto mantiene su piel saludable y reduce el olor.',
-                    const Color(0xFF9C27B0),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTipCard(
-                    context,
-                    'Revisiones Veterinarias',
-                    'Lleva a tu mascota al veterinario al menos una vez al año para revisiones de rutina y detección temprana de problemas.',
-                    const Color(0xFFF44336),
-                  ),
-                  const SizedBox(height: 20),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTipCard(
-    BuildContext context,
-    String title,
-    String description,
-    Color color,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            description,
-            style: TextStyle(
-              fontSize: 14,
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurface.withValues(alpha: 0.8),
-              height: 1.4,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

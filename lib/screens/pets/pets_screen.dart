@@ -45,6 +45,9 @@ class _PetsScreenState extends ConsumerState<PetsScreen> {
                   ],
                 ),
               ),
+              // Estadísticas
+              _buildStatsSection(),
+              const SizedBox(height: 16),
               // Content
               Expanded(
                 child: pets.isEmpty
@@ -333,6 +336,105 @@ class _PetsScreenState extends ConsumerState<PetsScreen> {
       context: context,
       isScrollControlled: true,
       builder: (context) => _PetDetailsModal(pet: pet, ref: ref),
+    );
+  }
+
+  Widget _buildStatsSection() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: ThemeUtils.getCardColor(context, ref),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: ThemeUtils.getShadowColor(context, ref),
+            blurRadius: 20,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Estadísticas',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: ThemeUtils.getTextPrimaryColor(context, ref),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _buildStatCard(
+                  'Citas Totales',
+                  '24',
+                  Icons.event,
+                  const Color(0xFF1E88E5),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildStatCard(
+                  'Completadas',
+                  '22',
+                  Icons.check_circle,
+                  const Color(0xFF4CAF50),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildStatCard(
+                  'Recordatorios',
+                  '5',
+                  Icons.notifications,
+                  const Color(0xFFFF9800),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 24),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 12,
+              color: ThemeUtils.getTextSecondaryColor(context, ref),
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 }

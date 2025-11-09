@@ -598,95 +598,42 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
         appointmentDate.year == DateTime.now().year;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: ThemeUtils.getCardColor(context, ref),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: ThemeUtils.getShadowColor(context, ref),
-            blurRadius: 20,
-            offset: const Offset(0, 5),
+            blurRadius: 12,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          controlAffinity: ListTileControlAffinity.trailing,
+          leading: Container(
+            width: 10,
+            height: 10,
             decoration: BoxDecoration(
-              color: _getAppointmentColor(
-                appointment['status'],
-              ).withValues(alpha: 0.1),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(20),
-              ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: _getAppointmentColor(appointment['status']),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    appointment['title'],
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: ThemeUtils.getTextPrimaryColor(context, ref),
-                    ),
-                  ),
-                ),
-                if (appointment['urgent'])
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFF9800),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text(
-                      'Urgente',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _getAppointmentColor(appointment['status']),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    _getStatusText(appointment['status']),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
+              color: _getAppointmentColor(appointment['status']),
+              borderRadius: BorderRadius.circular(5),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(16),
+          title: Text(
+            appointment['title'],
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: ThemeUtils.getTextPrimaryColor(context, ref),
+            ),
+          ),
+          subtitle: Padding(
+            padding: const EdgeInsets.only(top: 4),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -694,64 +641,110 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
                   children: [
                     Icon(
                       Icons.access_time,
-                      size: 16,
+                      size: 13,
                       color: ThemeUtils.getTextSecondaryColor(context, ref),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 4),
                     Text(
-                      _formatDate(appointmentDate),
+                      '${_formatDate(appointmentDate)} - ${appointment['time']}',
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 12,
                         color: isToday
                             ? Theme.of(context).colorScheme.primary
                             : ThemeUtils.getTextSecondaryColor(context, ref),
                         fontWeight: isToday ? FontWeight.w600 : FontWeight.w400,
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    Text(
-                      appointment['time'],
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: ThemeUtils.getTextSecondaryColor(context, ref),
-                      ),
-                    ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.location_on,
-                      size: 16,
-                      color: ThemeUtils.getTextSecondaryColor(context, ref),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        appointment['clinic_name'],
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: ThemeUtils.getTextSecondaryColor(context, ref),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 Row(
                   children: [
                     Icon(
                       Icons.pets,
-                      size: 16,
+                      size: 13,
                       color: ThemeUtils.getTextSecondaryColor(context, ref),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${appointment['pet_name']} (${appointment['pet_breed']}, ${appointment['pet_age']} años)',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: ThemeUtils.getTextSecondaryColor(context, ref),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        appointment['pet_name'],
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: ThemeUtils.getTextSecondaryColor(context, ref),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (appointment['urgent'])
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF9800),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    'Urgente',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              if (appointment['urgent']) const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                decoration: BoxDecoration(
+                  color: _getAppointmentColor(appointment['status']),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  _getStatusText(appointment['status']),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          expandedCrossAxisAlignment: CrossAxisAlignment.start,
+          expandedAlignment: Alignment.centerLeft,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Divider(height: 1),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.location_on,
+                      size: 14,
+                      color: ThemeUtils.getTextSecondaryColor(context, ref),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        appointment['clinic_name'],
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: ThemeUtils.getTextSecondaryColor(context, ref),
+                        ),
                       ),
                     ),
                   ],
@@ -761,20 +754,22 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
                   children: [
                     Icon(
                       Icons.person,
-                      size: 16,
+                      size: 14,
                       color: ThemeUtils.getTextSecondaryColor(context, ref),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${appointment['doctor_name']} - ${appointment['specialty']}',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: ThemeUtils.getTextSecondaryColor(context, ref),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        '${appointment['doctor_name']} - ${appointment['specialty']}',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: ThemeUtils.getTextSecondaryColor(context, ref),
+                        ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 Row(
                   children: [
                     _buildInfoChip(
@@ -782,7 +777,7 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
                       '${appointment['estimated_duration']} min',
                       const Color(0xFF2196F3),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
                     _buildInfoChip(
                       Icons.attach_money,
                       '\$${appointment['cost'].toStringAsFixed(0)}',
@@ -792,30 +787,30 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
                 ),
                 if (appointment['notes'] != null &&
                     appointment['notes'].isNotEmpty) ...[
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 10),
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: ThemeUtils.getTextSecondaryColor(
                         context,
                         ref,
                       ).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Icon(
                           Icons.note,
-                          size: 16,
+                          size: 14,
                           color: ThemeUtils.getTextSecondaryColor(context, ref),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         Expanded(
                           child: Text(
                             appointment['notes'],
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 12,
                               color: ThemeUtils.getTextSecondaryColor(
                                 context,
                                 ref,
@@ -827,19 +822,19 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
                     ),
                   ),
                 ],
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 _buildActionButtons(appointment),
               ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildInfoChip(IconData icon, String text, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
@@ -847,12 +842,12 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: 4),
+          Icon(icon, size: 12, color: color),
+          const SizedBox(width: 3),
           Text(
             text,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 11,
               color: color,
               fontWeight: FontWeight.w500,
             ),
@@ -875,45 +870,54 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () => _confirmAppointment(appointment),
-                  icon: const Icon(Icons.check, size: 18),
-                  label: const Text('Confirmar'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFF4CAF50),
                     side: const BorderSide(color: Color(0xFF4CAF50)),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(10),
                     ),
+                  ),
+                  icon: const Icon(Icons.check, size: 14),
+                  label: const Text(
+                    'Confirmar',
+                    style: TextStyle(fontSize: 11),
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () => _rescheduleAppointment(appointment),
-                  icon: const Icon(Icons.schedule, size: 18),
-                  label: const Text('Reagendar'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFF2196F3),
                     side: const BorderSide(color: Color(0xFF2196F3)),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(10),
                     ),
+                  ),
+                  icon: const Icon(Icons.schedule, size: 14),
+                  label: const Text(
+                    'Reagendar',
+                    style: TextStyle(fontSize: 11),
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () => _cancelAppointment(appointment),
-                  icon: const Icon(Icons.cancel, size: 18),
-                  label: const Text('Cancelar'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFFF44336),
                     side: const BorderSide(color: Color(0xFFF44336)),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                   ),
+                  icon: const Icon(Icons.cancel, size: 14),
+                  label: const Text('Cancelar', style: TextStyle(fontSize: 11)),
                 ),
               ),
             ] else if (status == 'confirmed' &&
@@ -921,30 +925,35 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () => _rescheduleAppointment(appointment),
-                  icon: const Icon(Icons.schedule, size: 18),
-                  label: const Text('Reagendar'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFF2196F3),
                     side: const BorderSide(color: Color(0xFF2196F3)),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(10),
                     ),
+                  ),
+                  icon: const Icon(Icons.schedule, size: 14),
+                  label: const Text(
+                    'Reagendar',
+                    style: TextStyle(fontSize: 11),
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () => _cancelAppointment(appointment),
-                  icon: const Icon(Icons.cancel, size: 18),
-                  label: const Text('Cancelar'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFFF44336),
                     side: const BorderSide(color: Color(0xFFF44336)),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                   ),
+                  icon: const Icon(Icons.cancel, size: 14),
+                  label: const Text('Cancelar', style: TextStyle(fontSize: 11)),
                 ),
               ),
             ] else if (status == 'completed')
@@ -953,30 +962,37 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () => _rescheduleAppointment(appointment),
-                  icon: const Icon(Icons.schedule, size: 18),
-                  label: const Text('Reagendar'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFF2196F3),
                     side: const BorderSide(color: Color(0xFF2196F3)),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(10),
                     ),
+                  ),
+                  icon: const Icon(Icons.schedule, size: 14),
+                  label: const Text(
+                    'Reagendar',
+                    style: TextStyle(fontSize: 11),
                   ),
                 ),
               ),
             ],
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
             onPressed: () => _showMoreActions(appointment),
-            icon: const Icon(Icons.more_horiz, size: 16),
-            label: const Text('Más opciones'),
             style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
+            icon: const Icon(Icons.more_horiz, size: 14),
+            label: const Text('Más opciones', style: TextStyle(fontSize: 11)),
           ),
         ),
       ],

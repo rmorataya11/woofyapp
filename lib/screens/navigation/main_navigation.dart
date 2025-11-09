@@ -45,16 +45,18 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildNavItem(0, Icons.home, 'Home'),
-                _buildNavItem(1, Icons.pets, 'Mascotas'),
-                _buildNavItem(2, Icons.map, 'Mapa'),
-                _buildNavItem(3, Icons.calendar_today, 'Calendario'),
-                _buildNavItem(4, Icons.event_note, 'Citas'),
-                _buildNavItem(5, Icons.person, 'Perfil'),
+                Flexible(child: _buildNavItem(0, Icons.home, 'Home')),
+                Flexible(child: _buildNavItem(1, Icons.pets, 'Perros')),
+                Flexible(child: _buildNavItem(2, Icons.map, 'Mapa')),
+                Flexible(
+                  child: _buildNavItem(3, Icons.calendar_today, 'Calendario'),
+                ),
+                Flexible(child: _buildNavItem(4, Icons.event_note, 'Citas')),
+                Flexible(child: _buildNavItem(5, Icons.person, 'Perfil')),
               ],
             ),
           ),
@@ -72,7 +74,7 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
         ref.read(navigationNotifierProvider.notifier).changeTab(index);
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
               ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)

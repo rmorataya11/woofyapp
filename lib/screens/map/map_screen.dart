@@ -47,15 +47,19 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           .eq('is_active', true)
           .order('rating', ascending: false);
 
-      setState(() {
-        _clinics = response;
-        _filteredClinics = _clinics;
-      });
+      if (mounted) {
+        setState(() {
+          _clinics = response;
+          _filteredClinics = _clinics;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _clinics = _getMockClinics();
-        _filteredClinics = _clinics;
-      });
+      if (mounted) {
+        setState(() {
+          _clinics = _getMockClinics();
+          _filteredClinics = _clinics;
+        });
+      }
     }
   }
 
@@ -361,64 +365,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       child: Column(
         children: [
           Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: ThemeUtils.getCardColor(context, ref),
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: ThemeUtils.getShadowColor(context, ref),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1E88E5),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.local_hospital,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${_filteredClinics.length} clínicas encontradas',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: ThemeUtils.getTextPrimaryColor(context, ref),
-                        ),
-                      ),
-                      if (_selectedFilter != 'all')
-                        Text(
-                          'Filtro: ${_getFilterLabel(_selectedFilter)}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: ThemeUtils.getTextSecondaryColor(
-                              context,
-                              ref,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
             margin: const EdgeInsets.all(16),
             height: MediaQuery.of(context).size.height * 0.5,
             decoration: BoxDecoration(
@@ -468,21 +414,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         ],
       ),
     );
-  }
-
-  String _getFilterLabel(String filter) {
-    switch (filter) {
-      case 'open':
-        return 'Abiertas';
-      case 'emergency':
-        return 'Emergencias';
-      case 'surgery':
-        return 'Cirugía';
-      case 'cardiology':
-        return 'Cardiología';
-      default:
-        return 'Todas';
-    }
   }
 
   Widget _buildClinicsList() {
