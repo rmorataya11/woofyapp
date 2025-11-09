@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../router/app_router.dart';
+import '../../providers/auth_provider.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
+class _SplashScreenState extends ConsumerState<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -46,11 +47,24 @@ class _SplashScreenState extends State<SplashScreen>
     await Future.delayed(const Duration(milliseconds: 2000));
 
     if (mounted) {
-      final session = Supabase.instance.client.auth.currentSession;
-      if (session != null) {
-        context.go(AppRouter.home);
-      } else {
-        context.go(AppRouter.onboarding);
+      ref.listen<AuthState>(authProvider, (previous, next) {
+        if (!next.isLoading && mounted) {
+          if (next.isAuthenticated) {
+            context.go(AppRouter.home);
+          } else {
+            context.go(AppRouter.onboarding);
+          }
+        }
+      });
+
+      final authState = ref.read(authProvider);
+
+      if (!authState.isLoading) {
+        if (authState.isAuthenticated) {
+          context.go(AppRouter.home);
+        } else {
+          context.go(AppRouter.onboarding);
+        }
       }
     }
   }
@@ -102,7 +116,9 @@ class _SplashScreenState extends State<SplashScreen>
                             borderRadius: BorderRadius.circular(60),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF1E88E5).withValues(alpha: 0.3),
+                                color: const Color(
+                                  0xFF1E88E5,
+                                ).withValues(alpha: 0.3),
                                 blurRadius: 20,
                                 offset: const Offset(0, 10),
                               ),

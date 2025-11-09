@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import '../../router/app_router.dart';
 import '../../providers/pet_provider.dart';
 import '../../providers/navigation_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../config/theme_utils.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -15,7 +15,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  final SupabaseClient _supabase = Supabase.instance.client;
   String _userName = '';
   List<Map<String, dynamic>> _upcomingEvents = [];
   bool _isLoading = true;
@@ -27,8 +26,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _loadUserData() async {
+    final user = ref.read(authProvider).user;
+
     setState(() {
-      _userName = 'Usuario';
+      _userName = user?.name ?? (user?.email.split('@').first) ?? 'Usuario';
+
+      // TODO: En FASE 5 esto se reemplazará con llamada real al backend
       _upcomingEvents = [
         {
           'title': 'Vacuna Triple',
@@ -145,7 +148,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
           IconButton(
             onPressed: () async {
-              await _supabase.auth.signOut();
+              await ref.read(authProvider.notifier).logout();
               if (mounted) {
                 context.go(AppRouter.splash);
               }

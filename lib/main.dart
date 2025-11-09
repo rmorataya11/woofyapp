@@ -4,17 +4,22 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'router/app_router.dart';
 import 'providers/theme_provider.dart';
+import 'config/environment.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Supabase.initialize(
-    url: 'https://ssjvqorhqfzgbczkwkaw.supabase.co',
-    anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzanZxb3JocWZ6Z2Jjemt3a2F3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg3NTQ1NTcsImV4cCI6MjA3NDMzMDU1N30.VazSIZC34I3J4vol1kDiN-5Rb7i0hczoNBGzW-G0-r4',
-  );
+  await Environment.init();
 
-  runApp(const ProviderScope(child: WoofyApp()));
+  if (Environment.isDevelopment) {
+    await Supabase.initialize(
+      url: 'https://ssjvqorhqfzgbczkwkaw.supabase.co',
+      anonKey:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzanZxb3JocWZ6Z2Jjemt3a2F3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg3NTQ1NTcsImV4cCI6MjA3NDMzMDU1N30.VazSIZC34I3J4vol1kDiN-5Rb7i0hczoNBGzW-G0-r4',
+    );
+
+    runApp(const ProviderScope(child: WoofyApp()));
+  }
 }
 
 class WoofyApp extends ConsumerWidget {
