@@ -6,6 +6,9 @@ import '../../providers/pet_provider.dart';
 import '../../providers/navigation_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/profile_provider.dart';
+import '../../providers/appointment_provider.dart';
+import '../../providers/reminder_provider.dart';
+import '../../providers/ai_chat_provider.dart';
 import '../../config/theme_utils.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -17,7 +20,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   String _userName = '';
-  List<Map<String, dynamic>> _upcomingEvents = [];
   bool _isLoading = true;
 
   @override
@@ -32,6 +34,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       await ref.read(profileProvider.notifier).loadProfile();
     }
 
+    await ref.read(appointmentProvider.notifier).loadAppointments();
+    await ref.read(reminderProvider.notifier).loadReminders();
+
     final profile = ref.read(profileProvider).profile;
     final user = ref.read(authProvider).user;
 
@@ -41,34 +46,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           user?.name ??
           (user?.email.split('@').first) ??
           'Usuario';
-
-      // TODO: En FASE 5 esto se reemplazará con llamada real al backend
-      _upcomingEvents = [
-        {
-          'title': 'Vacuna Triple',
-          'pet': 'Max',
-          'date': '15 de Enero',
-          'time': '10:00 AM',
-          'type': 'vaccine',
-          'urgent': false,
-        },
-        {
-          'title': 'Control de Peso',
-          'pet': 'Luna',
-          'date': '18 de Enero',
-          'time': '2:00 PM',
-          'type': 'checkup',
-          'urgent': true,
-        },
-        {
-          'title': 'Cirugía de Castración',
-          'pet': 'Rocky',
-          'date': '22 de Enero',
-          'time': '8:00 AM',
-          'type': 'surgery',
-          'urgent': false,
-        },
-      ];
       _isLoading = false;
     });
   }
@@ -292,7 +269,66 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildUpcomingEventsCompact() {
-    final compactEvents = _upcomingEvents.take(2).toList();
+    final upcomingAppointments = ref.watch(upcomingAppointmentsProvider);
+    final todayReminders = ref.watch(todayRemindersProvider);
+    final List<Map<String, dynamic>> combinedEvents = [];
+
+    for (var apt in upcomingAppointments.take(2)) {
+      combinedEvents.add({
+        'title': apt.serviceType,
+        'pet': apt.petName ?? 'Mascota',
+        'date': _formatDate(apt.startsAt),
+        'time': apt.appointmentTime,
+        'type': 'appointment',
+        'urgent': apt.isUrgent,
+      });
+    }
+
+    if (combinedEvents.length < 2) {
+      for (var reminder in todayReminders.take(2 - combinedEvents.length)) {
+        combinedEvents.add({
+          'title': reminder.title,
+          'pet': reminder.petName ?? 'General',
+          'date': _formatDate(reminder.reminderDate),
+          'time': reminder.reminderTime,
+          'type': 'reminder',
+          'urgent': reminder.isUrgent,
+        });
+      }
+    }
+
+    if (combinedEvents.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Próximos Eventos',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: ThemeUtils.getTextPrimaryColor(context, ref),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: ThemeUtils.getCardColor(context, ref),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Center(
+              child: Text(
+                'No hay eventos próximos',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: ThemeUtils.getTextSecondaryColor(context, ref),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -325,12 +361,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
         const SizedBox(height: 10),
         Row(
-          children: compactEvents
+          children: combinedEvents
               .map(
                 (event) => Expanded(
                   child: Padding(
                     padding: EdgeInsets.only(
-                      right: compactEvents.indexOf(event) == 0 ? 8 : 0,
+                      right:
+                          combinedEvents.indexOf(event) ==
+                              combinedEvents.length - 1
+                          ? 0
+                          : 8,
                     ),
                     child: _buildEventCardCompact(event),
                   ),
@@ -436,6 +476,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ],
       ),
     );
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final tomorrow = DateTime(now.year, now.month, now.day + 1);
+    final dateOnly = DateTime(date.year, date.month, date.day);
+
+    if (dateOnly == DateTime(now.year, now.month, now.day)) {
+      return 'Hoy';
+    } else if (dateOnly == tomorrow) {
+      return 'Mañana';
+    } else {
+      const months = [
+        'Ene',
+        'Feb',
+        'Mar',
+        'Abr',
+        'May',
+        'Jun',
+        'Jul',
+        'Ago',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dic',
+      ];
+      return '${date.day} ${months[date.month - 1]}';
+    }
   }
 
   Widget _buildTopVeterinaries() {
@@ -645,6 +713,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   IconData _getEventIcon(String type) {
     switch (type) {
+      case 'appointment':
+        return Icons.event_note;
+      case 'reminder':
+        return Icons.notifications_active;
       case 'vaccine':
         return Icons.vaccines;
       case 'checkup':
@@ -666,30 +738,71 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 }
 
-class _AIAssistantModal extends StatefulWidget {
+class _AIAssistantModal extends ConsumerStatefulWidget {
   @override
-  _AIAssistantModalState createState() => _AIAssistantModalState();
+  ConsumerState<_AIAssistantModal> createState() => _AIAssistantModalState();
 }
 
-class _AIAssistantModalState extends State<_AIAssistantModal> {
+class _AIAssistantModalState extends ConsumerState<_AIAssistantModal> {
   final TextEditingController _messageController = TextEditingController();
-  final List<Map<String, dynamic>> _messages = [
-    {
-      'text':
-          '¡Hola! Soy tu asistente IA. ¿En qué puedo ayudarte con el cuidado de tu mascota?',
-      'isUser': false,
-      'timestamp': DateTime.now(),
-    },
-  ];
+  final ScrollController _scrollController = ScrollController();
+  bool _isInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeConversation();
+  }
+
+  Future<void> _initializeConversation() async {
+    final currentConv = ref.read(aiChatProvider).currentConversation;
+
+    if (currentConv == null) {
+      await ref
+          .read(aiChatProvider.notifier)
+          .createConversation(title: 'Consulta sobre mascotas');
+    }
+
+    setState(() {
+      _isInitialized = true;
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
 
   @override
   void dispose() {
     _messageController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final aiState = ref.watch(aiChatProvider);
+    final currentConv = aiState.currentConversation;
+    final messages = currentConv?.messages ?? [];
+    final isSending = aiState.isSendingMessage;
+
+    if (!_isInitialized) {
+      return Container(
+        height: MediaQuery.of(context).size.height * 0.8,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Container(
       height: MediaQuery.of(context).size.height * 0.8,
       decoration: BoxDecoration(
@@ -719,15 +832,30 @@ class _AIAssistantModalState extends State<_AIAssistantModal> {
                   size: 28,
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  'Asistente IA',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onSurface,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Asistente IA',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                      Text(
+                        'Consulta sobre el cuidado de tus mascotas',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.6),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const Spacer(),
                 IconButton(
                   onPressed: () => context.pop(),
                   icon: const Icon(Icons.close),
@@ -736,15 +864,106 @@ class _AIAssistantModalState extends State<_AIAssistantModal> {
             ),
           ),
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final message = _messages[index];
-                return _buildMessageBubble(context, message);
-              },
-            ),
+            child: messages.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.psychology,
+                          size: 64,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.3),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          '¡Hola! Soy tu asistente IA',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '¿En qué puedo ayudarte con el cuidado\nde tu mascota?',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withValues(alpha: 0.6),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    itemCount: messages.length,
+                    itemBuilder: (context, index) {
+                      final message = messages[index];
+                      return _buildMessageBubble(context, message);
+                    },
+                  ),
           ),
+          if (isSending)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 16,
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.1),
+                    child: Icon(
+                      Icons.psychology,
+                      size: 16,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 12,
+                          height: 12,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Pensando...',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -762,6 +981,7 @@ class _AIAssistantModalState extends State<_AIAssistantModal> {
                 Expanded(
                   child: TextField(
                     controller: _messageController,
+                    enabled: !isSending,
                     decoration: InputDecoration(
                       hintText: 'Escribe tu pregunta...',
                       border: OutlineInputBorder(
@@ -779,11 +999,17 @@ class _AIAssistantModalState extends State<_AIAssistantModal> {
                 ),
                 const SizedBox(width: 12),
                 FloatingActionButton.small(
-                  onPressed: _sendMessage,
-                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  onPressed: isSending ? null : _sendMessage,
+                  backgroundColor: isSending
+                      ? Theme.of(context).colorScheme.surfaceContainerHighest
+                      : Theme.of(context).colorScheme.primary,
                   child: Icon(
                     Icons.send,
-                    color: Theme.of(context).colorScheme.onPrimary,
+                    color: isSending
+                        ? Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.3)
+                        : Theme.of(context).colorScheme.onPrimary,
                   ),
                 ),
               ],
@@ -794,11 +1020,8 @@ class _AIAssistantModalState extends State<_AIAssistantModal> {
     );
   }
 
-  Widget _buildMessageBubble(
-    BuildContext context,
-    Map<String, dynamic> message,
-  ) {
-    final isUser = message['isUser'] as bool;
+  Widget _buildMessageBubble(BuildContext context, dynamic message) {
+    final isUser = message.role == 'user';
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -830,7 +1053,7 @@ class _AIAssistantModalState extends State<_AIAssistantModal> {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                message['text'] as String,
+                message.content,
                 style: TextStyle(
                   color: isUser
                       ? Theme.of(context).colorScheme.onPrimary
@@ -858,30 +1081,36 @@ class _AIAssistantModalState extends State<_AIAssistantModal> {
     );
   }
 
-  void _sendMessage() {
+  Future<void> _sendMessage() async {
     if (_messageController.text.trim().isEmpty) return;
 
-    setState(() {
-      _messages.add({
-        'text': _messageController.text,
-        'isUser': true,
-        'timestamp': DateTime.now(),
-      });
-    });
+    final currentConv = ref.read(aiChatProvider).currentConversation;
+    if (currentConv == null) return;
 
+    final content = _messageController.text.trim();
     _messageController.clear();
 
-    Future.delayed(const Duration(seconds: 1), () {
-      if (mounted) {
-        setState(() {
-          _messages.add({
-            'text':
-                'Gracias por tu pregunta. Como asistente IA, te recomiendo consultar con un veterinario profesional para obtener el mejor consejo para tu mascota.',
-            'isUser': false,
-            'timestamp': DateTime.now(),
-          });
-        });
-      }
-    });
+    final success = await ref
+        .read(aiChatProvider.notifier)
+        .sendMessage(conversationId: currentConv.id, content: content);
+
+    if (success && mounted) {
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (_scrollController.hasClients && mounted) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    } else if (!success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error al enviar mensaje. Intenta nuevamente.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }
