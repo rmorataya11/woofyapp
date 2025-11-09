@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../config/theme_utils.dart';
 import '../../providers/appointment_provider.dart';
+import '../../providers/reminder_provider.dart';
 import '../../models/appointment_model.dart';
+import '../../models/reminder_model.dart';
 
 class CalendarScreen extends ConsumerStatefulWidget {
   const CalendarScreen({super.key});
@@ -23,6 +25,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   Future<void> _loadEvents() async {
     await ref.read(appointmentProvider.notifier).loadAppointments();
+    await ref.read(reminderProvider.notifier).loadReminders();
   }
 
   List<Appointment> _getEventsForDate(DateTime date) {
@@ -34,9 +37,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     }).toList();
   }
 
-  // TODO: En FASE 6 se implementará reminders desde el backend
-  List<Map<String, dynamic>> _getRemindersForDate(DateTime date) {
-    return []; // Por ahora vacío, se implementará en FASE 6
+  List<Reminder> _getRemindersForDate(DateTime date) {
+    final reminders = ref.read(reminderProvider).reminders;
+    return reminders.where((reminder) {
+      return reminder.reminderDate.year == date.year &&
+          reminder.reminderDate.month == date.month &&
+          reminder.reminderDate.day == date.day;
+    }).toList();
   }
 
   @override
@@ -544,56 +551,238 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     );
   }
 
-  Widget _buildReminderCard(Map<String, dynamic> reminder) {
+  Widget _buildReminderCard(Reminder reminder) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFFF9800).withValues(alpha: 0.1),
+        color: _getReminderColor(reminder.type).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFFF9800).withValues(alpha: 0.3),
+          color: _getReminderColor(reminder.type).withValues(alpha: 0.3),
           width: 2,
         ),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 12,
-            height: 12,
-            decoration: BoxDecoration(
-              color: const Color(0xFFFF9800),
-              borderRadius: BorderRadius.circular(6),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  reminder['title'],
+          Row(
+            children: [
+              Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: _getReminderColor(reminder.type),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  reminder.title,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: ThemeUtils.getTextPrimaryColor(context, ref),
+                    decoration: reminder.isCompleted
+                        ? TextDecoration.lineThrough
+                        : null,
                   ),
                 ),
-                const SizedBox(height: 4),
+              ),
+              if (reminder.isRecurring)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2196F3),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.repeat, color: Colors.white, size: 12),
+                      const SizedBox(width: 4),
+                      Text(
+                        _getFrequencyText(reminder.frequency ?? ''),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+          if (reminder.petName != null) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(Icons.pets, size: 16, color: const Color(0xFF616161)),
+                const SizedBox(width: 8),
                 Text(
-                  reminder['description'],
-                  style: TextStyle(
+                  reminder.petName!,
+                  style: const TextStyle(
                     fontSize: 14,
-                    color: ThemeUtils.getTextSecondaryColor(context, ref),
+                    color: Color(0xFF616161),
                   ),
                 ),
               ],
             ),
+          ],
+          if (reminder.description != null &&
+              reminder.description!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              reminder.description!,
+              style: TextStyle(
+                fontSize: 14,
+                color: ThemeUtils.getTextSecondaryColor(context, ref),
+              ),
+            ),
+          ],
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: reminder.isCompleted
+                      ? null
+                      : () => _completeReminder(reminder.id),
+                  icon: const Icon(Icons.check, size: 16),
+                  label: Text(
+                    reminder.isCompleted ? 'Completado' : 'Completar',
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _deleteReminder(reminder.id),
+                  icon: const Icon(Icons.delete, size: 16),
+                  label: const Text('Eliminar'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: const BorderSide(color: Colors.red),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                  ),
+                ),
+              ),
+            ],
           ),
-          Icon(
-            Icons.notifications,
-            color: Theme.of(context).colorScheme.primary,
-            size: 20,
+        ],
+      ),
+    );
+  }
+
+  Color _getReminderColor(String type) {
+    switch (type) {
+      case Reminder.typeMedication:
+        return const Color(0xFFFF5722);
+      case Reminder.typeExercise:
+        return const Color(0xFF4CAF50);
+      case Reminder.typeGrooming:
+        return const Color(0xFF2196F3);
+      case Reminder.typeFeeding:
+        return const Color(0xFFFF9800);
+      case Reminder.typeVaccine:
+        return const Color(0xFF9C27B0);
+      case Reminder.typeCheckup:
+        return const Color(0xFF00BCD4);
+      default:
+        return const Color(0xFF607D8B);
+    }
+  }
+
+  String _getFrequencyText(String frequency) {
+    switch (frequency) {
+      case Reminder.frequencyDaily:
+        return 'Diario';
+      case Reminder.frequencyWeekly:
+        return 'Semanal';
+      case Reminder.frequencyMonthly:
+        return 'Mensual';
+      case Reminder.frequencyYearly:
+        return 'Anual';
+      default:
+        return 'Recurrente';
+    }
+  }
+
+  Future<void> _completeReminder(String reminderId) async {
+    final success = await ref
+        .read(reminderProvider.notifier)
+        .completeReminder(reminderId);
+
+    if (mounted) {
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Recordatorio completado'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error al completar recordatorio'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _deleteReminder(String reminderId) async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Eliminar Recordatorio'),
+        content: const Text(
+          '¿Estás seguro de que quieres eliminar este recordatorio?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () async {
+              final navigator = Navigator.of(context);
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+              final success = await ref
+                  .read(reminderProvider.notifier)
+                  .deleteReminder(reminderId);
+
+              if (mounted) {
+                navigator.pop();
+
+                if (success) {
+                  scaffoldMessenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('Recordatorio eliminado'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                } else {
+                  scaffoldMessenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('Error al eliminar recordatorio'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
