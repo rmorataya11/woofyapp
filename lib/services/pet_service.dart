@@ -19,8 +19,17 @@ class PetService {
         );
       }
 
-      final petsData = response.data!['pets'] as List<dynamic>?;
-      if (petsData == null) return [];
+      final List<dynamic> petsData;
+      if (response.data is List) {
+        petsData = response.data as List<dynamic>;
+      } else if (response.data is Map) {
+        final dataMap = response.data as Map<String, dynamic>;
+        petsData = (dataMap['pets'] ?? dataMap['data'] ?? []) as List<dynamic>;
+      } else {
+        petsData = [];
+      }
+
+      if (petsData.isEmpty) return [];
 
       return petsData
           .map((json) => Pet.fromMap(json as Map<String, dynamic>))
@@ -53,10 +62,9 @@ class PetService {
   Future<Pet> createPet({
     required String name,
     required String breed,
-    required int age,
-    required String gender,
-    required double weight,
-    required String color,
+    required int ageMonths,
+    required double weightKg,
+    String? photoUrl,
     String? medicalNotes,
     String? vaccinationStatus,
   }) async {
@@ -64,10 +72,9 @@ class PetService {
       final body = {
         'name': name,
         'breed': breed,
-        'age_months': age * 12,
-        'gender': gender,
-        'weight_kg': weight,
-        'color': color.isNotEmpty ? color : null,
+        'age_months': ageMonths,
+        'weight_kg': weightKg,
+        if (photoUrl != null) 'photo_url': photoUrl,
         'medical_notes': medicalNotes ?? '',
         'vaccination_status': vaccinationStatus ?? 'unknown',
       };
@@ -99,10 +106,9 @@ class PetService {
     required String id,
     String? name,
     String? breed,
-    int? age,
-    String? gender,
-    double? weight,
-    String? color,
+    int? ageMonths,
+    double? weightKg,
+    String? photoUrl,
     String? medicalNotes,
     String? vaccinationStatus,
   }) async {
@@ -110,14 +116,12 @@ class PetService {
       final body = <String, dynamic>{};
       if (name != null) body['name'] = name;
       if (breed != null) body['breed'] = breed;
-      if (age != null) body['age_months'] = age * 12;
-      if (gender != null) body['gender'] = gender;
-      if (weight != null) body['weight_kg'] = weight;
-      if (color != null) body['color'] = color.isNotEmpty ? color : null;
+      if (ageMonths != null) body['age_months'] = ageMonths;
+      if (weightKg != null) body['weight_kg'] = weightKg;
+      if (photoUrl != null) body['photo_url'] = photoUrl;
       if (medicalNotes != null) body['medical_notes'] = medicalNotes;
-      if (vaccinationStatus != null) {
+      if (vaccinationStatus != null)
         body['vaccination_status'] = vaccinationStatus;
-      }
 
       print('🐕 Actualizando mascota $id con datos: $body');
 

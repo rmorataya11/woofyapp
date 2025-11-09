@@ -219,7 +219,11 @@ class ApiClient {
       if (response.body.isNotEmpty) {
         jsonBody = jsonDecode(response.body);
         if (jsonBody is List) {
-          jsonBody = {'success': true, 'message': 'Success', 'data': jsonBody};
+          jsonBody = <String, dynamic>{
+            'success': true,
+            'message': 'Success',
+            'data': jsonBody,
+          };
         } else if (jsonBody is! Map<String, dynamic>) {
           throw FormatException('Formato de respuesta inválido');
         }

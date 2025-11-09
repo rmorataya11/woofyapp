@@ -291,8 +291,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         combinedEvents.add({
           'title': reminder.title,
           'pet': reminder.petName ?? 'General',
-          'date': _formatDate(reminder.reminderDate),
-          'time': reminder.reminderTime,
+          'date': _formatDate(reminder.dueAt),
+          'time': _formatTime(reminder.dueAt),
           'type': 'reminder',
           'urgent': reminder.isUrgent,
         });
@@ -506,6 +506,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ];
       return '${date.day} ${months[date.month - 1]}';
     }
+  }
+
+  String _formatTime(DateTime dateTime) {
+    final hour = dateTime.hour.toString().padLeft(2, '0');
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
   }
 
   Widget _buildTopVeterinaries() {
@@ -753,7 +759,7 @@ class _AIAssistantModalState extends ConsumerState<_AIAssistantModal> {
   @override
   void initState() {
     super.initState();
-    _initializeConversation();
+    Future(() => _initializeConversation());
   }
 
   Future<void> _initializeConversation() async {
@@ -765,19 +771,21 @@ class _AIAssistantModalState extends ConsumerState<_AIAssistantModal> {
           .createConversation(title: 'Consulta sobre mascotas');
     }
 
-    setState(() {
-      _isInitialized = true;
-    });
+    if (mounted) {
+      setState(() {
+        _isInitialized = true;
+      });
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    }
   }
 
   @override

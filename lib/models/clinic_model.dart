@@ -2,37 +2,31 @@ class Clinic {
   final String id;
   final String name;
   final String address;
-  final String? phone;
-  final String? email;
-  final double? rating;
-  final double? distance;
-  final int? waitTime;
-  final bool isOpen;
-  final bool isActive;
-  final List<String> specialties;
-  final String? imageUrl;
   final double? latitude;
   final double? longitude;
+  final String? phone;
+  final String? email;
+  final String? website;
+  final double? rating;
+  final bool isActive;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String? googlePlaceId;
 
   Clinic({
     required this.id,
     required this.name,
     required this.address,
-    this.phone,
-    this.email,
-    this.rating,
-    this.distance,
-    this.waitTime,
-    required this.isOpen,
-    required this.isActive,
-    required this.specialties,
-    this.imageUrl,
     this.latitude,
     this.longitude,
+    this.phone,
+    this.email,
+    this.website,
+    this.rating,
+    this.isActive = true,
     required this.createdAt,
     required this.updatedAt,
+    this.googlePlaceId,
   });
 
   factory Clinic.fromJson(Map<String, dynamic> json) {
@@ -40,27 +34,20 @@ class Clinic {
       id: json['id'] as String,
       name: json['name'] as String,
       address: json['address'] as String,
-      phone: json['phone'] as String?,
-      email: json['email'] as String?,
-      rating: (json['rating'] as num?)?.toDouble(),
-      distance: (json['distance'] as num?)?.toDouble(),
-      waitTime: json['wait_time'] as int?,
-      isOpen: json['is_open'] as bool? ?? false,
-      isActive: json['is_active'] as bool? ?? true,
-      specialties:
-          (json['specialties'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          [],
-      imageUrl: json['image_url'] as String?,
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
+      phone: json['phone'] as String?,
+      email: json['email'] as String?,
+      website: json['website'] as String?,
+      rating: (json['rating'] as num?)?.toDouble(),
+      isActive: json['is_active'] as bool? ?? true,
       createdAt: DateTime.parse(
         json['created_at'] as String? ?? DateTime.now().toIso8601String(),
       ),
       updatedAt: DateTime.parse(
         json['updated_at'] as String? ?? DateTime.now().toIso8601String(),
       ),
+      googlePlaceId: json['google_place_id'] as String?,
     );
   }
 
@@ -69,19 +56,16 @@ class Clinic {
       'id': id,
       'name': name,
       'address': address,
-      'phone': phone,
-      'email': email,
-      'rating': rating,
-      'distance': distance,
-      'wait_time': waitTime,
-      'is_open': isOpen,
-      'is_active': isActive,
-      'specialties': specialties,
-      'image_url': imageUrl,
       'latitude': latitude,
       'longitude': longitude,
+      'phone': phone,
+      'email': email,
+      'website': website,
+      'rating': rating,
+      'is_active': isActive,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      'google_place_id': googlePlaceId,
     };
   }
 
@@ -89,37 +73,31 @@ class Clinic {
     String? id,
     String? name,
     String? address,
-    String? phone,
-    String? email,
-    double? rating,
-    double? distance,
-    int? waitTime,
-    bool? isOpen,
-    bool? isActive,
-    List<String>? specialties,
-    String? imageUrl,
     double? latitude,
     double? longitude,
+    String? phone,
+    String? email,
+    String? website,
+    double? rating,
+    bool? isActive,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? googlePlaceId,
   }) {
     return Clinic(
       id: id ?? this.id,
       name: name ?? this.name,
       address: address ?? this.address,
-      phone: phone ?? this.phone,
-      email: email ?? this.email,
-      rating: rating ?? this.rating,
-      distance: distance ?? this.distance,
-      waitTime: waitTime ?? this.waitTime,
-      isOpen: isOpen ?? this.isOpen,
-      isActive: isActive ?? this.isActive,
-      specialties: specialties ?? this.specialties,
-      imageUrl: imageUrl ?? this.imageUrl,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
+      phone: phone ?? this.phone,
+      email: email ?? this.email,
+      website: website ?? this.website,
+      rating: rating ?? this.rating,
+      isActive: isActive ?? this.isActive,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      googlePlaceId: googlePlaceId ?? this.googlePlaceId,
     );
   }
 

@@ -166,7 +166,7 @@ class _PetsScreenState extends ConsumerState<PetsScreen> {
                       ),
                     ),
                     Text(
-                      '${pet.breed} • ${pet.age} años',
+                      '${pet.breed} • ${pet.ageYears} ${pet.ageYears == 1 ? "año" : "años"} (${pet.ageMonths} meses)',
                       style: TextStyle(
                         fontSize: 14,
                         color: ThemeUtils.getTextSecondaryColor(context, ref),
@@ -244,11 +244,11 @@ class _PetsScreenState extends ConsumerState<PetsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildInfoItem(Icons.monitor_weight, '${pet.weight} kg'),
-              _buildInfoItem(Icons.palette, pet.color),
+              _buildInfoItem(Icons.monitor_weight, '${pet.weightKg} kg'),
+              _buildInfoItem(Icons.calendar_today, '${pet.ageYears} años'),
               _buildInfoItem(
-                pet.gender == 'male' ? Icons.male : Icons.female,
-                pet.gender == 'male' ? 'Macho' : 'Hembra',
+                Icons.vaccines,
+                _getVaccinationText(pet.vaccinationStatus),
               ),
             ],
           ),
@@ -533,12 +533,10 @@ class _PetFormDialogState extends State<_PetFormDialog> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _breedController = TextEditingController();
-  final _ageController = TextEditingController();
-  final _weightController = TextEditingController();
-  final _colorController = TextEditingController();
+  final _ageMonthsController = TextEditingController();
+  final _weightKgController = TextEditingController();
   final _medicalNotesController = TextEditingController();
 
-  String _gender = 'male';
   String _vaccinationStatus = 'unknown';
 
   @override
@@ -547,18 +545,9 @@ class _PetFormDialogState extends State<_PetFormDialog> {
     if (widget.pet != null) {
       _nameController.text = widget.pet!.name;
       _breedController.text = widget.pet!.breed;
-      _ageController.text = widget.pet!.age.toString();
-      _weightController.text = widget.pet!.weight.toString();
-      _colorController.text = widget.pet!.color.isNotEmpty
-          ? widget.pet!.color
-          : '';
-      _medicalNotesController.text = widget.pet!.medicalNotes.isNotEmpty
-          ? widget.pet!.medicalNotes
-          : '';
-
-      if (widget.pet!.gender == 'male' || widget.pet!.gender == 'female') {
-        _gender = widget.pet!.gender;
-      }
+      _ageMonthsController.text = widget.pet!.ageMonths.toString();
+      _weightKgController.text = widget.pet!.weightKg.toString();
+      _medicalNotesController.text = widget.pet!.medicalNotes;
 
       final validStatuses = ['unknown', 'up_to_date', 'in_progress', 'overdue'];
       if (validStatuses.contains(widget.pet!.vaccinationStatus)) {
@@ -571,9 +560,8 @@ class _PetFormDialogState extends State<_PetFormDialog> {
   void dispose() {
     _nameController.dispose();
     _breedController.dispose();
-    _ageController.dispose();
-    _weightController.dispose();
-    _colorController.dispose();
+    _ageMonthsController.dispose();
+    _weightKgController.dispose();
     _medicalNotesController.dispose();
     super.dispose();
   }
@@ -620,18 +608,20 @@ class _PetFormDialogState extends State<_PetFormDialog> {
                 children: [
                   Expanded(
                     child: TextFormField(
-                      controller: _ageController,
+                      controller: _ageMonthsController,
                       decoration: const InputDecoration(
-                        labelText: 'Edad (años)',
+                        labelText: 'Edad (meses)',
                         border: OutlineInputBorder(),
+                        hintText: 'Ej: 24',
                       ),
                       keyboardType: TextInputType.number,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Requerido';
                         }
-                        if (int.tryParse(value) == null) {
-                          return 'Número válido';
+                        final age = int.tryParse(value);
+                        if (age == null || age < 0) {
+                          return 'Edad inválida';
                         }
                         return null;
                       },
@@ -640,50 +630,28 @@ class _PetFormDialogState extends State<_PetFormDialog> {
                   const SizedBox(width: 16),
                   Expanded(
                     child: TextFormField(
-                      controller: _weightController,
+                      controller: _weightKgController,
                       decoration: const InputDecoration(
                         labelText: 'Peso (kg)',
                         border: OutlineInputBorder(),
+                        hintText: 'Ej: 5.5',
                       ),
-                      keyboardType: TextInputType.number,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Requerido';
                         }
-                        if (double.tryParse(value) == null) {
-                          return 'Número válido';
+                        final weight = double.tryParse(value);
+                        if (weight == null || weight <= 0) {
+                          return 'Peso inválido';
                         }
                         return null;
                       },
                     ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                initialValue: _gender,
-                decoration: const InputDecoration(
-                  labelText: 'Género',
-                  border: OutlineInputBorder(),
-                ),
-                items: const [
-                  DropdownMenuItem(value: 'male', child: Text('Macho')),
-                  DropdownMenuItem(value: 'female', child: Text('Hembra')),
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    _gender = value!;
-                  });
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _colorController,
-                decoration: const InputDecoration(
-                  labelText: 'Color (opcional)',
-                  border: OutlineInputBorder(),
-                  hintText: 'Ej: Blanco, Negro, Café...',
-                ),
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
@@ -742,14 +710,13 @@ class _PetFormDialogState extends State<_PetFormDialog> {
         id: widget.pet?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
         name: _nameController.text.trim(),
         breed: _breedController.text.trim(),
-        age: int.parse(_ageController.text),
-        gender: _gender,
-        weight: double.parse(_weightController.text),
-        color: _colorController.text.trim(),
+        ageMonths: int.parse(_ageMonthsController.text),
+        weightKg: double.parse(_weightKgController.text),
+        photoUrl: widget.pet?.photoUrl,
         medicalNotes: _medicalNotesController.text.trim(),
         vaccinationStatus: _vaccinationStatus,
-        lastVetVisit: widget.pet?.lastVetVisit ?? DateTime.now(),
         createdAt: widget.pet?.createdAt ?? DateTime.now(),
+        updatedAt: DateTime.now(),
       );
 
       final navigator = Navigator.of(context);
@@ -808,7 +775,7 @@ class _PetDetailsModal extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      '${pet.breed} • ${pet.age} años',
+                      '${pet.breed} • ${pet.ageYears} años (${pet.ageMonths} meses)',
                       style: TextStyle(
                         fontSize: 16,
                         color: ThemeUtils.getTextSecondaryColor(context, ref),
@@ -831,13 +798,11 @@ class _PetDetailsModal extends StatelessWidget {
                 children: [
                   _buildInfoSection('Información General', [
                     _buildInfoItem('Raza', pet.breed),
-                    _buildInfoItem('Edad', '${pet.age} años'),
                     _buildInfoItem(
-                      'Género',
-                      pet.gender == 'male' ? 'Macho' : 'Hembra',
+                      'Edad',
+                      '${pet.ageYears} ${pet.ageYears == 1 ? "año" : "años"} (${pet.ageMonths} meses)',
                     ),
-                    _buildInfoItem('Peso', '${pet.weight} kg'),
-                    _buildInfoItem('Color', pet.color),
+                    _buildInfoItem('Peso', '${pet.weightKg} kg'),
                   ]),
                   const SizedBox(height: 20),
                   _buildInfoSection('Estado de Salud', [
@@ -846,10 +811,11 @@ class _PetDetailsModal extends StatelessWidget {
                       _getVaccinationText(pet.vaccinationStatus),
                     ),
                     _buildInfoItem(
-                      'Última visita',
-                      _formatDate(pet.lastVetVisit),
+                      'Notas médicas',
+                      pet.medicalNotes.isNotEmpty
+                          ? pet.medicalNotes
+                          : 'Sin notas',
                     ),
-                    _buildInfoItem('Notas médicas', pet.medicalNotes),
                   ]),
                 ],
               ),
@@ -923,9 +889,5 @@ class _PetDetailsModal extends StatelessWidget {
       default:
         return 'Desconocido';
     }
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
   }
 }

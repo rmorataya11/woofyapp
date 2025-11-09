@@ -6,54 +6,50 @@ class Pet {
   final String id;
   final String name;
   final String breed;
-  final int age;
-  final String gender;
-  final double weight;
-  final String color;
+  final int ageMonths;
+  final double weightKg;
+  final String? photoUrl;
   final String medicalNotes;
   final String vaccinationStatus;
-  final DateTime lastVetVisit;
   final DateTime createdAt;
+  final DateTime updatedAt;
 
   Pet({
     required this.id,
     required this.name,
     required this.breed,
-    required this.age,
-    required this.gender,
-    required this.weight,
-    required this.color,
+    required this.ageMonths,
+    required this.weightKg,
+    this.photoUrl,
     required this.medicalNotes,
     required this.vaccinationStatus,
-    required this.lastVetVisit,
     required this.createdAt,
+    required this.updatedAt,
   });
 
   Pet copyWith({
     String? id,
     String? name,
     String? breed,
-    int? age,
-    String? gender,
-    double? weight,
-    String? color,
+    int? ageMonths,
+    double? weightKg,
+    String? photoUrl,
     String? medicalNotes,
     String? vaccinationStatus,
-    DateTime? lastVetVisit,
     DateTime? createdAt,
+    DateTime? updatedAt,
   }) {
     return Pet(
       id: id ?? this.id,
       name: name ?? this.name,
       breed: breed ?? this.breed,
-      age: age ?? this.age,
-      gender: gender ?? this.gender,
-      weight: weight ?? this.weight,
-      color: color ?? this.color,
+      ageMonths: ageMonths ?? this.ageMonths,
+      weightKg: weightKg ?? this.weightKg,
+      photoUrl: photoUrl ?? this.photoUrl,
       medicalNotes: medicalNotes ?? this.medicalNotes,
       vaccinationStatus: vaccinationStatus ?? this.vaccinationStatus,
-      lastVetVisit: lastVetVisit ?? this.lastVetVisit,
       createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
@@ -62,57 +58,39 @@ class Pet {
       'id': id,
       'name': name,
       'breed': breed,
-      'age': age,
-      'gender': gender,
-      'weight': weight,
-      'color': color,
+      'age_months': ageMonths,
+      'weight_kg': weightKg,
+      'photo_url': photoUrl,
       'medical_notes': medicalNotes,
       'vaccination_status': vaccinationStatus,
-      'last_vet_visit': lastVetVisit.toIso8601String(),
       'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt.toIso8601String(),
     };
   }
 
   static Pet fromMap(Map<String, dynamic> map) {
     print('🐕 Parseando mascota desde mapa: $map');
 
-    int ageValue = 0;
-    if (map.containsKey('age') && map['age'] != null) {
-      ageValue = map['age'] as int;
-    } else if (map.containsKey('age_months') && map['age_months'] != null) {
-      ageValue = ((map['age_months'] as int) / 12).floor();
-    }
-
-    double weightValue = 0.0;
-    if (map.containsKey('weight') && map['weight'] != null) {
-      weightValue = (map['weight']).toDouble();
-    } else if (map.containsKey('weight_kg') && map['weight_kg'] != null) {
-      weightValue = (map['weight_kg']).toDouble();
-    }
-
-    final pet = Pet(
+    return Pet(
       id: map['id'] ?? '',
       name: map['name'] ?? '',
       breed: map['breed'] ?? '',
-      age: ageValue,
-      gender: map['gender'] ?? 'male',
-      weight: weightValue,
-      color: map['color'] ?? '',
+      ageMonths: map['age_months'] ?? 0,
+      weightKg: (map['weight_kg'] ?? 0.0).toDouble(),
+      photoUrl: map['photo_url'],
       medicalNotes: map['medical_notes'] ?? '',
       vaccinationStatus: map['vaccination_status'] ?? 'unknown',
-      lastVetVisit: DateTime.parse(
-        map['last_vet_visit'] ?? DateTime.now().toIso8601String(),
-      ),
       createdAt: DateTime.parse(
         map['created_at'] ?? DateTime.now().toIso8601String(),
       ),
+      updatedAt: DateTime.parse(
+        map['updated_at'] ?? DateTime.now().toIso8601String(),
+      ),
     );
-
-    print(
-      '🐕 Mascota parseada: ${pet.name}, color: "${pet.color}", vaccinación: ${pet.vaccinationStatus}',
-    );
-    return pet;
   }
+
+  int get ageYears => (ageMonths / 12).floor();
+  int get remainingMonths => ageMonths % 12;
 }
 
 class PetNotifier extends StateNotifier<List<Pet>> {
@@ -136,10 +114,9 @@ class PetNotifier extends StateNotifier<List<Pet>> {
       final newPet = await _petService.createPet(
         name: pet.name,
         breed: pet.breed,
-        age: pet.age,
-        gender: pet.gender,
-        weight: pet.weight,
-        color: pet.color,
+        ageMonths: pet.ageMonths,
+        weightKg: pet.weightKg,
+        photoUrl: pet.photoUrl,
         medicalNotes: pet.medicalNotes,
         vaccinationStatus: pet.vaccinationStatus,
       );
@@ -159,10 +136,9 @@ class PetNotifier extends StateNotifier<List<Pet>> {
         id: updatedPet.id,
         name: updatedPet.name,
         breed: updatedPet.breed,
-        age: updatedPet.age,
-        gender: updatedPet.gender,
-        weight: updatedPet.weight,
-        color: updatedPet.color,
+        ageMonths: updatedPet.ageMonths,
+        weightKg: updatedPet.weightKg,
+        photoUrl: updatedPet.photoUrl,
         medicalNotes: updatedPet.medicalNotes,
         vaccinationStatus: updatedPet.vaccinationStatus,
       );

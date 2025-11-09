@@ -19,13 +19,25 @@ class ClinicService {
         );
       }
 
-      final clinicsData = response.data!['clinics'] as List<dynamic>?;
-      if (clinicsData == null) return [];
+      final List<dynamic> clinicsData;
+      if (response.data is List) {
+        clinicsData = response.data as List<dynamic>;
+      } else if (response.data is Map) {
+        final dataMap = response.data as Map<String, dynamic>;
+        clinicsData =
+            (dataMap['clinics'] ?? dataMap['data'] ?? []) as List<dynamic>;
+      } else {
+        clinicsData = [];
+      }
 
+      if (clinicsData.isEmpty) return [];
+
+      print('🏥 Clínicas obtenidas: ${clinicsData.length}');
       return clinicsData
           .map((json) => Clinic.fromJson(json as Map<String, dynamic>))
           .toList();
     } catch (e) {
+      print('🏥 ❌ Error al obtener clínicas: $e');
       rethrow;
     }
   }
@@ -99,15 +111,27 @@ class ClinicService {
         );
       }
 
-      final servicesData = response.data!['services'] as List<dynamic>?;
-      if (servicesData == null) return [];
+      final List<dynamic> servicesData;
+      if (response.data is List) {
+        servicesData = response.data as List<dynamic>;
+      } else if (response.data is Map) {
+        final dataMap = response.data as Map<String, dynamic>;
+        servicesData =
+            (dataMap['services'] ?? dataMap['data'] ?? []) as List<dynamic>;
+      } else {
+        servicesData = [];
+      }
 
+      if (servicesData.isEmpty) return [];
+
+      print('🏥 Servicios obtenidos: ${servicesData.length}');
       return servicesData
           .map(
             (json) => ClinicServiceModel.fromJson(json as Map<String, dynamic>),
           )
           .toList();
     } catch (e) {
+      print('🏥 ❌ Error al obtener servicios: $e');
       rethrow;
     }
   }

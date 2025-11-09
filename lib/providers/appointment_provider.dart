@@ -79,10 +79,9 @@ class AppointmentNotifier extends StateNotifier<AppointmentState> {
   Future<bool> createAppointment({
     required String clinicId,
     required String petId,
+    required String serviceId,
     required DateTime startsAt,
     required DateTime endsAt,
-    required String serviceType,
-    String? reason,
     String? notes,
   }) async {
     state = state.copyWith(isLoading: true);
@@ -91,10 +90,9 @@ class AppointmentNotifier extends StateNotifier<AppointmentState> {
       final newAppointment = await _appointmentService.createAppointment(
         clinicId: clinicId,
         petId: petId,
+        serviceId: serviceId,
         startsAt: startsAt,
         endsAt: endsAt,
-        serviceType: serviceType,
-        reason: reason,
         notes: notes,
       );
 
@@ -113,28 +111,18 @@ class AppointmentNotifier extends StateNotifier<AppointmentState> {
 
   Future<bool> updateAppointment({
     required String id,
-    String? clinicId,
-    String? petId,
     DateTime? startsAt,
     DateTime? endsAt,
-    String? serviceType,
-    String? reason,
     String? notes,
-    String? status,
   }) async {
     state = state.copyWith(isLoading: true);
 
     try {
       final updatedAppointment = await _appointmentService.updateAppointment(
         id: id,
-        clinicId: clinicId,
-        petId: petId,
         startsAt: startsAt,
         endsAt: endsAt,
-        serviceType: serviceType,
-        reason: reason,
         notes: notes,
-        status: status,
       );
 
       state = AppointmentState(

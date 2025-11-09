@@ -47,6 +47,10 @@ class Appointment {
   });
 
   factory Appointment.fromJson(Map<String, dynamic> json) {
+    final clinic = json['clinic'] as Map<String, dynamic>?;
+    final pet = json['pet'] as Map<String, dynamic>?;
+    final service = json['service'] as Map<String, dynamic>?;
+
     return Appointment(
       id: json['id'] as String,
       userId: json['user_id'] as String,
@@ -54,9 +58,12 @@ class Appointment {
       petId: json['pet_id'] as String,
       startsAt: DateTime.parse(json['starts_at'] as String),
       endsAt: DateTime.parse(json['ends_at'] as String),
-      appointmentDate: json['appointment_date'] as String,
-      appointmentTime: json['appointment_time'] as String,
-      serviceType: json['service_type'] as String,
+      appointmentDate: json['appointment_date'] as String? ?? '',
+      appointmentTime: json['appointment_time'] as String? ?? '',
+      serviceType:
+          json['service_type'] as String? ??
+          service?['category'] as String? ??
+          '',
       reason: json['reason'] as String?,
       status: json['status'] as String,
       notes: json['notes'] as String?,
@@ -64,12 +71,11 @@ class Appointment {
       requestId: json['request_id'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
-      // Datos relacionados (si vienen del join)
-      clinicName: json['clinic_name'] as String?,
-      clinicAddress: json['clinic_address'] as String?,
-      clinicPhone: json['clinic_phone'] as String?,
-      petName: json['pet_name'] as String?,
-      petBreed: json['pet_breed'] as String?,
+      clinicName: clinic?['name'] as String?,
+      clinicAddress: clinic?['address'] as String?,
+      clinicPhone: clinic?['phone'] as String?,
+      petName: pet?['name'] as String?,
+      petBreed: pet?['breed'] as String?,
     );
   }
 

@@ -18,14 +18,11 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   final TextEditingController _searchController = TextEditingController();
   List<Clinic> _filteredClinics = [];
   String _selectedFilter = 'all';
-  String _selectedSort = 'distance';
+  String _selectedSort = 'rating';
 
   final List<Map<String, dynamic>> _filters = [
     {'id': 'all', 'name': 'Todas', 'icon': Icons.list},
-    {'id': 'open', 'name': 'Abiertas', 'icon': Icons.schedule},
-    {'id': 'emergency', 'name': 'Emergencias', 'icon': Icons.local_hospital},
-    {'id': 'surgery', 'name': 'Cirugía', 'icon': Icons.medical_services},
-    {'id': 'cardiology', 'name': 'Cardiología', 'icon': Icons.favorite},
+    {'id': 'active', 'name': 'Activas', 'icon': Icons.check_circle},
   ];
 
   @override
@@ -48,14 +45,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     setState(() {
       List<Clinic> filtered = allClinics.where((clinic) {
         bool matchesFilter = true;
-        if (_selectedFilter == 'open') {
-          matchesFilter = clinic.isOpen;
-        } else if (_selectedFilter == 'emergency') {
-          matchesFilter = clinic.specialties.contains('Emergencias');
-        } else if (_selectedFilter == 'surgery') {
-          matchesFilter = clinic.specialties.contains('Cirugía');
-        } else if (_selectedFilter == 'cardiology') {
-          matchesFilter = clinic.specialties.contains('Cardiología');
+        // Solo filtrar por activas cuando se seleccione
+        if (_selectedFilter == 'active') {
+          matchesFilter = clinic.isActive;
         }
 
         bool matchesSearch = true;
@@ -63,10 +55,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           final searchText = _searchController.text.toLowerCase();
           matchesSearch =
               clinic.name.toLowerCase().contains(searchText) ||
-              clinic.address.toLowerCase().contains(searchText) ||
-              clinic.specialties.any(
-                (specialty) => specialty.toLowerCase().contains(searchText),
-              );
+              clinic.address.toLowerCase().contains(searchText);
         }
 
         return matchesFilter && matchesSearch;
@@ -74,12 +63,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
       filtered.sort((a, b) {
         switch (_selectedSort) {
-          case 'distance':
-            return (a.distance ?? 0.0).compareTo(b.distance ?? 0.0);
           case 'rating':
             return (b.rating ?? 0.0).compareTo(a.rating ?? 0.0);
-          case 'wait_time':
-            return (a.waitTime ?? 0).compareTo(b.waitTime ?? 0);
+          case 'name':
+            return a.name.compareTo(b.name);
           default:
             return 0;
         }
@@ -434,26 +421,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                     ],
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: clinic.isOpen
-                        ? Colors.green.withValues(alpha: 0.1)
-                        : Colors.red.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    clinic.isOpen ? 'Abierto' : 'Cerrado',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: clinic.isOpen ? Colors.green : Colors.red,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -462,21 +429,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 const Icon(Icons.star, size: 16, color: Colors.amber),
                 const SizedBox(width: 4),
                 Text(
-                  '${clinic.rating ?? 0.0} ⭐',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: ThemeUtils.getTextSecondaryColor(context, ref),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                const Icon(
-                  Icons.access_time,
-                  size: 16,
-                  color: Color(0xFF616161),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  '${clinic.waitTime ?? 0} min',
+                  '${clinic.rating?.toStringAsFixed(1) ?? '0.0'} ⭐',
                   style: TextStyle(
                     fontSize: 14,
                     color: ThemeUtils.getTextSecondaryColor(context, ref),

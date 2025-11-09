@@ -41,30 +41,28 @@ class ReminderNotifier extends StateNotifier<ReminderState> {
     loadReminders();
   }
 
-  Future<void> loadReminders({String? petId, bool? isCompleted}) async {
+  Future<void> loadReminders({String? type, bool? upcoming}) async {
     state = state.copyWith(isLoading: true);
 
     try {
       final reminders = await _reminderService.getReminders(
-        petId: petId,
-        isCompleted: isCompleted,
+        type: type,
+        upcoming: upcoming,
       );
 
       state = ReminderState(reminders: reminders, isLoading: false);
     } catch (e) {
+      print('🔔 Error al cargar recordatorios: $e');
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
     }
   }
 
   Future<bool> createReminder({
-    String? petId,
+    required String petId,
     required String title,
     String? description,
-    required DateTime reminderDate,
-    required String reminderTime,
+    required DateTime dueAt,
     required String type,
-    bool isRecurring = false,
-    String? frequency,
   }) async {
     state = state.copyWith(isLoading: true);
 
@@ -73,11 +71,8 @@ class ReminderNotifier extends StateNotifier<ReminderState> {
         petId: petId,
         title: title,
         description: description,
-        reminderDate: reminderDate,
-        reminderTime: reminderTime,
+        dueAt: dueAt,
         type: type,
-        isRecurring: isRecurring,
-        frequency: frequency,
       );
 
       state = ReminderState(
@@ -87,6 +82,7 @@ class ReminderNotifier extends StateNotifier<ReminderState> {
 
       return true;
     } catch (e) {
+      print('🔔 Error al crear recordatorio: $e');
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
       return false;
     }
@@ -94,28 +90,22 @@ class ReminderNotifier extends StateNotifier<ReminderState> {
 
   Future<bool> updateReminder({
     required String id,
-    String? petId,
     String? title,
     String? description,
-    DateTime? reminderDate,
-    String? reminderTime,
+    DateTime? dueAt,
     String? type,
-    bool? isRecurring,
-    String? frequency,
+    bool? isSent,
   }) async {
     state = state.copyWith(isLoading: true);
 
     try {
       final updatedReminder = await _reminderService.updateReminder(
         id: id,
-        petId: petId,
         title: title,
         description: description,
-        reminderDate: reminderDate,
-        reminderTime: reminderTime,
+        dueAt: dueAt,
         type: type,
-        isRecurring: isRecurring,
-        frequency: frequency,
+        isSent: isSent,
       );
 
       state = ReminderState(
@@ -127,6 +117,7 @@ class ReminderNotifier extends StateNotifier<ReminderState> {
 
       return true;
     } catch (e) {
+      print('🔔 Error al actualizar recordatorio: $e');
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
       return false;
     }
@@ -145,6 +136,7 @@ class ReminderNotifier extends StateNotifier<ReminderState> {
 
       return true;
     } catch (e) {
+      print('🔔 Error al completar recordatorio: $e');
       state = state.copyWith(errorMessage: e.toString());
       return false;
     }
@@ -187,19 +179,19 @@ final todayRemindersProvider = Provider<List<Reminder>>((ref) {
   return state.reminders
       .where(
         (reminder) =>
-            reminder.reminderDate.year == now.year &&
-            reminder.reminderDate.month == now.month &&
-            reminder.reminderDate.day == now.day &&
+            reminder.dueAt.year == now.year &&
+            reminder.dueAt.month == now.month &&
+            reminder.dueAt.day == now.day &&
             !reminder.isCompleted,
       )
       .toList()
-    ..sort((a, b) => a.reminderDate.compareTo(b.reminderDate));
+    ..sort((a, b) => a.dueAt.compareTo(b.dueAt));
 });
 
 final pendingRemindersProvider = Provider<List<Reminder>>((ref) {
   final state = ref.watch(reminderProvider);
   return state.reminders.where((reminder) => !reminder.isCompleted).toList()
-    ..sort((a, b) => a.reminderDate.compareTo(b.reminderDate));
+    ..sort((a, b) => a.dueAt.compareTo(b.dueAt));
 });
 
 final urgentRemindersProvider = Provider<List<Reminder>>((ref) {
@@ -208,11 +200,11 @@ final urgentRemindersProvider = Provider<List<Reminder>>((ref) {
   return state.reminders
       .where(
         (reminder) =>
-            reminder.reminderDate.year == now.year &&
-            reminder.reminderDate.month == now.month &&
-            reminder.reminderDate.day == now.day &&
+            reminder.dueAt.year == now.year &&
+            reminder.dueAt.month == now.month &&
+            reminder.dueAt.day == now.day &&
             !reminder.isCompleted,
       )
       .toList()
-    ..sort((a, b) => a.reminderDate.compareTo(b.reminderDate));
+    ..sort((a, b) => a.dueAt.compareTo(b.dueAt));
 });

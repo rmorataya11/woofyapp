@@ -27,8 +27,18 @@ class AppointmentService {
         );
       }
 
-      final appointmentsData = response.data!['appointments'] as List<dynamic>?;
-      if (appointmentsData == null) return [];
+      final List<dynamic> appointmentsData;
+      if (response.data is List) {
+        appointmentsData = response.data as List<dynamic>;
+      } else if (response.data is Map) {
+        final dataMap = response.data as Map<String, dynamic>;
+        appointmentsData =
+            (dataMap['appointments'] ?? dataMap['data'] ?? []) as List<dynamic>;
+      } else {
+        appointmentsData = [];
+      }
+
+      if (appointmentsData.isEmpty) return [];
 
       return appointmentsData
           .map((json) => Appointment.fromJson(json as Map<String, dynamic>))
@@ -61,22 +71,22 @@ class AppointmentService {
   Future<Appointment> createAppointment({
     required String clinicId,
     required String petId,
+    required String serviceId,
     required DateTime startsAt,
     required DateTime endsAt,
-    required String serviceType,
-    String? reason,
     String? notes,
   }) async {
     try {
       final body = {
         'clinic_id': clinicId,
         'pet_id': petId,
+        'service_id': serviceId,
         'starts_at': startsAt.toIso8601String(),
         'ends_at': endsAt.toIso8601String(),
-        'service_type': serviceType,
-        if (reason != null) 'reason': reason,
         if (notes != null) 'notes': notes,
       };
+
+      print('📅 Creando cita con datos: $body');
 
       final response = await _apiClient.post<Map<String, dynamic>>(
         '/appointments',
@@ -91,33 +101,27 @@ class AppointmentService {
         );
       }
 
+      print('📅 Respuesta del backend: ${response.data}');
       return Appointment.fromJson(response.data!);
     } catch (e) {
+      print('📅 ❌ Error al crear cita: $e');
       rethrow;
     }
   }
 
   Future<Appointment> updateAppointment({
     required String id,
-    String? clinicId,
-    String? petId,
     DateTime? startsAt,
     DateTime? endsAt,
-    String? serviceType,
-    String? reason,
     String? notes,
-    String? status,
   }) async {
     try {
       final body = <String, dynamic>{};
-      if (clinicId != null) body['clinic_id'] = clinicId;
-      if (petId != null) body['pet_id'] = petId;
       if (startsAt != null) body['starts_at'] = startsAt.toIso8601String();
       if (endsAt != null) body['ends_at'] = endsAt.toIso8601String();
-      if (serviceType != null) body['service_type'] = serviceType;
-      if (reason != null) body['reason'] = reason;
       if (notes != null) body['notes'] = notes;
-      if (status != null) body['status'] = status;
+
+      print('📅 Actualizando cita $id con datos: $body');
 
       final response = await _apiClient.put<Map<String, dynamic>>(
         '/appointments/$id',
@@ -132,8 +136,10 @@ class AppointmentService {
         );
       }
 
+      print('📅 Respuesta del backend: ${response.data}');
       return Appointment.fromJson(response.data!);
     } catch (e) {
+      print('📅 ❌ Error al actualizar cita: $e');
       rethrow;
     }
   }
@@ -202,8 +208,18 @@ class AppointmentService {
         );
       }
 
-      final requestsData = response.data!['requests'] as List<dynamic>?;
-      if (requestsData == null) return [];
+      final List<dynamic> requestsData;
+      if (response.data is List) {
+        requestsData = response.data as List<dynamic>;
+      } else if (response.data is Map) {
+        final dataMap = response.data as Map<String, dynamic>;
+        requestsData =
+            (dataMap['requests'] ?? dataMap['data'] ?? []) as List<dynamic>;
+      } else {
+        requestsData = [];
+      }
+
+      if (requestsData.isEmpty) return [];
 
       return requestsData
           .map(

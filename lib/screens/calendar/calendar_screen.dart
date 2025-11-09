@@ -40,9 +40,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   List<Reminder> _getRemindersForDate(DateTime date) {
     final reminders = ref.read(reminderProvider).reminders;
     return reminders.where((reminder) {
-      return reminder.reminderDate.year == date.year &&
-          reminder.reminderDate.month == date.month &&
-          reminder.reminderDate.day == date.day;
+      return reminder.dueAt.year == date.year &&
+          reminder.dueAt.month == date.month &&
+          reminder.dueAt.day == date.day;
     }).toList();
   }
 
@@ -590,32 +590,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   ),
                 ),
               ),
-              if (reminder.isRecurring)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2196F3),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.repeat, color: Colors.white, size: 12),
-                      const SizedBox(width: 4),
-                      Text(
-                        _getFrequencyText(reminder.frequency ?? ''),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
             ],
           ),
           if (reminder.petName != null) ...[
@@ -684,35 +658,20 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   Color _getReminderColor(String type) {
     switch (type) {
-      case Reminder.typeMedication:
-        return const Color(0xFFFF5722);
-      case Reminder.typeExercise:
-        return const Color(0xFF4CAF50);
-      case Reminder.typeGrooming:
-        return const Color(0xFF2196F3);
-      case Reminder.typeFeeding:
-        return const Color(0xFFFF9800);
-      case Reminder.typeVaccine:
+      case 'vaccine':
         return const Color(0xFF9C27B0);
-      case Reminder.typeCheckup:
+      case 'deworm':
+        return const Color(0xFFFF5722);
+      case 'antiflea':
+        return const Color(0xFFFF9800);
+      case 'checkup':
         return const Color(0xFF00BCD4);
+      case 'grooming':
+        return const Color(0xFF2196F3);
+      case 'other':
+        return const Color(0xFF607D8B);
       default:
         return const Color(0xFF607D8B);
-    }
-  }
-
-  String _getFrequencyText(String frequency) {
-    switch (frequency) {
-      case Reminder.frequencyDaily:
-        return 'Diario';
-      case Reminder.frequencyWeekly:
-        return 'Semanal';
-      case Reminder.frequencyMonthly:
-        return 'Mensual';
-      case Reminder.frequencyYearly:
-        return 'Anual';
-      default:
-        return 'Recurrente';
     }
   }
 
