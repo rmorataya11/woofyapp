@@ -64,13 +64,15 @@ class PetService {
       final body = {
         'name': name,
         'breed': breed,
-        'age': age,
+        'age_months': age * 12,
         'gender': gender,
-        'weight': weight,
-        'color': color,
+        'weight_kg': weight,
+        'color': color.isNotEmpty ? color : null,
         'medical_notes': medicalNotes ?? '',
-        'vaccination_status': vaccinationStatus ?? 'up_to_date',
+        'vaccination_status': vaccinationStatus ?? 'unknown',
       };
+
+      print('🐕 Creando mascota con datos: $body');
 
       final response = await _apiClient.post<Map<String, dynamic>>(
         '/pets',
@@ -85,8 +87,10 @@ class PetService {
         );
       }
 
+      print('🐕 Respuesta del backend: ${response.data}');
       return Pet.fromMap(response.data!);
     } catch (e) {
+      print('🐕 ❌ Error al crear mascota: $e');
       rethrow;
     }
   }
@@ -106,14 +110,16 @@ class PetService {
       final body = <String, dynamic>{};
       if (name != null) body['name'] = name;
       if (breed != null) body['breed'] = breed;
-      if (age != null) body['age'] = age;
+      if (age != null) body['age_months'] = age * 12;
       if (gender != null) body['gender'] = gender;
-      if (weight != null) body['weight'] = weight;
-      if (color != null) body['color'] = color;
+      if (weight != null) body['weight_kg'] = weight;
+      if (color != null) body['color'] = color.isNotEmpty ? color : null;
       if (medicalNotes != null) body['medical_notes'] = medicalNotes;
       if (vaccinationStatus != null) {
         body['vaccination_status'] = vaccinationStatus;
       }
+
+      print('🐕 Actualizando mascota $id con datos: $body');
 
       final response = await _apiClient.put<Map<String, dynamic>>(
         '/pets/$id',
@@ -128,8 +134,10 @@ class PetService {
         );
       }
 
+      print('🐕 Respuesta del backend: ${response.data}');
       return Pet.fromMap(response.data!);
     } catch (e) {
+      print('🐕 ❌ Error al actualizar mascota: $e');
       rethrow;
     }
   }

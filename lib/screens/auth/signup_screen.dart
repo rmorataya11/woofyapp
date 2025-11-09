@@ -205,12 +205,13 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     ),
                     child: Form(
                       key: _formKey,
-                      child: Column(
-                        children: [
-                          TextFormField(
-                            controller: _nameController,
-                            textCapitalization: TextCapitalization.words,
-                            decoration: InputDecoration(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            TextFormField(
+                              controller: _nameController,
+                              textCapitalization: TextCapitalization.words,
+                              decoration: InputDecoration(
                               labelText: 'Nombre completo',
                               prefixIcon: const Icon(
                                 Icons.person_outline,
@@ -402,9 +403,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),

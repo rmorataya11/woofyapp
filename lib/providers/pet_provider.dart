@@ -74,16 +74,32 @@ class Pet {
   }
 
   static Pet fromMap(Map<String, dynamic> map) {
-    return Pet(
+    print('🐕 Parseando mascota desde mapa: $map');
+
+    int ageValue = 0;
+    if (map.containsKey('age') && map['age'] != null) {
+      ageValue = map['age'] as int;
+    } else if (map.containsKey('age_months') && map['age_months'] != null) {
+      ageValue = ((map['age_months'] as int) / 12).floor();
+    }
+
+    double weightValue = 0.0;
+    if (map.containsKey('weight') && map['weight'] != null) {
+      weightValue = (map['weight']).toDouble();
+    } else if (map.containsKey('weight_kg') && map['weight_kg'] != null) {
+      weightValue = (map['weight_kg']).toDouble();
+    }
+
+    final pet = Pet(
       id: map['id'] ?? '',
       name: map['name'] ?? '',
       breed: map['breed'] ?? '',
-      age: map['age'] ?? 0,
-      gender: map['gender'] ?? '',
-      weight: (map['weight'] ?? 0.0).toDouble(),
+      age: ageValue,
+      gender: map['gender'] ?? 'male',
+      weight: weightValue,
       color: map['color'] ?? '',
       medicalNotes: map['medical_notes'] ?? '',
-      vaccinationStatus: map['vaccination_status'] ?? 'up_to_date',
+      vaccinationStatus: map['vaccination_status'] ?? 'unknown',
       lastVetVisit: DateTime.parse(
         map['last_vet_visit'] ?? DateTime.now().toIso8601String(),
       ),
@@ -91,6 +107,11 @@ class Pet {
         map['created_at'] ?? DateTime.now().toIso8601String(),
       ),
     );
+
+    print(
+      '🐕 Mascota parseada: ${pet.name}, color: "${pet.color}", vaccinación: ${pet.vaccinationStatus}',
+    );
+    return pet;
   }
 }
 

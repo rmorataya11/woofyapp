@@ -78,7 +78,7 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
           CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
         );
 
-    _loadAppointments();
+    Future(() => _loadAppointments());
   }
 
   @override
@@ -90,8 +90,10 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
 
   Future<void> _loadAppointments() async {
     await ref.read(appointmentProvider.notifier).loadAppointments();
-    _filterAppointments();
-    _animationController.forward();
+    if (mounted) {
+      _filterAppointments();
+      _animationController.forward();
+    }
   }
 
   void _filterAppointments() {

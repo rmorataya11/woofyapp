@@ -21,7 +21,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   @override
   void initState() {
     super.initState();
-    _loadUserData();
+    Future(() => _loadUserData());
   }
 
   Future<void> _loadUserData() async {
@@ -811,7 +811,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     }
   }
 
-  /// Sección de logout
   Widget _buildLogoutSection() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),

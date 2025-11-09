@@ -22,7 +22,6 @@ class _PetsScreenState extends ConsumerState<PetsScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              // Header
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
@@ -64,7 +63,6 @@ class _PetsScreenState extends ConsumerState<PetsScreen> {
               ),
               _buildStatsSection(),
               const SizedBox(height: 16),
-              // Content
               Expanded(
                 child: pets.isEmpty
                     ? Center(
@@ -521,7 +519,6 @@ class _PetsScreenState extends ConsumerState<PetsScreen> {
   }
 }
 
-// Pet Form Dialog
 class _PetFormDialog extends StatefulWidget {
   final Pet? pet;
   final Future<void> Function(Pet) onSave;
@@ -542,7 +539,7 @@ class _PetFormDialogState extends State<_PetFormDialog> {
   final _medicalNotesController = TextEditingController();
 
   String _gender = 'male';
-  String _vaccinationStatus = 'up_to_date';
+  String _vaccinationStatus = 'unknown';
 
   @override
   void initState() {
@@ -552,10 +549,21 @@ class _PetFormDialogState extends State<_PetFormDialog> {
       _breedController.text = widget.pet!.breed;
       _ageController.text = widget.pet!.age.toString();
       _weightController.text = widget.pet!.weight.toString();
-      _colorController.text = widget.pet!.color;
-      _medicalNotesController.text = widget.pet!.medicalNotes;
-      _gender = widget.pet!.gender;
-      _vaccinationStatus = widget.pet!.vaccinationStatus;
+      _colorController.text = widget.pet!.color.isNotEmpty
+          ? widget.pet!.color
+          : '';
+      _medicalNotesController.text = widget.pet!.medicalNotes.isNotEmpty
+          ? widget.pet!.medicalNotes
+          : '';
+
+      if (widget.pet!.gender == 'male' || widget.pet!.gender == 'female') {
+        _gender = widget.pet!.gender;
+      }
+
+      final validStatuses = ['unknown', 'up_to_date', 'in_progress', 'overdue'];
+      if (validStatuses.contains(widget.pet!.vaccinationStatus)) {
+        _vaccinationStatus = widget.pet!.vaccinationStatus;
+      }
     }
   }
 
@@ -672,24 +680,23 @@ class _PetFormDialogState extends State<_PetFormDialog> {
               TextFormField(
                 controller: _colorController,
                 decoration: const InputDecoration(
-                  labelText: 'Color',
+                  labelText: 'Color (opcional)',
                   border: OutlineInputBorder(),
+                  hintText: 'Ej: Blanco, Negro, Café...',
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'El color es requerido';
-                  }
-                  return null;
-                },
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                initialValue: _vaccinationStatus,
+                value: _vaccinationStatus,
                 decoration: const InputDecoration(
                   labelText: 'Estado de Vacunación',
                   border: OutlineInputBorder(),
                 ),
                 items: const [
+                  DropdownMenuItem(
+                    value: 'unknown',
+                    child: Text('Desconocido'),
+                  ),
                   DropdownMenuItem(value: 'up_to_date', child: Text('Al día')),
                   DropdownMenuItem(
                     value: 'in_progress',
@@ -756,7 +763,6 @@ class _PetFormDialogState extends State<_PetFormDialog> {
   }
 }
 
-// Pet Details Modal
 class _PetDetailsModal extends StatelessWidget {
   final Pet pet;
   final WidgetRef ref;

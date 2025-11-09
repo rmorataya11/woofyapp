@@ -20,7 +20,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   @override
   void initState() {
     super.initState();
-    _loadEvents();
+    Future(() => _loadEvents());
   }
 
   Future<void> _loadEvents() async {

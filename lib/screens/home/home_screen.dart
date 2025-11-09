@@ -25,7 +25,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadUserData();
+    Future(() => _loadUserData());
   }
 
   Future<void> _loadUserData() async {
@@ -40,14 +40,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final profile = ref.read(profileProvider).profile;
     final user = ref.read(authProvider).user;
 
-    setState(() {
-      _userName =
-          profile?.name ??
-          user?.name ??
-          (user?.email.split('@').first) ??
-          'Usuario';
-      _isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        _userName =
+            profile?.name ??
+            user?.name ??
+            (user?.email.split('@').first) ??
+            'Usuario';
+        _isLoading = false;
+      });
+    }
   }
 
   @override

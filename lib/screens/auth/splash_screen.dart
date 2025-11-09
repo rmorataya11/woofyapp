@@ -45,28 +45,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   Future<void> _checkAuthStatus() async {
     await Future.delayed(const Duration(milliseconds: 2000));
-
-    if (mounted) {
-      ref.listen<AuthState>(authProvider, (previous, next) {
-        if (!next.isLoading && mounted) {
-          if (next.isAuthenticated) {
-            context.go(AppRouter.home);
-          } else {
-            context.go(AppRouter.onboarding);
-          }
-        }
-      });
-
-      final authState = ref.read(authProvider);
-
-      if (!authState.isLoading) {
-        if (authState.isAuthenticated) {
-          context.go(AppRouter.home);
-        } else {
-          context.go(AppRouter.onboarding);
-        }
-      }
-    }
   }
 
   @override
@@ -79,6 +57,15 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    ref.listen<AuthState>(authProvider, (previous, next) {
+      if (!next.isLoading && mounted) {
+        if (next.isAuthenticated) {
+          context.go(AppRouter.home);
+        } else {
+          context.go(AppRouter.onboarding);
+        }
+      }
+    });
 
     return Scaffold(
       body: Container(
@@ -107,7 +94,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Logo con icono médico
                         Container(
                           width: 120,
                           height: 120,
@@ -131,7 +117,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                           ),
                         ),
                         const SizedBox(height: 32),
-                        // Nombre de la app
                         const Text(
                           'Woofy',
                           style: TextStyle(
@@ -142,7 +127,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                           ),
                         ),
                         const SizedBox(height: 16),
-                        // Subtítulo
                         Text(
                           'Cuidado responsable para tu perrito',
                           style: TextStyle(
@@ -154,7 +138,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                           ),
                         ),
                         const SizedBox(height: 48),
-                        // Indicador de carga
                         const SizedBox(
                           width: 24,
                           height: 24,

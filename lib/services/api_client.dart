@@ -214,10 +214,15 @@ class ApiClient {
   ApiResponse<T> _handleResponse<T>(http.Response response) {
     final statusCode = response.statusCode;
 
-    Map<String, dynamic>? jsonBody;
+    dynamic jsonBody;
     try {
       if (response.body.isNotEmpty) {
-        jsonBody = jsonDecode(response.body) as Map<String, dynamic>;
+        jsonBody = jsonDecode(response.body);
+        if (jsonBody is List) {
+          jsonBody = {'success': true, 'message': 'Success', 'data': jsonBody};
+        } else if (jsonBody is! Map<String, dynamic>) {
+          throw FormatException('Formato de respuesta inválido');
+        }
       }
     } catch (e) {
       if (statusCode >= 200 && statusCode < 300) {
@@ -234,16 +239,18 @@ class ApiClient {
     }
 
     if (statusCode >= 200 && statusCode < 300) {
+      final jsonMap = jsonBody as Map<String, dynamic>;
       return ApiResponse<T>(
-        success: jsonBody?['success'] ?? true,
-        message: jsonBody?['message'] ?? 'Success',
-        data: jsonBody?['data'] as T?,
+        success: jsonMap['success'] ?? true,
+        message: jsonMap['message'] ?? 'Success',
+        data: jsonMap['data'] as T?,
         statusCode: statusCode,
       );
     }
 
-    final message = jsonBody?['message'] ?? 'Error desconocido';
-    final errors = jsonBody?['errors'] as Map<String, dynamic>?;
+    final jsonMap = jsonBody as Map<String, dynamic>?;
+    final message = jsonMap?['message'] ?? 'Error desconocido';
+    final errors = jsonMap?['errors'] as Map<String, dynamic>?;
 
     throw ApiExceptionHandler.fromStatusCode(
       statusCode,

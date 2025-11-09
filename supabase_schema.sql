@@ -1,447 +1,408 @@
--- =============================================
--- WOOFY APP - SUPABASE SCHEMA
--- =============================================
-
--- 1. EXTENSIONES NECESARIAS
--- =============================================
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
--- 2. TABLA DE PERFILES DE USUARIO
--- =============================================
-CREATE TABLE public.profiles (
-    id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
-    email TEXT UNIQUE NOT NULL,
-    name TEXT,
-    phone TEXT,
-    avatar_url TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- RLS (Row Level Security) para profiles
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-
--- Política: Los usuarios solo pueden ver y editar su propio perfil
-CREATE POLICY "Users can view own profile" ON public.profiles
-    FOR SELECT USING (auth.uid() = id);
-
-CREATE POLICY "Users can update own profile" ON public.profiles
-    FOR UPDATE USING (auth.uid() = id);
-
-CREATE POLICY "Users can insert own profile" ON public.profiles
-    FOR INSERT WITH CHECK (auth.uid() = id);
-
--- 3. TABLA DE MASCOTAS
--- =============================================
-CREATE TABLE public.pets (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
-    name TEXT NOT NULL,
-    breed TEXT,
-    age_months INTEGER,
-    weight_kg DECIMAL(5,2),
-    photo_url TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- RLS para pets
-ALTER TABLE public.pets ENABLE ROW LEVEL SECURITY;
-
--- Política: Los usuarios solo pueden ver y editar sus propias mascotas
-CREATE POLICY "Users can view own pets" ON public.pets
-    FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can insert own pets" ON public.pets
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own pets" ON public.pets
-    FOR UPDATE USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete own pets" ON public.pets
-    FOR DELETE USING (auth.uid() = user_id);
-
--- 4. TABLA DE CLÍNICAS
--- =============================================
-CREATE TABLE public.clinics (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    name TEXT NOT NULL,
-    address TEXT NOT NULL,
-    latitude DECIMAL(10, 8),
-    longitude DECIMAL(11, 8),
-    phone TEXT,
-    email TEXT,
-    website TEXT,
-    rating DECIMAL(3, 2) DEFAULT 0.0,
-    is_active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- RLS para clinics (público, todos pueden leer)
-ALTER TABLE public.clinics ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Clinics are viewable by everyone" ON public.clinics
-    FOR SELECT USING (true);
-
--- 5. TABLA DE HORARIOS DE CLÍNICAS
--- =============================================
-CREATE TABLE public.clinic_hours (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    clinic_id UUID REFERENCES public.clinics(id) ON DELETE CASCADE NOT NULL,
-    day_of_week INTEGER NOT NULL CHECK (day_of_week >= 0 AND day_of_week <= 6), -- 0=domingo, 6=sábado
-    open_time TIME,
-    close_time TIME,
-    is_closed BOOLEAN DEFAULT false,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- RLS para clinic_hours
-ALTER TABLE public.clinic_hours ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Clinic hours are viewable by everyone" ON public.clinic_hours
-    FOR SELECT USING (true);
-
--- 6. TABLA DE SERVICIOS
--- =============================================
-CREATE TABLE public.services (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    clinic_id UUID REFERENCES public.clinics(id) ON DELETE CASCADE NOT NULL,
-    name TEXT NOT NULL,
-    category TEXT NOT NULL, -- 'consultation', 'vaccination', 'surgery', 'grooming', etc.
-    base_price DECIMAL(10, 2),
-    currency TEXT DEFAULT 'USD',
-    description TEXT,
-    duration_minutes INTEGER,
-    is_active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- RLS para services
-ALTER TABLE public.services ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Services are viewable by everyone" ON public.services
-    FOR SELECT USING (true);
-
--- 7. TABLA DE CITAS
--- =============================================
-CREATE TABLE public.appointments (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
-    pet_id UUID REFERENCES public.pets(id) ON DELETE CASCADE NOT NULL,
-    clinic_id UUID REFERENCES public.clinics(id) ON DELETE CASCADE NOT NULL,
-    service_id UUID REFERENCES public.services(id) ON DELETE CASCADE NOT NULL,
-    starts_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    ends_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'rescheduled', 'cancelled', 'done')),
-    notes TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- RLS para appointments
-ALTER TABLE public.appointments ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Users can view own appointments" ON public.appointments
-    FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can insert own appointments" ON public.appointments
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own appointments" ON public.appointments
-    FOR UPDATE USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete own appointments" ON public.appointments
-    FOR DELETE USING (auth.uid() = user_id);
-
--- 8. TABLA DE REGISTROS MÉDICOS
--- =============================================
-CREATE TABLE public.medical_records (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    pet_id UUID REFERENCES public.pets(id) ON DELETE CASCADE NOT NULL,
-    type TEXT NOT NULL CHECK (type IN ('vaccine', 'deworm', 'antiflea', 'surgery', 'allergy', 'weight', 'other')),
-    date TIMESTAMP WITH TIME ZONE NOT NULL,
-    notes TEXT,
-    attachments TEXT[], -- Array de URLs de archivos adjuntos
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- RLS para medical_records
-ALTER TABLE public.medical_records ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Users can view own pet medical records" ON public.medical_records
-    FOR SELECT USING (
-        EXISTS (
-            SELECT 1 FROM public.pets 
-            WHERE pets.id = medical_records.pet_id 
-            AND pets.user_id = auth.uid()
-        )
-    );
-
-CREATE POLICY "Users can insert own pet medical records" ON public.medical_records
-    FOR INSERT WITH CHECK (
-        EXISTS (
-            SELECT 1 FROM public.pets 
-            WHERE pets.id = medical_records.pet_id 
-            AND pets.user_id = auth.uid()
-        )
-    );
-
-CREATE POLICY "Users can update own pet medical records" ON public.medical_records
-    FOR UPDATE USING (
-        EXISTS (
-            SELECT 1 FROM public.pets 
-            WHERE pets.id = medical_records.pet_id 
-            AND pets.user_id = auth.uid()
-        )
-    );
-
-CREATE POLICY "Users can delete own pet medical records" ON public.medical_records
-    FOR DELETE USING (
-        EXISTS (
-            SELECT 1 FROM public.pets 
-            WHERE pets.id = medical_records.pet_id 
-            AND pets.user_id = auth.uid()
-        )
-    );
-
--- 9. TABLA DE RECORDATORIOS
--- =============================================
-CREATE TABLE public.reminders (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    pet_id UUID REFERENCES public.pets(id) ON DELETE CASCADE NOT NULL,
-    title TEXT NOT NULL,
-    description TEXT,
-    due_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    type TEXT NOT NULL CHECK (type IN ('vaccine', 'deworm', 'antiflea', 'checkup', 'grooming', 'other')),
-    is_sent BOOLEAN DEFAULT false,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- RLS para reminders
-ALTER TABLE public.reminders ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Users can view own pet reminders" ON public.reminders
-    FOR SELECT USING (
-        EXISTS (
-            SELECT 1 FROM public.pets 
-            WHERE pets.id = reminders.pet_id 
-            AND pets.user_id = auth.uid()
-        )
-    );
-
-CREATE POLICY "Users can insert own pet reminders" ON public.reminders
-    FOR INSERT WITH CHECK (
-        EXISTS (
-            SELECT 1 FROM public.pets 
-            WHERE pets.id = reminders.pet_id 
-            AND pets.user_id = auth.uid()
-        )
-    );
-
-CREATE POLICY "Users can update own pet reminders" ON public.reminders
-    FOR UPDATE USING (
-        EXISTS (
-            SELECT 1 FROM public.pets 
-            WHERE pets.id = reminders.pet_id 
-            AND pets.user_id = auth.uid()
-        )
-    );
-
-CREATE POLICY "Users can delete own pet reminders" ON public.reminders
-    FOR DELETE USING (
-        EXISTS (
-            SELECT 1 FROM public.pets 
-            WHERE pets.id = reminders.pet_id 
-            AND pets.user_id = auth.uid()
-        )
-    );
-
--- 10. TABLA DE DIAGNÓSTICOS PRELIMINARES
--- =============================================
-CREATE TABLE public.symptom_checks (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    pet_id UUID REFERENCES public.pets(id) ON DELETE CASCADE NOT NULL,
-    symptoms TEXT NOT NULL,
-    triage_level TEXT NOT NULL CHECK (triage_level IN ('low', 'medium', 'high')),
-    advice TEXT NOT NULL,
-    next_actions TEXT[],
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- RLS para symptom_checks
-ALTER TABLE public.symptom_checks ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Users can view own pet symptom checks" ON public.symptom_checks
-    FOR SELECT USING (
-        EXISTS (
-            SELECT 1 FROM public.pets 
-            WHERE pets.id = symptom_checks.pet_id 
-            AND pets.user_id = auth.uid()
-        )
-    );
-
-CREATE POLICY "Users can insert own pet symptom checks" ON public.symptom_checks
-    FOR INSERT WITH CHECK (
-        EXISTS (
-            SELECT 1 FROM public.pets 
-            WHERE pets.id = symptom_checks.pet_id 
-            AND pets.user_id = auth.uid()
-        )
-    );
-
--- 11. TABLA DE CONVERSACIONES CON IA
--- =============================================
-CREATE TABLE public.ai_conversations (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
-    title TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- RLS para ai_conversations
-ALTER TABLE public.ai_conversations ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Users can view own AI conversations" ON public.ai_conversations
-    FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can insert own AI conversations" ON public.ai_conversations
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own AI conversations" ON public.ai_conversations
-    FOR UPDATE USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete own AI conversations" ON public.ai_conversations
-    FOR DELETE USING (auth.uid() = user_id);
-
--- 12. TABLA DE MENSAJES DE IA
--- =============================================
-CREATE TABLE public.ai_messages (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    conversation_id UUID REFERENCES public.ai_conversations(id) ON DELETE CASCADE NOT NULL,
-    role TEXT NOT NULL CHECK (role IN ('user', 'assistant')),
-    content TEXT NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- RLS para ai_messages
-ALTER TABLE public.ai_messages ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Users can view own AI messages" ON public.ai_messages
-    FOR SELECT USING (
-        EXISTS (
-            SELECT 1 FROM public.ai_conversations 
-            WHERE ai_conversations.id = ai_messages.conversation_id 
-            AND ai_conversations.user_id = auth.uid()
-        )
-    );
-
-CREATE POLICY "Users can insert own AI messages" ON public.ai_messages
-    FOR INSERT WITH CHECK (
-        EXISTS (
-            SELECT 1 FROM public.ai_conversations 
-            WHERE ai_conversations.id = ai_messages.conversation_id 
-            AND ai_conversations.user_id = auth.uid()
-        )
-    );
-
--- 13. FUNCIONES DE ACTUALIZACIÓN AUTOMÁTICA
--- =============================================
-
--- Función para actualizar updated_at automáticamente
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
-
--- Triggers para actualizar updated_at
-CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON public.profiles
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_pets_updated_at BEFORE UPDATE ON public.pets
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_clinics_updated_at BEFORE UPDATE ON public.clinics
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_services_updated_at BEFORE UPDATE ON public.services
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_appointments_updated_at BEFORE UPDATE ON public.appointments
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_medical_records_updated_at BEFORE UPDATE ON public.medical_records
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_reminders_updated_at BEFORE UPDATE ON public.reminders
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_ai_conversations_updated_at BEFORE UPDATE ON public.ai_conversations
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
--- 14. FUNCIÓN PARA CREAR PERFIL AUTOMÁTICAMENTE
--- =============================================
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
-BEGIN
-    INSERT INTO public.profiles (id, email, name)
-    VALUES (NEW.id, NEW.email, NEW.raw_user_meta_data->>'name');
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- Trigger para crear perfil automáticamente
-CREATE TRIGGER on_auth_user_created
-    AFTER INSERT ON auth.users
-    FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
-
--- 15. ÍNDICES PARA OPTIMIZACIÓN
--- =============================================
-
--- Índices para búsquedas geográficas
-CREATE INDEX idx_clinics_location ON public.clinics USING GIST (point(longitude, latitude));
-
--- Índices para búsquedas por usuario
-CREATE INDEX idx_pets_user_id ON public.pets(user_id);
-CREATE INDEX idx_appointments_user_id ON public.appointments(user_id);
-CREATE INDEX idx_medical_records_pet_id ON public.medical_records(pet_id);
-CREATE INDEX idx_reminders_pet_id ON public.reminders(pet_id);
-CREATE INDEX idx_symptom_checks_pet_id ON public.symptom_checks(pet_id);
-CREATE INDEX idx_ai_conversations_user_id ON public.ai_conversations(user_id);
-CREATE INDEX idx_ai_messages_conversation_id ON public.ai_messages(conversation_id);
-
--- Índices para fechas
-CREATE INDEX idx_appointments_starts_at ON public.appointments(starts_at);
-CREATE INDEX idx_reminders_due_at ON public.reminders(due_at);
-CREATE INDEX idx_medical_records_date ON public.medical_records(date);
-
--- 16. DATOS DE EJEMPLO (OPCIONAL)
--- =============================================
-
--- Insertar algunas clínicas de ejemplo
-INSERT INTO public.clinics (name, address, latitude, longitude, phone, rating) VALUES
-('Clínica Veterinaria Central', 'Av. Principal 123, Ciudad', 40.7128, -74.0060, '+1-555-0123', 4.5),
-('Hospital Veterinario San Patricio', 'Calle Secundaria 456, Ciudad', 40.7589, -73.9851, '+1-555-0456', 4.2),
-('Centro Médico Animal', 'Boulevard Norte 789, Ciudad', 40.7505, -73.9934, '+1-555-0789', 4.8);
-
--- Insertar servicios de ejemplo
-INSERT INTO public.services (clinic_id, name, category, base_price, description, duration_minutes) VALUES
-((SELECT id FROM public.clinics LIMIT 1), 'Consulta General', 'consultation', 50.00, 'Consulta veterinaria general', 30),
-((SELECT id FROM public.clinics LIMIT 1), 'Vacuna Triple', 'vaccination', 35.00, 'Vacuna contra enfermedades comunes', 15),
-((SELECT id FROM public.clinics LIMIT 1), 'Desparasitación', 'treatment', 25.00, 'Tratamiento antiparasitario', 20);
-
--- Insertar horarios de ejemplo
-INSERT INTO public.clinic_hours (clinic_id, day_of_week, open_time, close_time) VALUES
-((SELECT id FROM public.clinics LIMIT 1), 1, '09:00', '18:00'), -- Lunes
-((SELECT id FROM public.clinics LIMIT 1), 2, '09:00', '18:00'), -- Martes
-((SELECT id FROM public.clinics LIMIT 1), 3, '09:00', '18:00'), -- Miércoles
-((SELECT id FROM public.clinics LIMIT 1), 4, '09:00', '18:00'), -- Jueves
-((SELECT id FROM public.clinics LIMIT 1), 5, '09:00', '18:00'), -- Viernes
-((SELECT id FROM public.clinics LIMIT 1), 6, '09:00', '14:00'); -- Sábado
+--Ultima versión de las tablas de la base de datos
+create table public.ai_conversations (
+  id uuid not null default extensions.uuid_generate_v4 (),
+  user_id uuid not null,
+  title text null,
+  created_at timestamp with time zone null default now(),
+  updated_at timestamp with time zone null default now(),
+  constraint ai_conversations_pkey primary key (id),
+  constraint ai_conversations_user_id_fkey foreign KEY (user_id) references profiles (id) on delete CASCADE
+) TABLESPACE pg_default;
+
+create index IF not exists idx_ai_conversations_user_id on public.ai_conversations using btree (user_id) TABLESPACE pg_default;
+
+create trigger update_ai_conversations_updated_at BEFORE
+update on ai_conversations for EACH row
+execute FUNCTION update_updated_at_column ();
+create table public.ai_messages (
+  id uuid not null default extensions.uuid_generate_v4 (),
+  conversation_id uuid not null,
+  role text not null,
+  content text not null,
+  created_at timestamp with time zone null default now(),
+  constraint ai_messages_pkey primary key (id),
+  constraint ai_messages_conversation_id_fkey foreign KEY (conversation_id) references ai_conversations (id) on delete CASCADE,
+  constraint ai_messages_role_check check (
+    (
+      role = any (array['user'::text, 'assistant'::text])
+    )
+  )
+) TABLESPACE pg_default;
+
+create index IF not exists idx_ai_messages_conversation_id on public.ai_messages using btree (conversation_id) TABLESPACE pg_default;
+create table public.appointment_requests (
+  id uuid not null default extensions.uuid_generate_v4 (),
+  user_id uuid not null,
+  clinic_id uuid not null,
+  pet_id uuid not null,
+  preferred_date date not null,
+  preferred_time time without time zone not null,
+  service_type text not null,
+  reason text not null,
+  notes text null,
+  status text null default 'pending_confirmation'::text,
+  final_date date null,
+  final_time time without time zone null,
+  confirmed_at timestamp with time zone null,
+  confirmation_notes text null,
+  request_type text null default 'user_initiated'::text,
+  cancelled_at timestamp with time zone null,
+  cancellation_reason text null,
+  created_at timestamp with time zone null default now(),
+  updated_at timestamp with time zone null default now(),
+  constraint appointment_requests_pkey primary key (id),
+  constraint appointment_requests_clinic_id_fkey foreign KEY (clinic_id) references clinics (id) on delete CASCADE,
+  constraint appointment_requests_pet_id_fkey foreign KEY (pet_id) references pets (id) on delete CASCADE,
+  constraint appointment_requests_user_id_fkey foreign KEY (user_id) references profiles (id) on delete CASCADE,
+  constraint check_status check (
+    (
+      status = any (
+        array[
+          'pending_confirmation'::text,
+          'confirmed_by_clinic'::text,
+          'cancelled'::text,
+          'rejected'::text
+        ]
+      )
+    )
+  )
+) TABLESPACE pg_default;
+
+create index IF not exists idx_appointment_requests_user on public.appointment_requests using btree (user_id) TABLESPACE pg_default;
+
+create index IF not exists idx_appointment_requests_clinic on public.appointment_requests using btree (clinic_id) TABLESPACE pg_default;
+
+create index IF not exists idx_appointment_requests_pet on public.appointment_requests using btree (pet_id) TABLESPACE pg_default;
+
+create index IF not exists idx_appointment_requests_status on public.appointment_requests using btree (user_id, status) TABLESPACE pg_default;
+
+create index IF not exists idx_appointment_requests_created on public.appointment_requests using btree (created_at desc) TABLESPACE pg_default;
+
+create trigger update_appointment_requests_updated_at BEFORE
+update on appointment_requests for EACH row
+execute FUNCTION update_updated_at_column ();
+create table public.appointments (
+  id uuid not null default extensions.uuid_generate_v4 (),
+  user_id uuid not null,
+  pet_id uuid not null,
+  clinic_id uuid not null,
+  service_id uuid not null,
+  starts_at timestamp with time zone not null,
+  ends_at timestamp with time zone not null,
+  status text not null default 'pending'::text,
+  notes text null,
+  created_at timestamp with time zone null default now(),
+  updated_at timestamp with time zone null default now(),
+  appointment_date date null,
+  appointment_time time without time zone null,
+  service_type text null,
+  reason text null,
+  created_from_request boolean null default false,
+  request_id uuid null,
+  constraint appointments_pkey primary key (id),
+  constraint appointments_pet_id_fkey foreign KEY (pet_id) references pets (id) on delete CASCADE,
+  constraint appointments_clinic_id_fkey foreign KEY (clinic_id) references clinics (id) on delete CASCADE,
+  constraint appointments_service_id_fkey foreign KEY (service_id) references services (id) on delete CASCADE,
+  constraint appointments_request_id_fkey foreign KEY (request_id) references appointment_requests (id) on delete set null,
+  constraint appointments_user_id_fkey foreign KEY (user_id) references profiles (id) on delete CASCADE,
+  constraint appointments_status_check check (
+    (
+      status = any (
+        array[
+          'pending'::text,
+          'confirmed'::text,
+          'scheduled'::text,
+          'rescheduled'::text,
+          'cancelled'::text,
+          'done'::text
+        ]
+      )
+    )
+  )
+) TABLESPACE pg_default;
+
+create index IF not exists idx_appointments_user_id on public.appointments using btree (user_id) TABLESPACE pg_default;
+
+create index IF not exists idx_appointments_starts_at on public.appointments using btree (starts_at) TABLESPACE pg_default;
+
+create trigger update_appointments_updated_at BEFORE
+update on appointments for EACH row
+execute FUNCTION update_updated_at_column ();
+create table public.clinic_contacts (
+  id uuid not null default extensions.uuid_generate_v4 (),
+  user_id uuid not null,
+  clinic_id uuid not null,
+  name text not null,
+  email text not null,
+  phone text null,
+  subject text null,
+  message text not null,
+  status text null default 'pending'::text,
+  created_at timestamp with time zone null default now(),
+  constraint clinic_contacts_pkey primary key (id),
+  constraint clinic_contacts_clinic_id_fkey foreign KEY (clinic_id) references clinics (id) on delete CASCADE,
+  constraint clinic_contacts_user_id_fkey foreign KEY (user_id) references profiles (id) on delete CASCADE
+) TABLESPACE pg_default;
+
+create index IF not exists idx_clinic_contacts_user_id on public.clinic_contacts using btree (user_id) TABLESPACE pg_default;
+
+create index IF not exists idx_clinic_contacts_clinic_id on public.clinic_contacts using btree (clinic_id) TABLESPACE pg_default;
+
+create index IF not exists idx_clinic_contacts_status on public.clinic_contacts using btree (status) TABLESPACE pg_default;
+
+create index IF not exists idx_clinic_contacts_created_at on public.clinic_contacts using btree (created_at desc) TABLESPACE pg_default;
+create table public.clinic_hours (
+  id uuid not null default extensions.uuid_generate_v4 (),
+  clinic_id uuid not null,
+  day_of_week integer not null,
+  open_time time without time zone null,
+  close_time time without time zone null,
+  is_closed boolean null default false,
+  created_at timestamp with time zone null default now(),
+  constraint clinic_hours_pkey primary key (id),
+  constraint clinic_hours_clinic_id_fkey foreign KEY (clinic_id) references clinics (id) on delete CASCADE,
+  constraint clinic_hours_day_of_week_check check (
+    (
+      (day_of_week >= 0)
+      and (day_of_week <= 6)
+    )
+  )
+) TABLESPACE pg_default;
+create table public.clinics (
+  id uuid not null default extensions.uuid_generate_v4 (),
+  name text not null,
+  address text not null,
+  latitude numeric(10, 8) null,
+  longitude numeric(11, 8) null,
+  phone text null,
+  email text null,
+  website text null,
+  rating numeric(3, 2) null default 0.0,
+  is_active boolean null default true,
+  created_at timestamp with time zone null default now(),
+  updated_at timestamp with time zone null default now(),
+  google_place_id text null,
+  constraint clinics_pkey primary key (id),
+  constraint clinics_google_place_id_key unique (google_place_id)
+) TABLESPACE pg_default;
+
+create index IF not exists idx_clinics_location on public.clinics using gist (
+  point(
+    (longitude)::double precision,
+    (latitude)::double precision
+  )
+) TABLESPACE pg_default;
+
+create trigger update_clinics_updated_at BEFORE
+update on clinics for EACH row
+execute FUNCTION update_updated_at_column ();
+create table public.medical_records (
+  id uuid not null default extensions.uuid_generate_v4 (),
+  pet_id uuid not null,
+  type text not null,
+  date timestamp with time zone not null,
+  notes text null,
+  attachments text[] null,
+  created_at timestamp with time zone null default now(),
+  updated_at timestamp with time zone null default now(),
+  user_id uuid null,
+  constraint medical_records_pkey primary key (id),
+  constraint medical_records_pet_id_fkey foreign KEY (pet_id) references pets (id) on delete CASCADE,
+  constraint medical_records_user_id_fkey foreign KEY (user_id) references profiles (id) on delete CASCADE,
+  constraint medical_records_type_check check (
+    (
+      type = any (
+        array[
+          'vaccine'::text,
+          'deworm'::text,
+          'antiflea'::text,
+          'surgery'::text,
+          'allergy'::text,
+          'weight'::text,
+          'other'::text
+        ]
+      )
+    )
+  )
+) TABLESPACE pg_default;
+
+create index IF not exists idx_medical_records_pet_id on public.medical_records using btree (pet_id) TABLESPACE pg_default;
+
+create index IF not exists idx_medical_records_date on public.medical_records using btree (date) TABLESPACE pg_default;
+
+create trigger update_medical_records_updated_at BEFORE
+update on medical_records for EACH row
+execute FUNCTION update_updated_at_column ();
+create table public.notifications (
+  id uuid not null default extensions.uuid_generate_v4 (),
+  user_id uuid not null,
+  type text not null,
+  title text not null,
+  body text not null,
+  data jsonb null,
+  read boolean null default false,
+  read_at timestamp with time zone null,
+  created_at timestamp with time zone null default now(),
+  constraint notifications_pkey primary key (id),
+  constraint notifications_user_id_fkey foreign KEY (user_id) references profiles (id) on delete CASCADE,
+  constraint notifications_type_check check (
+    (
+      type = any (
+        array[
+          'appointment'::text,
+          'reminder'::text,
+          'general'::text,
+          'promotion'::text
+        ]
+      )
+    )
+  )
+) TABLESPACE pg_default;
+
+create index IF not exists idx_notifications_user_id on public.notifications using btree (user_id) TABLESPACE pg_default;
+
+create index IF not exists idx_notifications_read on public.notifications using btree (user_id, read) TABLESPACE pg_default;
+
+create index IF not exists idx_notifications_type on public.notifications using btree (user_id, type) TABLESPACE pg_default;
+
+create index IF not exists idx_notifications_created_at on public.notifications using btree (user_id, created_at desc) TABLESPACE pg_default;
+create table public.pets (
+  id uuid not null default extensions.uuid_generate_v4 (),
+  user_id uuid not null,
+  name text not null,
+  breed text null,
+  age_months integer null,
+  weight_kg numeric(5, 2) null,
+  photo_url text null,
+  created_at timestamp with time zone null default now(),
+  updated_at timestamp with time zone null default now(),
+  age integer null,
+  weight numeric(5, 2) null,
+  vaccination_status text null default 'unknown'::text,
+  medical_notes text null,
+  constraint pets_pkey primary key (id),
+  constraint pets_user_id_fkey foreign KEY (user_id) references profiles (id) on delete CASCADE
+) TABLESPACE pg_default;
+
+create index IF not exists idx_pets_user_id on public.pets using btree (user_id) TABLESPACE pg_default;
+
+create trigger update_pets_updated_at BEFORE
+update on pets for EACH row
+execute FUNCTION update_updated_at_column ();
+create table public.profiles (
+  id uuid not null,
+  email text not null,
+  name text null,
+  phone text null,
+  avatar_url text null,
+  created_at timestamp with time zone null default now(),
+  updated_at timestamp with time zone null default now(),
+  preferences jsonb null default '{}'::jsonb,
+  constraint profiles_pkey primary key (id),
+  constraint profiles_email_key unique (email),
+  constraint profiles_id_fkey foreign KEY (id) references auth.users (id) on delete CASCADE
+) TABLESPACE pg_default;
+
+create trigger update_profiles_updated_at BEFORE
+update on profiles for EACH row
+execute FUNCTION update_updated_at_column ();
+create table public.reminders (
+  id uuid not null default extensions.uuid_generate_v4 (),
+  pet_id uuid not null,
+  title text not null,
+  description text null,
+  due_at timestamp with time zone not null,
+  type text not null,
+  is_sent boolean null default false,
+  created_at timestamp with time zone null default now(),
+  updated_at timestamp with time zone null default now(),
+  user_id uuid null,
+  is_completed boolean null default false,
+  constraint reminders_pkey primary key (id),
+  constraint reminders_pet_id_fkey foreign KEY (pet_id) references pets (id) on delete CASCADE,
+  constraint reminders_user_id_fkey foreign KEY (user_id) references profiles (id) on delete CASCADE,
+  constraint reminders_type_check check (
+    (
+      type = any (
+        array[
+          'vaccine'::text,
+          'deworm'::text,
+          'antiflea'::text,
+          'checkup'::text,
+          'grooming'::text,
+          'other'::text
+        ]
+      )
+    )
+  )
+) TABLESPACE pg_default;
+
+create index IF not exists idx_reminders_pet_id on public.reminders using btree (pet_id) TABLESPACE pg_default;
+
+create index IF not exists idx_reminders_due_at on public.reminders using btree (due_at) TABLESPACE pg_default;
+
+create trigger update_reminders_updated_at BEFORE
+update on reminders for EACH row
+execute FUNCTION update_updated_at_column ();
+create table public.services (
+  id uuid not null default extensions.uuid_generate_v4 (),
+  clinic_id uuid not null,
+  name text not null,
+  category text not null,
+  base_price numeric(10, 2) null,
+  currency text null default 'USD'::text,
+  description text null,
+  duration_minutes integer null,
+  is_active boolean null default true,
+  created_at timestamp with time zone null default now(),
+  updated_at timestamp with time zone null default now(),
+  constraint services_pkey primary key (id),
+  constraint services_clinic_id_fkey foreign KEY (clinic_id) references clinics (id) on delete CASCADE
+) TABLESPACE pg_default;
+
+create trigger update_services_updated_at BEFORE
+update on services for EACH row
+execute FUNCTION update_updated_at_column ();
+create table public.symptom_checks (
+  id uuid not null default extensions.uuid_generate_v4 (),
+  pet_id uuid not null,
+  symptoms text not null,
+  triage_level text not null,
+  advice text not null,
+  next_actions text[] null,
+  created_at timestamp with time zone null default now(),
+  constraint symptom_checks_pkey primary key (id),
+  constraint symptom_checks_pet_id_fkey foreign KEY (pet_id) references pets (id) on delete CASCADE,
+  constraint symptom_checks_triage_level_check check (
+    (
+      triage_level = any (array['low'::text, 'medium'::text, 'high'::text])
+    )
+  )
+) TABLESPACE pg_default;
+
+create index IF not exists idx_symptom_checks_pet_id on public.symptom_checks using btree (pet_id) TABLESPACE pg_default;
+create table public.user_devices (
+  id uuid not null default extensions.uuid_generate_v4 (),
+  user_id uuid not null,
+  device_token text not null,
+  device_type text not null,
+  device_name text null,
+  app_version text null,
+  is_active boolean null default true,
+  registered_at timestamp with time zone null default now(),
+  last_used_at timestamp with time zone null default now(),
+  constraint user_devices_pkey primary key (id),
+  constraint user_devices_device_token_key unique (device_token),
+  constraint user_devices_user_id_fkey foreign KEY (user_id) references profiles (id) on delete CASCADE,
+  constraint user_devices_device_type_check check (
+    (
+      device_type = any (array['ios'::text, 'android'::text, 'web'::text])
+    )
+  )
+) TABLESPACE pg_default;
+
+create index IF not exists idx_user_devices_user_id on public.user_devices using btree (user_id) TABLESPACE pg_default;
+
+create index IF not exists idx_user_devices_device_token on public.user_devices using btree (device_token) TABLESPACE pg_default;
+
+create index IF not exists idx_user_devices_is_active on public.user_devices using btree (user_id, is_active) TABLESPACE pg_default;
