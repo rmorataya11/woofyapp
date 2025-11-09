@@ -5,6 +5,7 @@ import '../../router/app_router.dart';
 import '../../providers/pet_provider.dart';
 import '../../providers/navigation_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/profile_provider.dart';
 import '../../config/theme_utils.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -26,10 +27,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _loadUserData() async {
+    final profileState = ref.read(profileProvider);
+    if (profileState.profile == null) {
+      await ref.read(profileProvider.notifier).loadProfile();
+    }
+
+    final profile = ref.read(profileProvider).profile;
     final user = ref.read(authProvider).user;
 
     setState(() {
-      _userName = user?.name ?? (user?.email.split('@').first) ?? 'Usuario';
+      _userName =
+          profile?.name ??
+          user?.name ??
+          (user?.email.split('@').first) ??
+          'Usuario';
 
       // TODO: En FASE 5 esto se reemplazará con llamada real al backend
       _upcomingEvents = [

@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../services/pet_service.dart';
+import '../utils/api_exceptions.dart';
 
 class Pet {
   final String id;
@@ -82,80 +84,95 @@ class Pet {
       color: map['color'] ?? '',
       medicalNotes: map['medical_notes'] ?? '',
       vaccinationStatus: map['vaccination_status'] ?? 'up_to_date',
-      lastVetVisit: DateTime.parse(map['last_vet_visit'] ?? DateTime.now().toIso8601String()),
-      createdAt: DateTime.parse(map['created_at'] ?? DateTime.now().toIso8601String()),
+      lastVetVisit: DateTime.parse(
+        map['last_vet_visit'] ?? DateTime.now().toIso8601String(),
+      ),
+      createdAt: DateTime.parse(
+        map['created_at'] ?? DateTime.now().toIso8601String(),
+      ),
     );
   }
 }
 
 class PetNotifier extends StateNotifier<List<Pet>> {
-  PetNotifier() : super(_getInitialPets()) {
-    _loadPets();
+  final PetService _petService = PetService();
+
+  PetNotifier() : super([]) {
+    loadPets();
   }
 
-  static List<Pet> _getInitialPets() {
-    return [
-      Pet(
-        id: '1',
-        name: 'Max',
-        breed: 'Golden Retriever',
-        age: 3,
-        gender: 'male',
-        weight: 25.5,
-        color: 'Dorado',
-        medicalNotes: 'Alérgico al polen, necesita medicamento diario',
-        vaccinationStatus: 'up_to_date',
-        lastVetVisit: DateTime.now().subtract(const Duration(days: 30)),
-        createdAt: DateTime.now().subtract(const Duration(days: 365)),
-      ),
-      Pet(
-        id: '2',
-        name: 'Luna',
-        breed: 'Labrador',
-        age: 2,
-        gender: 'female',
-        weight: 22.0,
-        color: 'Negro',
-        medicalNotes: 'Saludable, necesita ejercicio diario',
-        vaccinationStatus: 'up_to_date',
-        lastVetVisit: DateTime.now().subtract(const Duration(days: 15)),
-        createdAt: DateTime.now().subtract(const Duration(days: 730)),
-      ),
-      Pet(
-        id: '3',
-        name: 'Rocky',
-        breed: 'Pastor Alemán',
-        age: 1,
-        gender: 'male',
-        weight: 18.0,
-        color: 'Marrón y Negro',
-        medicalNotes: 'Cachorro activo, en proceso de socialización',
-        vaccinationStatus: 'in_progress',
-        lastVetVisit: DateTime.now().subtract(const Duration(days: 7)),
-        createdAt: DateTime.now().subtract(const Duration(days: 365)),
-      ),
-    ];
+  Future<void> loadPets() async {
+    try {
+      final pets = await _petService.getPets();
+      state = pets;
+    } catch (_) {
+      rethrow;
+    }
   }
 
-  void _loadPets() {
+  Future<bool> addPet(Pet pet) async {
+    try {
+      final newPet = await _petService.createPet(
+        name: pet.name,
+        breed: pet.breed,
+        age: pet.age,
+        gender: pet.gender,
+        weight: pet.weight,
+        color: pet.color,
+        medicalNotes: pet.medicalNotes,
+        vaccinationStatus: pet.vaccinationStatus,
+      );
+
+      state = [...state, newPet];
+      return true;
+    } on ValidationException {
+      rethrow;
+    } catch (_) {
+      rethrow;
+    }
   }
 
-  void addPet(Pet pet) {
-    state = [...state, pet];
+  Future<bool> updatePet(Pet updatedPet) async {
+    try {
+      final pet = await _petService.updatePet(
+        id: updatedPet.id,
+        name: updatedPet.name,
+        breed: updatedPet.breed,
+        age: updatedPet.age,
+        gender: updatedPet.gender,
+        weight: updatedPet.weight,
+        color: updatedPet.color,
+        medicalNotes: updatedPet.medicalNotes,
+        vaccinationStatus: updatedPet.vaccinationStatus,
+      );
+
+      state = state.map((p) => p.id == pet.id ? pet : p).toList();
+      return true;
+    } on ValidationException {
+      rethrow;
+    } on NotFoundException {
+      rethrow;
+    } catch (_) {
+      rethrow;
+    }
   }
 
-  void updatePet(Pet updatedPet) {
-    state = state.map((pet) => pet.id == updatedPet.id ? updatedPet : pet).toList();
-  }
-
-  void deletePet(String petId) {
-    state = state.where((pet) => pet.id != petId).toList();
+  Future<bool> deletePet(String petId) async {
+    try {
+      await _petService.deletePet(petId);
+      state = state.where((pet) => pet.id != petId).toList();
+      return true;
+    } on NotFoundException {
+      rethrow;
+    } catch (_) {
+      rethrow;
+    }
   }
 
   Pet? getPetById(String id) {
     try {
       return state.firstWhere((pet) => pet.id == id);
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   }
@@ -163,14 +180,18 @@ class PetNotifier extends StateNotifier<List<Pet>> {
   List<Pet> getPetsByVaccinationStatus(String status) {
     return state.where((pet) => pet.vaccinationStatus == status).toList();
   }
+
+  Future<void> refresh() async {
+    await loadPets();
+  }
 }
 
-// Provider para el PetNotifier
-final petNotifierProvider = StateNotifierProvider<PetNotifier, List<Pet>>((ref) {
+final petNotifierProvider = StateNotifierProvider<PetNotifier, List<Pet>>((
+  ref,
+) {
   return PetNotifier();
 });
 
-// Provider para obtener una mascota específica
 final petByIdProvider = Provider.family<Pet?, String>((ref, id) {
   final pets = ref.watch(petNotifierProvider);
   return pets.where((pet) => pet.id == id).firstOrNull;

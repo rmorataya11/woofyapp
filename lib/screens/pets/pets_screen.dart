@@ -37,6 +37,23 @@ class _PetsScreenState extends ConsumerState<PetsScreen> {
                     ),
                     const Spacer(),
                     IconButton(
+                      onPressed: () async {
+                        final scaffoldMessenger = ScaffoldMessenger.of(context);
+                        await ref.read(petNotifierProvider.notifier).refresh();
+                        if (mounted) {
+                          scaffoldMessenger.showSnackBar(
+                            const SnackBar(
+                              content: Text('Lista actualizada'),
+                              duration: Duration(seconds: 1),
+                            ),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.refresh),
+                      color: Theme.of(context).colorScheme.primary,
+                      iconSize: 24,
+                    ),
+                    IconButton(
                       onPressed: () => _showAddPetDialog(),
                       icon: const Icon(Icons.add_circle),
                       color: Theme.of(context).colorScheme.primary,
@@ -45,7 +62,6 @@ class _PetsScreenState extends ConsumerState<PetsScreen> {
                   ],
                 ),
               ),
-              // Estadísticas
               _buildStatsSection(),
               const SizedBox(height: 16),
               // Content
@@ -288,9 +304,30 @@ class _PetsScreenState extends ConsumerState<PetsScreen> {
   void _showAddPetDialog() {
     showDialog(
       context: context,
-      builder: (context) => _PetFormDialog(
-        onSave: (pet) {
-          ref.read(petNotifierProvider.notifier).addPet(pet);
+      builder: (dialogContext) => _PetFormDialog(
+        onSave: (pet) async {
+          final scaffoldMessenger = ScaffoldMessenger.of(context);
+          final success = await ref
+              .read(petNotifierProvider.notifier)
+              .addPet(pet);
+
+          if (mounted) {
+            if (success) {
+              scaffoldMessenger.showSnackBar(
+                const SnackBar(
+                  content: Text('Mascota agregada correctamente'),
+                  backgroundColor: Color(0xFF4CAF50),
+                ),
+              );
+            } else {
+              scaffoldMessenger.showSnackBar(
+                const SnackBar(
+                  content: Text('Error al agregar mascota'),
+                  backgroundColor: Color(0xFFF44336),
+                ),
+              );
+            }
+          }
         },
       ),
     );
@@ -299,10 +336,31 @@ class _PetsScreenState extends ConsumerState<PetsScreen> {
   void _showEditPetDialog(Pet pet) {
     showDialog(
       context: context,
-      builder: (context) => _PetFormDialog(
+      builder: (dialogContext) => _PetFormDialog(
         pet: pet,
-        onSave: (updatedPet) {
-          ref.read(petNotifierProvider.notifier).updatePet(updatedPet);
+        onSave: (updatedPet) async {
+          final scaffoldMessenger = ScaffoldMessenger.of(context);
+          final success = await ref
+              .read(petNotifierProvider.notifier)
+              .updatePet(updatedPet);
+
+          if (mounted) {
+            if (success) {
+              scaffoldMessenger.showSnackBar(
+                const SnackBar(
+                  content: Text('Mascota actualizada correctamente'),
+                  backgroundColor: Color(0xFF4CAF50),
+                ),
+              );
+            } else {
+              scaffoldMessenger.showSnackBar(
+                const SnackBar(
+                  content: Text('Error al actualizar mascota'),
+                  backgroundColor: Color(0xFFF44336),
+                ),
+              );
+            }
+          }
         },
       ),
     );
@@ -320,9 +378,33 @@ class _PetsScreenState extends ConsumerState<PetsScreen> {
             child: const Text('Cancelar'),
           ),
           TextButton(
-            onPressed: () {
-              ref.read(petNotifierProvider.notifier).deletePet(pet.id);
-              context.pop();
+            onPressed: () async {
+              final navigator = Navigator.of(context);
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+              final success = await ref
+                  .read(petNotifierProvider.notifier)
+                  .deletePet(pet.id);
+
+              if (mounted) {
+                navigator.pop();
+
+                if (success) {
+                  scaffoldMessenger.showSnackBar(
+                    SnackBar(
+                      content: Text('${pet.name} eliminada correctamente'),
+                      backgroundColor: const Color(0xFF4CAF50),
+                    ),
+                  );
+                } else {
+                  scaffoldMessenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('Error al eliminar mascota'),
+                      backgroundColor: Color(0xFFF44336),
+                    ),
+                  );
+                }
+              }
             },
             child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
           ),
@@ -442,7 +524,7 @@ class _PetsScreenState extends ConsumerState<PetsScreen> {
 // Pet Form Dialog
 class _PetFormDialog extends StatefulWidget {
   final Pet? pet;
-  final Function(Pet) onSave;
+  final Future<void> Function(Pet) onSave;
 
   const _PetFormDialog({this.pet, required this.onSave});
 
@@ -647,24 +729,29 @@ class _PetFormDialogState extends State<_PetFormDialog> {
     );
   }
 
-  void _savePet() {
+  Future<void> _savePet() async {
     if (_formKey.currentState!.validate()) {
       final pet = Pet(
         id: widget.pet?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-        name: _nameController.text,
-        breed: _breedController.text,
+        name: _nameController.text.trim(),
+        breed: _breedController.text.trim(),
         age: int.parse(_ageController.text),
         gender: _gender,
         weight: double.parse(_weightController.text),
-        color: _colorController.text,
-        medicalNotes: _medicalNotesController.text,
+        color: _colorController.text.trim(),
+        medicalNotes: _medicalNotesController.text.trim(),
         vaccinationStatus: _vaccinationStatus,
         lastVetVisit: widget.pet?.lastVetVisit ?? DateTime.now(),
         createdAt: widget.pet?.createdAt ?? DateTime.now(),
       );
 
-      widget.onSave(pet);
-      context.pop();
+      final navigator = Navigator.of(context);
+
+      await widget.onSave(pet);
+
+      if (mounted) {
+        navigator.pop();
+      }
     }
   }
 }

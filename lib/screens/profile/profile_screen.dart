@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/theme_provider.dart';
+import '../../providers/profile_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../models/profile_model.dart';
+import '../../models/user_model.dart';
 import '../../config/theme_utils.dart';
+import '../../router/app_router.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -13,21 +18,6 @@ class ProfileScreen extends ConsumerStatefulWidget {
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen>
     with TickerProviderStateMixin {
-  final Map<String, dynamic> _userProfile = {
-    'name': 'Usuario',
-    'email': 'usuario@ejemplo.com',
-    'phone': 'No especificado',
-    'location': 'No especificada',
-    'bio': 'Usuario de Woofy',
-    'preferences': {
-      'push_notifications': true,
-      'email_updates': true,
-      'dark_mode': false,
-    },
-  };
-
-  bool _isLoading = true;
-
   @override
   void initState() {
     super.initState();
@@ -35,18 +25,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   }
 
   Future<void> _loadUserData() async {
-    setState(() {
-      _isLoading = false;
-    });
+    await ref.read(profileProvider.notifier).loadProfile();
   }
 
   @override
   Widget build(BuildContext context) {
+    final profileState = ref.watch(profileProvider);
+    final authState = ref.watch(authProvider);
+
     return Scaffold(
       body: Container(
         decoration: ThemeUtils.getBackgroundDecoration(context, ref),
         child: SafeArea(
-          child: _isLoading
+          child: profileState.isLoading
               ? Center(
                   child: CircularProgressIndicator(
                     valueColor: AlwaysStoppedAnimation<Color>(
@@ -57,9 +48,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               : SingleChildScrollView(
                   child: Column(
                     children: [
-                      _buildProfileHeader(),
+                      _buildProfileHeader(profileState.profile, authState.user),
                       _buildSettingsSection(),
-                      _buildPreferencesSection(),
+                      _buildPreferencesSection(profileState.preferences),
+                      _buildLogoutSection(),
                       const SizedBox(height: 100),
                     ],
                   ),
@@ -69,7 +61,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     );
   }
 
-  Widget _buildProfileHeader() {
+  Widget _buildProfileHeader(Profile? profile, User? user) {
+    final displayName = profile?.name ?? user?.name ?? 'Usuario';
+    final displayEmail = profile?.email ?? user?.email ?? '';
+    final displayBio = profile?.bio ?? 'Usuario de Woofy';
+    final displayLocation = profile?.location ?? 'No especificada';
+    final displayPhone = profile?.phone ?? 'No especificado';
+    final avatarUrl = profile?.avatarUrl;
+
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(24),
@@ -91,10 +90,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             backgroundColor: Theme.of(
               context,
             ).colorScheme.primary.withValues(alpha: 0.1),
-            backgroundImage: _userProfile['avatar_url'] != null
-                ? NetworkImage(_userProfile['avatar_url'])
-                : null,
-            child: _userProfile['avatar_url'] == null
+            backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
+            child: avatarUrl == null
                 ? Icon(
                     Icons.person,
                     size: 60,
@@ -104,7 +101,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           ),
           const SizedBox(height: 16),
           Text(
-            _userProfile['name'] ?? 'Usuario',
+            displayName,
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -113,16 +110,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           ),
           const SizedBox(height: 4),
           Text(
-            _userProfile['email'] ?? '',
+            displayEmail,
             style: TextStyle(
               fontSize: 16,
               color: ThemeUtils.getTextSecondaryColor(context, ref),
             ),
           ),
           const SizedBox(height: 8),
-          if (_userProfile['bio'] != null && _userProfile['bio'].isNotEmpty)
+          if (displayBio.isNotEmpty)
             Text(
-              _userProfile['bio'],
+              displayBio,
               style: TextStyle(
                 fontSize: 14,
                 color: ThemeUtils.getTextSecondaryColor(context, ref),
@@ -133,16 +130,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildInfoItem(
-                Icons.location_on,
-                _userProfile['location'] ?? 'No especificada',
-                'Ubicación',
-              ),
-              _buildInfoItem(
-                Icons.phone,
-                _userProfile['phone'] ?? 'No especificado',
-                'Teléfono',
-              ),
+              _buildInfoItem(Icons.location_on, displayLocation, 'Ubicación'),
+              _buildInfoItem(Icons.phone, displayPhone, 'Teléfono'),
             ],
           ),
         ],
@@ -220,7 +209,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     );
   }
 
-  Widget _buildPreferencesSection() {
+  Widget _buildPreferencesSection(UserPreferences? preferences) {
+    final prefs = preferences ?? UserPreferences.defaultPreferences();
+
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
@@ -251,14 +242,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           _buildPreferenceSwitch(
             'Notificaciones Push',
             'Recibir notificaciones en tiempo real',
-            _userProfile['preferences']?['push_notifications'] ?? true,
-            (value) => _updatePreference('push_notifications', value),
+            prefs.pushNotifications,
+            (value) => _updatePreference('push_notifications', value, prefs),
           ),
           _buildPreferenceSwitch(
             'Actualizaciones por Email',
             'Recibir notificaciones por correo',
-            _userProfile['preferences']?['email_updates'] ?? true,
-            (value) => _updatePreference('email_updates', value),
+            prefs.emailUpdates,
+            (value) => _updatePreference('email_updates', value, prefs),
           ),
         ],
       ),
@@ -369,62 +360,134 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   }
 
   void _editProfile() {
+    final profile = ref.read(profileProvider).profile;
+    final user = ref.read(authProvider).user;
+
+    final nameController = TextEditingController(
+      text: profile?.name ?? user?.name ?? '',
+    );
+    final emailController = TextEditingController(
+      text: profile?.email ?? user?.email ?? '',
+    );
+    final phoneController = TextEditingController(text: profile?.phone ?? '');
+    final locationController = TextEditingController(
+      text: profile?.location ?? '',
+    );
+    final bioController = TextEditingController(text: profile?.bio ?? '');
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Editar Perfil'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              decoration: const InputDecoration(
-                labelText: 'Nombre',
-                border: OutlineInputBorder(),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                decoration: const InputDecoration(
+                  labelText: 'Nombre',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.person),
+                ),
+                controller: nameController,
               ),
-              controller: TextEditingController(text: _userProfile['name']),
-              onChanged: (value) => _userProfile['name'] = value,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                border: OutlineInputBorder(),
+              const SizedBox(height: 16),
+              TextField(
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.email),
+                ),
+                controller: emailController,
+                keyboardType: TextInputType.emailAddress,
               ),
-              controller: TextEditingController(text: _userProfile['email']),
-              onChanged: (value) => _userProfile['email'] = value,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              decoration: const InputDecoration(
-                labelText: 'Teléfono',
-                border: OutlineInputBorder(),
+              const SizedBox(height: 16),
+              TextField(
+                decoration: const InputDecoration(
+                  labelText: 'Teléfono',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.phone),
+                ),
+                controller: phoneController,
+                keyboardType: TextInputType.phone,
               ),
-              controller: TextEditingController(text: _userProfile['phone']),
-              onChanged: (value) => _userProfile['phone'] = value,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              decoration: const InputDecoration(
-                labelText: 'Ubicación',
-                border: OutlineInputBorder(),
+              const SizedBox(height: 16),
+              TextField(
+                decoration: const InputDecoration(
+                  labelText: 'Ubicación',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.location_on),
+                ),
+                controller: locationController,
               ),
-              controller: TextEditingController(text: _userProfile['location']),
-              onChanged: (value) => _userProfile['location'] = value,
-            ),
-          ],
+              const SizedBox(height: 16),
+              TextField(
+                decoration: const InputDecoration(
+                  labelText: 'Biografía',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.info),
+                ),
+                controller: bioController,
+                maxLines: 3,
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              nameController.dispose();
+              emailController.dispose();
+              phoneController.dispose();
+              locationController.dispose();
+              bioController.dispose();
+              Navigator.of(context).pop();
+            },
             child: const Text('Cancelar'),
           ),
           ElevatedButton(
-            onPressed: () {
-              setState(() {});
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Perfil actualizado')),
-              );
+            onPressed: () async {
+              final navigator = Navigator.of(context);
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+              final success = await ref
+                  .read(profileProvider.notifier)
+                  .updateProfile(
+                    name: nameController.text.trim(),
+                    email: emailController.text.trim(),
+                    phone: phoneController.text.trim(),
+                    location: locationController.text.trim(),
+                    bio: bioController.text.trim(),
+                  );
+
+              nameController.dispose();
+              emailController.dispose();
+              phoneController.dispose();
+              locationController.dispose();
+              bioController.dispose();
+
+              if (mounted) {
+                navigator.pop();
+
+                if (success) {
+                  scaffoldMessenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('Perfil actualizado correctamente'),
+                      backgroundColor: Color(0xFF4CAF50),
+                    ),
+                  );
+                } else {
+                  final errorMessage =
+                      ref.read(profileProvider).errorMessage ??
+                      'Error al actualizar perfil';
+                  scaffoldMessenger.showSnackBar(
+                    SnackBar(
+                      content: Text(errorMessage),
+                      backgroundColor: const Color(0xFFF44336),
+                    ),
+                  );
+                }
+              }
             },
             child: const Text('Guardar'),
           ),
@@ -434,50 +497,72 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   }
 
   void _openPrivacy() {
+    final preferences =
+        ref.read(profileProvider).preferences ??
+        UserPreferences.defaultPreferences();
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Configuración de Privacidad'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Configuración de Datos',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            title: const Text('Configuración de Privacidad'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Configuración de Datos',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                SwitchListTile(
+                  title: const Text('Compartir Ubicación'),
+                  subtitle: const Text(
+                    'Permitir compartir ubicación con veterinarias',
+                  ),
+                  value: preferences.privacy.shareLocation,
+                  onChanged: (value) async {
+                    final updatedPrivacy = preferences.privacy.copyWith(
+                      shareLocation: value,
+                    );
+                    final updatedPreferences = preferences.copyWith(
+                      privacy: updatedPrivacy,
+                    );
+                    await ref
+                        .read(profileProvider.notifier)
+                        .updatePreferences(updatedPreferences);
+                    setDialogState(() {});
+                  },
+                ),
+                SwitchListTile(
+                  title: const Text('Análisis de Datos'),
+                  subtitle: const Text('Permitir análisis para mejorar la app'),
+                  value: preferences.privacy.dataAnalytics,
+                  onChanged: (value) async {
+                    final updatedPrivacy = preferences.privacy.copyWith(
+                      dataAnalytics: value,
+                    );
+                    final updatedPreferences = preferences.copyWith(
+                      privacy: updatedPrivacy,
+                    );
+                    await ref
+                        .read(profileProvider.notifier)
+                        .updatePreferences(updatedPreferences);
+                    setDialogState(() {});
+                  },
+                ),
+                const SizedBox(height: 16),
+              ],
             ),
-            const SizedBox(height: 16),
-            SwitchListTile(
-              title: const Text('Compartir Ubicación'),
-              subtitle: const Text(
-                'Permitir compartir ubicación con veterinarias',
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cerrar'),
               ),
-              value: _userProfile['preferences']['share_location'] ?? false,
-              onChanged: (value) {
-                setState(() {
-                  _userProfile['preferences']['share_location'] = value;
-                });
-              },
-            ),
-            SwitchListTile(
-              title: const Text('Análisis de Datos'),
-              subtitle: const Text('Permitir análisis para mejorar la app'),
-              value: _userProfile['preferences']['data_analytics'] ?? true,
-              onChanged: (value) {
-                setState(() {
-                  _userProfile['preferences']['data_analytics'] = value;
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cerrar'),
-          ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }
@@ -697,12 +782,85 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     );
   }
 
-  void _updatePreference(String key, bool value) {
-    setState(() {
-      if (_userProfile['preferences'] == null) {
-        _userProfile['preferences'] = {};
-      }
-      _userProfile['preferences'][key] = value;
-    });
+  Future<void> _updatePreference(
+    String key,
+    bool value,
+    UserPreferences currentPrefs,
+  ) async {
+    UserPreferences updatedPreferences;
+
+    if (key == 'push_notifications') {
+      updatedPreferences = currentPrefs.copyWith(pushNotifications: value);
+    } else if (key == 'email_updates') {
+      updatedPreferences = currentPrefs.copyWith(emailUpdates: value);
+    } else {
+      return;
+    }
+
+    final success = await ref
+        .read(profileProvider.notifier)
+        .updatePreferences(updatedPreferences);
+
+    if (mounted && !success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error al actualizar preferencias'),
+          backgroundColor: Color(0xFFF44336),
+        ),
+      );
+    }
+  }
+
+  /// Sección de logout
+  Widget _buildLogoutSection() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      child: SizedBox(
+        width: double.infinity,
+        child: ElevatedButton.icon(
+          onPressed: () async {
+            final shouldLogout = await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Cerrar Sesión'),
+                content: const Text(
+                  '¿Estás seguro de que quieres cerrar sesión?',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text('Cancelar'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFF44336),
+                    ),
+                    child: const Text('Cerrar Sesión'),
+                  ),
+                ],
+              ),
+            );
+
+            if (shouldLogout == true && mounted) {
+              await ref.read(authProvider.notifier).logout();
+              if (mounted) {
+                context.go(AppRouter.splash);
+              }
+            }
+          },
+          icon: const Icon(Icons.logout),
+          label: const Text('Cerrar Sesión'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFFF44336),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
