@@ -555,7 +555,7 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
               color: ThemeUtils.getTextSecondaryColor(
                 context,
                 ref,
-              ).withOpacity(0.5),
+              ).withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
@@ -618,7 +618,7 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
             decoration: BoxDecoration(
               color: _getAppointmentColor(
                 appointment['status'],
-              ).withOpacity(0.1),
+              ).withValues(alpha: 0.1),
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(20),
               ),
@@ -799,7 +799,7 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
                       color: ThemeUtils.getTextSecondaryColor(
                         context,
                         ref,
-                      ).withOpacity(0.1),
+                      ).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
@@ -841,7 +841,7 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -947,7 +947,8 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
                   ),
                 ),
               ),
-            ] else if (status == 'completed') ...[
+            ] else if (status == 'completed')
+              ...[
             ] else if (status == 'cancelled') ...[
               Expanded(
                 child: OutlinedButton.icon(
@@ -1129,7 +1130,9 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -1381,7 +1384,9 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -1487,7 +1492,7 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
-                      value: _petName,
+                      initialValue: _petName,
                       decoration: const InputDecoration(
                         labelText: 'Mascota',
                         border: OutlineInputBorder(),
@@ -1551,7 +1556,7 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
                       children: [
                         Expanded(
                           child: DropdownButtonFormField<String>(
-                            value: _type,
+                            initialValue: _type,
                             decoration: const InputDecoration(
                               labelText: 'Tipo de cita',
                               border: OutlineInputBorder(),
@@ -1585,7 +1590,7 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
                         const SizedBox(width: 16),
                         Expanded(
                           child: DropdownButtonFormField<String>(
-                            value: _status,
+                            initialValue: _status,
                             decoration: const InputDecoration(
                               labelText: 'Estado',
                               border: OutlineInputBorder(),
@@ -1679,21 +1684,16 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
                         Expanded(
                           child: OutlinedButton(
                             onPressed: () => Navigator.of(context).pop(),
-                            child: const Text('Cancelar'),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 16),
                             ),
+                            child: const Text('Cancelar'),
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: ElevatedButton(
                             onPressed: _saveAppointment,
-                            child: Text(
-                              widget.appointment == null
-                                  ? 'Agregar'
-                                  : 'Actualizar',
-                            ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Theme.of(
                                 context,
@@ -1702,6 +1702,11 @@ class _AppointmentFormModalState extends State<_AppointmentFormModal> {
                                 context,
                               ).colorScheme.onPrimary,
                               padding: const EdgeInsets.symmetric(vertical: 16),
+                            ),
+                            child: Text(
+                              widget.appointment == null
+                                  ? 'Agregar'
+                                  : 'Actualizar',
                             ),
                           ),
                         ),

@@ -500,9 +500,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          ..._filteredClinics
-              .map((clinic) => _buildClinicCard(clinic))
-              .toList(),
+          ..._filteredClinics.map((clinic) => _buildClinicCard(clinic)),
         ],
       ),
     );
@@ -580,8 +578,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   ),
                   decoration: BoxDecoration(
                     color: (clinic['is_open'] ?? false)
-                        ? Colors.green.withOpacity(0.1)
-                        : Colors.red.withOpacity(0.1),
+                        ? Colors.green.withValues(alpha: 0.1)
+                        : Colors.red.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -697,7 +695,9 @@ class _ContactModalState extends State<_ContactModal> {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -729,7 +729,7 @@ class _ContactModalState extends State<_ContactModal> {
                           fontSize: 14,
                           color: Theme.of(
                             context,
-                          ).colorScheme.onSurface.withOpacity(0.7),
+                          ).colorScheme.onSurface.withValues(alpha: 0.7),
                         ),
                       ),
                     ],
@@ -799,17 +799,16 @@ class _ContactModalState extends State<_ContactModal> {
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () => context.pop(),
-                          child: const Text('Cancelar'),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
+                          child: const Text('Cancelar'),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: ElevatedButton(
                           onPressed: _sendMessage,
-                          child: const Text('Enviar'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Theme.of(
                               context,
@@ -819,6 +818,7 @@ class _ContactModalState extends State<_ContactModal> {
                             ).colorScheme.onPrimary,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
+                          child: const Text('Enviar'),
                         ),
                       ),
                     ],

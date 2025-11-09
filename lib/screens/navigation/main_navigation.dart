@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../router/app_router.dart';
 import '../../providers/navigation_provider.dart';
 import '../home/home_screen.dart';
+import '../pets/pets_screen.dart';
 import '../map/map_screen.dart';
 import '../calendar/calendar_screen.dart';
 import '../appointments/appointments_screen.dart';
@@ -17,9 +16,9 @@ class MainNavigation extends ConsumerStatefulWidget {
 }
 
 class _MainNavigationState extends ConsumerState<MainNavigation> {
-
   final List<Widget> _screens = [
     const HomeScreen(),
+    const PetsScreen(),
     const MapScreen(),
     const CalendarScreen(),
     const AppointmentsScreen(),
@@ -29,8 +28,6 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
   @override
   Widget build(BuildContext context) {
     final currentIndex = ref.watch(navigationNotifierProvider);
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     return Scaffold(
       body: _screens[currentIndex],
       bottomNavigationBar: Container(
@@ -38,7 +35,9 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
           color: Theme.of(context).colorScheme.surface,
           boxShadow: [
             BoxShadow(
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.1),
               blurRadius: 20,
               offset: const Offset(0, -5),
             ),
@@ -46,15 +45,16 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _buildNavItem(0, Icons.home, 'Home'),
-                _buildNavItem(1, Icons.map, 'Mapa'),
-                _buildNavItem(2, Icons.calendar_today, 'Calendario'),
-                _buildNavItem(3, Icons.event_note, 'Citas'),
-                _buildNavItem(4, Icons.person, 'Perfil'),
+                _buildNavItem(1, Icons.pets, 'Mascotas'),
+                _buildNavItem(2, Icons.map, 'Mapa'),
+                _buildNavItem(3, Icons.calendar_today, 'Calendario'),
+                _buildNavItem(4, Icons.event_note, 'Citas'),
+                _buildNavItem(5, Icons.person, 'Perfil'),
               ],
             ),
           ),
@@ -72,10 +72,10 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
         ref.read(navigationNotifierProvider.notifier).changeTab(index);
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),

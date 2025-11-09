@@ -176,10 +176,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             width: 250,
             height: 250,
             decoration: BoxDecoration(
-              color: data.heroColor.withOpacity(0.1),
+              color: data.heroColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(125),
               border: Border.all(
-                color: data.heroColor.withOpacity(0.2),
+                color: data.heroColor.withValues(alpha: 0.2),
                 width: 2,
               ),
             ),

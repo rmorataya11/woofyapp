@@ -18,7 +18,7 @@ class AppRouter {
   static const String appointments = '/appointments';
   static const String map = '/map';
   static const String calendar = '/calendar';
-  
+
   static final GoRouter router = GoRouter(
     initialLocation: splash,
     routes: [
@@ -68,11 +68,7 @@ class AppRouter {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.red,
-            ),
+            const Icon(Icons.error_outline, size: 64, color: Colors.red),
             const SizedBox(height: 16),
             Text(
               'Página no encontrada',

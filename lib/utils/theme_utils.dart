@@ -62,7 +62,7 @@ class ThemeUtils {
   static TextStyle getSubheadingStyle(BuildContext context) {
     return TextStyle(
       fontSize: 16,
-      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
     );
   }
 
@@ -76,35 +76,26 @@ class ThemeUtils {
   static TextStyle getCaptionStyle(BuildContext context) {
     return TextStyle(
       fontSize: 12,
-      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
     );
   }
 
-  // Estilos de botones
   static ButtonStyle getPrimaryButtonStyle(BuildContext context) {
     return ElevatedButton.styleFrom(
       backgroundColor: Theme.of(context).colorScheme.primary,
       foregroundColor: Theme.of(context).colorScheme.onPrimary,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     );
   }
 
   static ButtonStyle getSecondaryButtonStyle(BuildContext context) {
     return OutlinedButton.styleFrom(
       foregroundColor: Theme.of(context).colorScheme.primary,
-      side: BorderSide(
-        color: Theme.of(context).colorScheme.primary,
-        width: 1,
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      side: BorderSide(color: Theme.of(context).colorScheme.primary, width: 1),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     );
   }
 
-  // Estilos de campos de texto
   static InputDecoration getTextFieldDecoration(
     BuildContext context, {
     required String labelText,
@@ -130,7 +121,9 @@ class ThemeUtils {
             )
           : null,
       filled: true,
-      fillColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+      fillColor: Theme.of(
+        context,
+      ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,
@@ -152,7 +145,7 @@ class ThemeUtils {
       borderRadius: BorderRadius.circular(16),
       boxShadow: [
         BoxShadow(
-          color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
           blurRadius: 20,
           offset: const Offset(0, 5),
         ),
@@ -165,7 +158,7 @@ class ThemeUtils {
       color: Theme.of(context).colorScheme.surface,
       borderRadius: BorderRadius.circular(12),
       border: Border.all(
-        color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+        color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
       ),
     );
   }

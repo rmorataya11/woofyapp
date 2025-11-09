@@ -346,7 +346,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             color: isSelected
                 ? Theme.of(context).colorScheme.primary
                 : isToday
-                ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
             border: isToday && !isSelected
@@ -417,7 +417,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(20),
               ),
@@ -478,7 +478,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             Icon(
               Icons.event_available,
               size: 80,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
@@ -512,7 +512,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         color: ThemeUtils.getCardColor(context, ref),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: _getEventColor(event['type']).withOpacity(0.3),
+          color: _getEventColor(event['type']).withValues(alpha: 0.3),
           width: 2,
         ),
         boxShadow: [
@@ -640,10 +640,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFFF9800).withOpacity(0.1),
+        color: const Color(0xFFFF9800).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFFF9800).withOpacity(0.3),
+          color: const Color(0xFFFF9800).withValues(alpha: 0.3),
           width: 2,
         ),
       ),
@@ -914,7 +914,7 @@ class _EventFormModalState extends State<_EventFormModal> {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -952,7 +952,7 @@ class _EventFormModalState extends State<_EventFormModal> {
                 child: Column(
                   children: [
                     DropdownButtonFormField<String>(
-                      value: _eventType,
+                      initialValue: _eventType,
                       decoration: const InputDecoration(
                         labelText: 'Tipo de evento',
                         border: OutlineInputBorder(),
@@ -1002,7 +1002,7 @@ class _EventFormModalState extends State<_EventFormModal> {
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
-                      value: _petName,
+                      initialValue: _petName,
                       decoration: const InputDecoration(
                         labelText: 'Mascota',
                         border: OutlineInputBorder(),
@@ -1109,19 +1109,16 @@ class _EventFormModalState extends State<_EventFormModal> {
                         Expanded(
                           child: OutlinedButton(
                             onPressed: () => Navigator.of(context).pop(),
-                            child: const Text('Cancelar'),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 16),
                             ),
+                            child: const Text('Cancelar'),
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: ElevatedButton(
                             onPressed: _saveEvent,
-                            child: Text(
-                              widget.event == null ? 'Agregar' : 'Actualizar',
-                            ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Theme.of(
                                 context,
@@ -1130,6 +1127,9 @@ class _EventFormModalState extends State<_EventFormModal> {
                                 context,
                               ).colorScheme.onPrimary,
                               padding: const EdgeInsets.symmetric(vertical: 16),
+                            ),
+                            child: Text(
+                              widget.event == null ? 'Agregar' : 'Actualizar',
                             ),
                           ),
                         ),

@@ -23,7 +23,7 @@ class WoofyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
-    
+
     return MaterialApp.router(
       title: 'Woofy',
       debugShowCheckedModeBanner: false,
@@ -57,7 +57,9 @@ class _MyHomePageState extends State<MyHomePage> {
             icon: const Icon(Icons.logout),
             onPressed: () async {
               await Supabase.instance.client.auth.signOut();
-              context.go(AppRouter.splash);
+              if (context.mounted) {
+                context.go(AppRouter.splash);
+              }
             },
           ),
         ],

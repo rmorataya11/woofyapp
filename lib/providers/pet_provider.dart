@@ -141,9 +141,7 @@ class PetNotifier extends StateNotifier<List<Pet>> {
   }
 
   void addPet(Pet pet) {
-    print('Adding pet to state: ${pet.name}');
     state = [...state, pet];
-    print('Total pets now: ${state.length}');
   }
 
   void updatePet(Pet updatedPet) {

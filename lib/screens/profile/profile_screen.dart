@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/pet_provider.dart';
-import '../../router/app_router.dart';
 import '../../providers/theme_provider.dart';
 import '../../config/theme_utils.dart';
 
@@ -16,66 +14,19 @@ class ProfileScreen extends ConsumerStatefulWidget {
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen>
     with TickerProviderStateMixin {
-  final SupabaseClient _supabase = Supabase.instance.client;
-
-  Map<String, dynamic> _userProfile = {
+  final Map<String, dynamic> _userProfile = {
     'name': 'Usuario',
     'email': 'usuario@ejemplo.com',
     'phone': 'No especificado',
     'location': 'No especificada',
     'bio': 'Usuario de Woofy',
-      'preferences': {
-        'push_notifications': true,
+    'preferences': {
+      'push_notifications': true,
       'email_updates': true,
-        'dark_mode': false,
-      },
-    };
-
-  List<Map<String, dynamic>> _userPets = [
-      {
-        'id': '1',
-        'name': 'Max',
-        'breed': 'Golden Retriever',
-        'age': 3,
-        'gender': 'male',
-        'weight': 25.5,
-        'color': 'Dorado',
-        'medical_notes': 'Alérgico al polen, necesita medicamento diario',
-        'vaccination_status': 'up_to_date',
-      'last_vet_visit': DateTime.now().subtract(const Duration(days: 30)).toIso8601String(),
-      },
-      {
-        'id': '2',
-        'name': 'Luna',
-        'breed': 'Labrador',
-        'age': 2,
-        'gender': 'female',
-        'weight': 22.0,
-        'color': 'Negro',
-        'medical_notes': 'Saludable, necesita ejercicio diario',
-        'vaccination_status': 'up_to_date',
-      'last_vet_visit': DateTime.now().subtract(const Duration(days: 15)).toIso8601String(),
-      },
-      {
-        'id': '3',
-        'name': 'Rocky',
-        'breed': 'Pastor Alemán',
-        'age': 1,
-        'gender': 'male',
-        'weight': 18.0,
-        'color': 'Marrón y Negro',
-        'medical_notes': 'Cachorro activo, en proceso de socialización',
-        'vaccination_status': 'in_progress',
-      'last_vet_visit': DateTime.now().subtract(const Duration(days: 7)).toIso8601String(),
-      },
-    ];
-
-  Map<String, dynamic> _userStats = {
-      'total_appointments': 24,
-      'completed_appointments': 22,
-      'active_reminders': 5,
-    'member_since': DateTime.now().subtract(const Duration(days: 365)).toIso8601String(),
+      'dark_mode': false,
+    },
   };
+
   bool _isLoading = true;
 
   @override
@@ -105,17 +56,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   ),
                 )
               : SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          _buildProfileHeader(),
-                          _buildStatsSection(),
-                          _buildPetsSection(),
-                          _buildSettingsSection(),
-                          _buildPreferencesSection(),
-                          const SizedBox(
-                            height: 100,
-                          ), 
-                        ],
+                  child: Column(
+                    children: [
+                      _buildProfileHeader(),
+                      _buildStatsSection(),
+                      _buildPetsSection(),
+                      _buildSettingsSection(),
+                      _buildPreferencesSection(),
+                      const SizedBox(height: 100),
+                    ],
                   ),
                 ),
         ),
@@ -142,7 +91,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
         children: [
           CircleAvatar(
             radius: 60,
-            backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            backgroundColor: Theme.of(
+              context,
+            ).colorScheme.primary.withValues(alpha: 0.1),
             backgroundImage: _userProfile['avatar_url'] != null
                 ? NetworkImage(_userProfile['avatar_url'])
                 : null,
@@ -166,7 +117,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           const SizedBox(height: 4),
           Text(
             _userProfile['email'] ?? '',
-            style: TextStyle(fontSize: 16, color: ThemeUtils.getTextSecondaryColor(context, ref)),
+            style: TextStyle(
+              fontSize: 16,
+              color: ThemeUtils.getTextSecondaryColor(context, ref),
+            ),
           ),
           const SizedBox(height: 8),
           if (_userProfile['bio'] != null && _userProfile['bio'].isNotEmpty)
@@ -215,7 +169,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
         ),
         Text(
           label,
-          style: TextStyle(fontSize: 10, color: ThemeUtils.getTextSecondaryColor(context, ref)),
+          style: TextStyle(
+            fontSize: 10,
+            color: ThemeUtils.getTextSecondaryColor(context, ref),
+          ),
         ),
       ],
     );
@@ -253,7 +210,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               Expanded(
                 child: _buildStatCard(
                   'Citas Totales',
-                  _userStats['total_appointments'].toString(),
+                  '24',
                   Icons.event,
                   const Color(0xFF1E88E5),
                 ),
@@ -262,7 +219,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               Expanded(
                 child: _buildStatCard(
                   'Completadas',
-                  _userStats['completed_appointments'].toString(),
+                  '22',
                   Icons.check_circle,
                   const Color(0xFF4CAF50),
                 ),
@@ -271,7 +228,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               Expanded(
                 child: _buildStatCard(
                   'Recordatorios',
-                  _userStats['active_reminders'].toString(),
+                  '5',
                   Icons.notifications,
                   const Color(0xFFFF9800),
                 ),
@@ -283,11 +240,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -363,7 +325,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   Icon(
                     Icons.pets,
                     size: 48,
-                    color: ThemeUtils.getTextSecondaryColor(context, ref).withOpacity(0.3),
+                    color: ThemeUtils.getTextSecondaryColor(
+                      context,
+                      ref,
+                    ).withValues(alpha: 0.3),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -395,14 +360,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
         color: ThemeUtils.getCardColor(context, ref),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
         ),
       ),
       child: Row(
         children: [
           CircleAvatar(
             radius: 25,
-            backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            backgroundColor: Theme.of(
+              context,
+            ).colorScheme.primary.withValues(alpha: 0.1),
             child: Icon(
               Icons.pets,
               color: Theme.of(context).colorScheme.primary,
@@ -477,9 +444,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                     Icon(Icons.delete, size: 18, color: Colors.red),
                     SizedBox(width: 8),
                     Text('Eliminar', style: TextStyle(color: Colors.red)),
-              ],
-            ),
-          ),
+                  ],
+                ),
+              ),
             ],
             child: Icon(
               Icons.more_vert,
@@ -585,7 +552,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   Widget _buildThemeSelector() {
     final themeMode = ref.watch(themeModeProvider);
     final themeNotifier = ref.read(themeModeProvider.notifier);
-    
+
     return ListTile(
       leading: Icon(
         themeMode == ThemeMode.dark ? Icons.dark_mode : Icons.light_mode,
@@ -601,10 +568,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
       ),
       subtitle: Text(
         _getThemeDescription(themeMode),
-        style: TextStyle(fontSize: 14, color: ThemeUtils.getTextSecondaryColor(context, ref)),
+        style: TextStyle(
+          fontSize: 14,
+          color: ThemeUtils.getTextSecondaryColor(context, ref),
+        ),
       ),
       trailing: PopupMenuButton<ThemeMode>(
-        icon: Icon(Icons.arrow_drop_down, color: ThemeUtils.getTextSecondaryColor(context, ref)),
+        icon: Icon(
+          Icons.arrow_drop_down,
+          color: ThemeUtils.getTextSecondaryColor(context, ref),
+        ),
         onSelected: (ThemeMode mode) {
           themeNotifier.setTheme(mode);
         },
@@ -613,11 +586,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             value: ThemeMode.light,
             child: Row(
               children: [
-                Icon(Icons.light_mode, color: Theme.of(context).colorScheme.primary),
+                Icon(
+                  Icons.light_mode,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 const SizedBox(width: 12),
                 const Text('Claro'),
                 if (themeMode == ThemeMode.light)
-                  Icon(Icons.check, color: Theme.of(context).colorScheme.primary),
+                  Icon(
+                    Icons.check,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
               ],
             ),
           ),
@@ -625,11 +604,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             value: ThemeMode.dark,
             child: Row(
               children: [
-                Icon(Icons.dark_mode, color: Theme.of(context).colorScheme.primary),
+                Icon(
+                  Icons.dark_mode,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 const SizedBox(width: 12),
                 const Text('Oscuro'),
                 if (themeMode == ThemeMode.dark)
-                  Icon(Icons.check, color: Theme.of(context).colorScheme.primary),
+                  Icon(
+                    Icons.check,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
               ],
             ),
           ),
@@ -637,11 +622,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             value: ThemeMode.system,
             child: Row(
               children: [
-                Icon(Icons.settings, color: Theme.of(context).colorScheme.primary),
+                Icon(
+                  Icons.settings,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 const SizedBox(width: 12),
                 const Text('Sistema'),
                 if (themeMode == ThemeMode.system)
-                  Icon(Icons.check, color: Theme.of(context).colorScheme.primary),
+                  Icon(
+                    Icons.check,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
               ],
             ),
           ),
@@ -726,7 +717,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     );
   }
 
-
   void _openPrivacy() {
     showDialog(
       context: context,
@@ -743,7 +733,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             const SizedBox(height: 16),
             SwitchListTile(
               title: const Text('Compartir Ubicación'),
-              subtitle: const Text('Permitir compartir ubicación con veterinarias'),
+              subtitle: const Text(
+                'Permitir compartir ubicación con veterinarias',
+              ),
               value: _userProfile['preferences']['share_location'] ?? false,
               onChanged: (value) {
                 setState(() {
@@ -827,39 +819,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     );
   }
 
-  void _showDeleteAccountDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Eliminar Cuenta'),
-        content: const Text(
-          '¿Estás seguro de que quieres eliminar tu cuenta? Esta acción no se puede deshacer y se perderán todos tus datos.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Cuenta eliminada (simulado)'),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            },
-            child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _showContactSupportDialog() {
     final TextEditingController messageController = TextEditingController();
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -901,7 +863,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
   void _showBugReportDialog() {
     final TextEditingController bugController = TextEditingController();
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -946,7 +908,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Acerca de Woofy'),
-        content: const Text('Versión 1.0.0\n\nUna aplicación para el cuidado de tus mascotas.'),
+        content: const Text(
+          'Versión 1.0.0\n\nUna aplicación para el cuidado de tus mascotas.',
+        ),
         actions: [
           TextButton(
             onPressed: () => context.pop(),
@@ -975,7 +939,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
       ),
       subtitle: Text(
         subtitle,
-        style: TextStyle(fontSize: 14, color: ThemeUtils.getTextSecondaryColor(context, ref)),
+        style: TextStyle(
+          fontSize: 14,
+          color: ThemeUtils.getTextSecondaryColor(context, ref),
+        ),
       ),
       trailing: Icon(
         Icons.arrow_forward_ios,
@@ -1003,11 +970,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
       ),
       subtitle: Text(
         subtitle,
-        style: TextStyle(fontSize: 14, color: ThemeUtils.getTextSecondaryColor(context, ref)),
+        style: TextStyle(
+          fontSize: 14,
+          color: ThemeUtils.getTextSecondaryColor(context, ref),
+        ),
       ),
       value: value,
       onChanged: onChanged,
-      activeColor: Theme.of(context).colorScheme.primary,
+      activeTrackColor: Theme.of(context).colorScheme.primary,
     );
   }
 
@@ -1035,16 +1005,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
       default:
         return const Color(0xFF616161);
     }
-  }
-
-  String _formatMemberSince() {
-    final memberSinceStr = _userStats['member_since'] as String?;
-    if (memberSinceStr == null || memberSinceStr.isEmpty) {
-      return '1 año';
-    }
-    final memberSince = DateTime.parse(memberSinceStr);
-    final months = DateTime.now().difference(memberSince).inDays ~/ 30;
-    return '$months meses';
   }
 
   void _updatePreference(String key, bool value) {
@@ -1115,10 +1075,7 @@ class _PetFormDialog extends StatefulWidget {
   final Pet? pet;
   final Function(Pet) onSave;
 
-  const _PetFormDialog({
-    this.pet,
-    required this.onSave,
-  });
+  const _PetFormDialog({this.pet, required this.onSave});
 
   @override
   State<_PetFormDialog> createState() => _PetFormDialogState();
@@ -1132,7 +1089,7 @@ class _PetFormDialogState extends State<_PetFormDialog> {
   final _weightController = TextEditingController();
   final _colorController = TextEditingController();
   final _medicalNotesController = TextEditingController();
-  
+
   String _gender = 'male';
   String _vaccinationStatus = 'up_to_date';
 
@@ -1245,7 +1202,7 @@ class _PetFormDialogState extends State<_PetFormDialog> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _gender,
+                initialValue: _gender,
                 decoration: const InputDecoration(
                   labelText: 'Género',
                   border: OutlineInputBorder(),
@@ -1276,14 +1233,17 @@ class _PetFormDialogState extends State<_PetFormDialog> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _vaccinationStatus,
+                initialValue: _vaccinationStatus,
                 decoration: const InputDecoration(
                   labelText: 'Estado de Vacunación',
                   border: OutlineInputBorder(),
                 ),
                 items: const [
                   DropdownMenuItem(value: 'up_to_date', child: Text('Al día')),
-                  DropdownMenuItem(value: 'in_progress', child: Text('En proceso')),
+                  DropdownMenuItem(
+                    value: 'in_progress',
+                    child: Text('En proceso'),
+                  ),
                   DropdownMenuItem(value: 'overdue', child: Text('Vencidas')),
                 ],
                 onChanged: (value) {
@@ -1333,7 +1293,7 @@ class _PetFormDialogState extends State<_PetFormDialog> {
         lastVetVisit: widget.pet?.lastVetVisit ?? DateTime.now(),
         createdAt: widget.pet?.createdAt ?? DateTime.now(),
       );
-      
+
       widget.onSave(pet);
       context.pop();
     }
@@ -1357,7 +1317,9 @@ class _PetDetailsModal extends ConsumerWidget {
             children: [
               CircleAvatar(
                 radius: 30,
-                backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                backgroundColor: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.1),
                 child: Icon(
                   Icons.pets,
                   color: Theme.of(context).colorScheme.primary,
@@ -1402,15 +1364,35 @@ class _PetDetailsModal extends ConsumerWidget {
                   _buildInfoSection(context, ref, 'Información General', [
                     _buildInfoItem(context, ref, 'Raza', pet.breed),
                     _buildInfoItem(context, ref, 'Edad', '${pet.age} años'),
-                    _buildInfoItem(context, ref, 'Género', pet.gender == 'male' ? 'Macho' : 'Hembra'),
+                    _buildInfoItem(
+                      context,
+                      ref,
+                      'Género',
+                      pet.gender == 'male' ? 'Macho' : 'Hembra',
+                    ),
                     _buildInfoItem(context, ref, 'Peso', '${pet.weight} kg'),
                     _buildInfoItem(context, ref, 'Color', pet.color),
                   ]),
                   const SizedBox(height: 20),
                   _buildInfoSection(context, ref, 'Estado de Salud', [
-                    _buildInfoItem(context, ref, 'Vacunación', _getVaccinationText(pet.vaccinationStatus)),
-                    _buildInfoItem(context, ref, 'Última visita', _formatDate(pet.lastVetVisit)),
-                    _buildInfoItem(context, ref, 'Notas médicas', pet.medicalNotes),
+                    _buildInfoItem(
+                      context,
+                      ref,
+                      'Vacunación',
+                      _getVaccinationText(pet.vaccinationStatus),
+                    ),
+                    _buildInfoItem(
+                      context,
+                      ref,
+                      'Última visita',
+                      _formatDate(pet.lastVetVisit),
+                    ),
+                    _buildInfoItem(
+                      context,
+                      ref,
+                      'Notas médicas',
+                      pet.medicalNotes,
+                    ),
                   ]),
                   const SizedBox(height: 20),
                   _buildAppointmentHistory(context, ref),
@@ -1423,7 +1405,12 @@ class _PetDetailsModal extends ConsumerWidget {
     );
   }
 
-  Widget _buildInfoSection(BuildContext context, WidgetRef ref, String title, List<Widget> items) {
+  Widget _buildInfoSection(
+    BuildContext context,
+    WidgetRef ref,
+    String title,
+    List<Widget> items,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1442,15 +1429,18 @@ class _PetDetailsModal extends ConsumerWidget {
             color: ThemeUtils.getCardColor(context, ref),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Column(
-            children: items,
-          ),
+          child: Column(children: items),
         ),
       ],
     );
   }
 
-  Widget _buildInfoItem(BuildContext context, WidgetRef ref, String label, String value) {
+  Widget _buildInfoItem(
+    BuildContext context,
+    WidgetRef ref,
+    String label,
+    String value,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -1513,61 +1503,63 @@ class _PetDetailsModal extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 12),
-        ...appointments.map((appointment) => Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: ThemeUtils.getCardColor(context, ref),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: appointment['status'] == 'scheduled' 
-                ? const Color(0xFF1E88E5).withOpacity(0.3)
-                : const Color(0xFF4CAF50).withOpacity(0.3),
+        ...appointments.map(
+          (appointment) => Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: ThemeUtils.getCardColor(context, ref),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: appointment['status'] == 'scheduled'
+                    ? const Color(0xFF1E88E5).withValues(alpha: 0.3)
+                    : const Color(0xFF4CAF50).withValues(alpha: 0.3),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  appointment['status'] == 'scheduled'
+                      ? Icons.schedule
+                      : Icons.check_circle,
+                  color: appointment['status'] == 'scheduled'
+                      ? const Color(0xFF1E88E5)
+                      : const Color(0xFF4CAF50),
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        appointment['type'] as String,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: ThemeUtils.getTextPrimaryColor(context, ref),
+                        ),
+                      ),
+                      Text(
+                        appointment['clinic'] as String,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: ThemeUtils.getTextSecondaryColor(context, ref),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Text(
+                  _formatDate(appointment['date'] as DateTime),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: ThemeUtils.getTextSecondaryColor(context, ref),
+                  ),
+                ),
+              ],
             ),
           ),
-          child: Row(
-            children: [
-              Icon(
-                appointment['status'] == 'scheduled' 
-                  ? Icons.schedule 
-                  : Icons.check_circle,
-                color: appointment['status'] == 'scheduled' 
-                  ? const Color(0xFF1E88E5)
-                  : const Color(0xFF4CAF50),
-                size: 20,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      appointment['type'] as String,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: ThemeUtils.getTextPrimaryColor(context, ref),
-                      ),
-                    ),
-                    Text(
-                      appointment['clinic'] as String,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: ThemeUtils.getTextSecondaryColor(context, ref),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Text(
-                _formatDate(appointment['date'] as DateTime),
-                style: TextStyle(
-                  fontSize: 12,
-                  color: ThemeUtils.getTextSecondaryColor(context, ref),
-                ),
-              ),
-            ],
-          ),
-        )),
+        ),
       ],
     );
   }

@@ -83,7 +83,9 @@ class _LoginScreenOfflineState extends State<LoginScreenOffline> {
                         borderRadius: BorderRadius.circular(40),
                         boxShadow: [
                           BoxShadow(
-                            color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primary.withValues(alpha: 0.3),
                             blurRadius: 20,
                             offset: const Offset(0, 10),
                           ),
@@ -96,7 +98,7 @@ class _LoginScreenOfflineState extends State<LoginScreenOffline> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    const Text(
+                    Text(
                       '¡Bienvenido de vuelta!',
                       style: TextStyle(
                         fontSize: 28,
@@ -107,7 +109,12 @@ class _LoginScreenOfflineState extends State<LoginScreenOffline> {
                     const SizedBox(height: 8),
                     Text(
                       'Inicia sesión para continuar cuidando a tu perrito',
-                      style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.7),
+                      ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 16),
@@ -153,7 +160,7 @@ class _LoginScreenOfflineState extends State<LoginScreenOffline> {
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF1E88E5).withOpacity(0.08),
+                        color: const Color(0xFF1E88E5).withValues(alpha: 0.08),
                         blurRadius: 32,
                         offset: const Offset(0, 8),
                       ),
@@ -361,38 +368,6 @@ class _LoginScreenOfflineState extends State<LoginScreenOffline> {
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSocialButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onPressed,
-  }) {
-    return SizedBox(
-      height: 56,
-      child: OutlinedButton(
-        onPressed: onPressed,
-        style: OutlinedButton.styleFrom(
-          backgroundColor: Colors.white,
-          foregroundColor: const Color(0xFF616161),
-          side: const BorderSide(color: Color(0xFFE0E0E0), width: 1),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 20),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-            ),
-          ],
         ),
       ),
     );
