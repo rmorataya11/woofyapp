@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import '../../config/theme_utils.dart';
+import '../../providers/clinic_provider.dart';
+import '../../models/clinic_model.dart';
+import '../../services/clinic_service.dart';
+import '../../utils/api_exceptions.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
@@ -12,10 +15,8 @@ class MapScreen extends ConsumerStatefulWidget {
 }
 
 class _MapScreenState extends ConsumerState<MapScreen> {
-  final SupabaseClient _supabase = Supabase.instance.client;
   final TextEditingController _searchController = TextEditingController();
-  List<Map<String, dynamic>> _clinics = [];
-  List<Map<String, dynamic>> _filteredClinics = [];
+  List<Clinic> _filteredClinics = [];
   String _selectedFilter = 'all';
   String _selectedSort = 'distance';
 
@@ -30,7 +31,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   @override
   void initState() {
     super.initState();
-    _loadClinics();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _filterClinics();
+    });
   }
 
   @override
@@ -39,125 +42,29 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     super.dispose();
   }
 
-  Future<void> _loadClinics() async {
-    try {
-      final response = await _supabase
-          .from('clinics')
-          .select('*')
-          .eq('is_active', true)
-          .order('rating', ascending: false);
-
-      if (mounted) {
-        setState(() {
-          _clinics = response;
-          _filteredClinics = _clinics;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _clinics = _getMockClinics();
-          _filteredClinics = _clinics;
-        });
-      }
-    }
-  }
-
-  List<Map<String, dynamic>> _getMockClinics() {
-    return [
-      {
-        'id': '1',
-        'name': 'Clínica Veterinaria Central',
-        'address': 'Av. Principal 123, Centro',
-        'phone': '+1 234 567 8900',
-        'rating': 4.8,
-        'distance': 2.5,
-        'wait_time': 15,
-        'is_open': true,
-        'specialties': [
-          'Consulta General',
-          'Vacunación',
-          'Cirugía',
-          'Emergencias',
-        ],
-        'image_url': 'https://via.placeholder.com/300x200',
-      },
-      {
-        'id': '2',
-        'name': 'Hospital Veterinario San Rafael',
-        'address': 'Calle San Rafael 456, Norte',
-        'phone': '+1 234 567 8901',
-        'rating': 4.6,
-        'distance': 3.2,
-        'wait_time': 25,
-        'is_open': true,
-        'specialties': ['Cardiología', 'Neurología', 'Cirugía'],
-        'image_url': 'https://via.placeholder.com/300x200',
-      },
-      {
-        'id': '3',
-        'name': 'Centro Veterinario 24/7',
-        'address': 'Av. Emergencias 789, Sur',
-        'phone': '+1 234 567 8902',
-        'rating': 4.9,
-        'distance': 1.8,
-        'wait_time': 5,
-        'is_open': true,
-        'specialties': ['Emergencias', 'Cirugía', 'Cardiología'],
-        'image_url': 'https://via.placeholder.com/300x200',
-      },
-      {
-        'id': '4',
-        'name': 'Clínica PetCare',
-        'address': 'Calle PetCare 321, Este',
-        'phone': '+1 234 567 8903',
-        'rating': 4.4,
-        'distance': 4.1,
-        'wait_time': 30,
-        'is_open': false,
-        'specialties': ['Consulta General', 'Vacunación'],
-        'image_url': 'https://via.placeholder.com/300x200',
-      },
-      {
-        'id': '5',
-        'name': 'Veterinaria Especializada',
-        'address': 'Av. Especializada 654, Oeste',
-        'phone': '+1 234 567 8904',
-        'rating': 4.7,
-        'distance': 5.3,
-        'wait_time': 20,
-        'is_open': true,
-        'specialties': ['Cardiología', 'Neurología', 'Oncología'],
-        'image_url': 'https://via.placeholder.com/300x200',
-      },
-    ];
-  }
-
   void _filterClinics() {
+    final allClinics = ref.read(clinicProvider).clinics;
+
     setState(() {
-      List<Map<String, dynamic>> filtered = _clinics.where((clinic) {
+      List<Clinic> filtered = allClinics.where((clinic) {
         bool matchesFilter = true;
         if (_selectedFilter == 'open') {
-          matchesFilter = (clinic['is_open'] ?? false) == true;
+          matchesFilter = clinic.isOpen;
         } else if (_selectedFilter == 'emergency') {
-          final specialties = clinic['specialties'] as List<String>? ?? [];
-          matchesFilter = specialties.contains('Emergencias');
+          matchesFilter = clinic.specialties.contains('Emergencias');
         } else if (_selectedFilter == 'surgery') {
-          final specialties = clinic['specialties'] as List<String>? ?? [];
-          matchesFilter = specialties.contains('Cirugía');
+          matchesFilter = clinic.specialties.contains('Cirugía');
         } else if (_selectedFilter == 'cardiology') {
-          final specialties = clinic['specialties'] as List<String>? ?? [];
-          matchesFilter = specialties.contains('Cardiología');
+          matchesFilter = clinic.specialties.contains('Cardiología');
         }
 
         bool matchesSearch = true;
         if (_searchController.text.isNotEmpty) {
           final searchText = _searchController.text.toLowerCase();
-          final specialties = clinic['specialties'] as List<String>? ?? [];
           matchesSearch =
-              clinic['name'].toLowerCase().contains(searchText) ||
-              clinic['address'].toLowerCase().contains(searchText) ||
-              specialties.any(
+              clinic.name.toLowerCase().contains(searchText) ||
+              clinic.address.toLowerCase().contains(searchText) ||
+              clinic.specialties.any(
                 (specialty) => specialty.toLowerCase().contains(searchText),
               );
         }
@@ -168,17 +75,11 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       filtered.sort((a, b) {
         switch (_selectedSort) {
           case 'distance':
-            final distanceA = a['distance'] as double? ?? 0.0;
-            final distanceB = b['distance'] as double? ?? 0.0;
-            return distanceA.compareTo(distanceB);
+            return (a.distance ?? 0.0).compareTo(b.distance ?? 0.0);
           case 'rating':
-            final ratingA = a['rating'] as double? ?? 0.0;
-            final ratingB = b['rating'] as double? ?? 0.0;
-            return ratingB.compareTo(ratingA);
+            return (b.rating ?? 0.0).compareTo(a.rating ?? 0.0);
           case 'wait_time':
-            final waitA = a['wait_time'] as int? ?? 0;
-            final waitB = b['wait_time'] as int? ?? 0;
-            return waitA.compareTo(waitB);
+            return (a.waitTime ?? 0).compareTo(b.waitTime ?? 0);
           default:
             return 0;
         }
@@ -190,6 +91,14 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final clinicState = ref.watch(clinicProvider);
+
+    if (clinicState.clinics.isNotEmpty && _filteredClinics.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _filterClinics();
+      });
+    }
+
     return Scaffold(
       body: Container(
         decoration: ThemeUtils.getBackgroundDecoration(context, ref),
@@ -198,7 +107,11 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             children: [
               _buildHeader(),
               _buildSearchAndFilters(),
-              Expanded(child: _buildMapOnly()),
+              Expanded(
+                child: clinicState.isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _buildMapOnly(),
+              ),
             ],
           ),
         ),
@@ -225,6 +138,25 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).colorScheme.onSurface,
               ),
+            ),
+          ),
+          IconButton(
+            onPressed: () async {
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
+              await ref.read(clinicProvider.notifier).refresh();
+              _filterClinics();
+              if (mounted) {
+                scaffoldMessenger.showSnackBar(
+                  const SnackBar(
+                    content: Text('Lista actualizada'),
+                    duration: Duration(seconds: 1),
+                  ),
+                );
+              }
+            },
+            icon: Icon(
+              Icons.refresh,
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
           IconButton(
@@ -437,7 +369,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     );
   }
 
-  Widget _buildClinicCard(Map<String, dynamic> clinic) {
+  Widget _buildClinicCard(Clinic clinic) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -469,7 +401,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        clinic['name'],
+                        clinic.name,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -487,7 +419,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
-                              clinic['address'],
+                              clinic.address,
                               style: TextStyle(
                                 fontSize: 14,
                                 color: ThemeUtils.getTextSecondaryColor(
@@ -508,18 +440,16 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: (clinic['is_open'] ?? false)
+                    color: clinic.isOpen
                         ? Colors.green.withValues(alpha: 0.1)
                         : Colors.red.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    (clinic['is_open'] ?? false) ? 'Abierto' : 'Cerrado',
+                    clinic.isOpen ? 'Abierto' : 'Cerrado',
                     style: TextStyle(
                       fontSize: 12,
-                      color: (clinic['is_open'] ?? false)
-                          ? Colors.green
-                          : Colors.red,
+                      color: clinic.isOpen ? Colors.green : Colors.red,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -532,7 +462,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 const Icon(Icons.star, size: 16, color: Colors.amber),
                 const SizedBox(width: 4),
                 Text(
-                  '${clinic['rating']} ⭐',
+                  '${clinic.rating ?? 0.0} ⭐',
                   style: TextStyle(
                     fontSize: 14,
                     color: ThemeUtils.getTextSecondaryColor(context, ref),
@@ -546,7 +476,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  '${clinic['wait_time']} min',
+                  '${clinic.waitTime ?? 0} min',
                   style: TextStyle(
                     fontSize: 14,
                     color: ThemeUtils.getTextSecondaryColor(context, ref),
@@ -577,7 +507,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     );
   }
 
-  void _showContactModal(Map<String, dynamic> clinic) {
+  void _showContactModal(Clinic clinic) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -588,7 +518,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 }
 
 class _ContactModal extends StatefulWidget {
-  final Map<String, dynamic> clinic;
+  final Clinic clinic;
 
   const _ContactModal({required this.clinic});
 
@@ -601,6 +531,8 @@ class _ContactModalState extends State<_ContactModal> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _messageController = TextEditingController();
+  final ClinicService _clinicService = ClinicService();
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -655,7 +587,7 @@ class _ContactModalState extends State<_ContactModal> {
                         ),
                       ),
                       Text(
-                        widget.clinic['name'],
+                        widget.clinic.name,
                         style: TextStyle(
                           fontSize: 14,
                           color: Theme.of(
@@ -739,7 +671,7 @@ class _ContactModalState extends State<_ContactModal> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: ElevatedButton(
-                          onPressed: _sendMessage,
+                          onPressed: _isLoading ? null : _sendMessage,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Theme.of(
                               context,
@@ -749,7 +681,18 @@ class _ContactModalState extends State<_ContactModal> {
                             ).colorScheme.onPrimary,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
-                          child: const Text('Enviar'),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                  ),
+                                )
+                              : const Text('Enviar'),
                         ),
                       ),
                     ],
@@ -764,7 +707,7 @@ class _ContactModalState extends State<_ContactModal> {
     );
   }
 
-  void _sendMessage() {
+  Future<void> _sendMessage() async {
     if (_nameController.text.isEmpty ||
         _emailController.text.isEmpty ||
         _messageController.text.isEmpty) {
@@ -777,13 +720,69 @@ class _ContactModalState extends State<_ContactModal> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Mensaje enviado a ${widget.clinic['name']}'),
-        backgroundColor: Colors.green,
-      ),
-    );
+    setState(() {
+      _isLoading = true;
+    });
 
-    context.pop();
+    try {
+      await _clinicService.contactClinic(
+        clinicId: widget.clinic.id,
+        name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        phone: _phoneController.text.trim(),
+        message: _messageController.text.trim(),
+      );
+
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Mensaje enviado a ${widget.clinic.name}'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        context.pop();
+      }
+    } on ValidationException catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message), backgroundColor: Colors.red),
+        );
+      }
+    } on UnauthorizedException {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Debes iniciar sesión para contactar clínicas'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al enviar mensaje: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }

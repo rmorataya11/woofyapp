@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../config/theme_utils.dart';
+import '../../providers/appointment_provider.dart';
+import '../../models/appointment_model.dart';
 
 class AppointmentsScreen extends ConsumerStatefulWidget {
   const AppointmentsScreen({super.key});
@@ -13,9 +15,7 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
     with TickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
 
-  List<Map<String, dynamic>> _appointments = [];
-  List<Map<String, dynamic>> _filteredAppointments = [];
-  bool _isLoading = true;
+  List<Appointment> _filteredAppointments = [];
 
   String _selectedFilter = 'all';
   String _selectedSort = 'date';
@@ -89,146 +89,39 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
   }
 
   Future<void> _loadAppointments() async {
-    setState(() {
-      _appointments = _getMockAppointments();
-      _filteredAppointments = List.from(_appointments);
-      _isLoading = false;
-    });
+    await ref.read(appointmentProvider.notifier).loadAppointments();
+    _filterAppointments();
     _animationController.forward();
   }
 
-  List<Map<String, dynamic>> _getMockAppointments() {
-    final now = DateTime.now();
-    return [
-      {
-        'id': '1',
-        'title': 'Vacuna Triple - Max',
-        'appointment_date': now.add(const Duration(days: 2)).toIso8601String(),
-        'time': '10:00 AM',
-        'type': 'vaccine',
-        'status': 'scheduled',
-        'clinic_name': 'Clínica Veterinaria Central',
-        'clinic_address': 'Av. Principal 123, Ciudad',
-        'clinic_phone': '+1-555-0123',
-        'pet_name': 'Max',
-        'pet_breed': 'Golden Retriever',
-        'pet_age': 3,
-        'notes': 'Vacuna anual contra enfermedades comunes',
-        'urgent': false,
-        'estimated_duration': 30,
-        'cost': 150.00,
-        'doctor_name': 'Dr. María González',
-        'specialty': 'Medicina General',
-      },
-      {
-        'id': '2',
-        'title': 'Control de Peso - Luna',
-        'appointment_date': now.add(const Duration(days: 5)).toIso8601String(),
-        'time': '2:00 PM',
-        'type': 'checkup',
-        'status': 'confirmed',
-        'clinic_name': 'Hospital San Patricio',
-        'clinic_address': 'Calle Secundaria 456, Ciudad',
-        'clinic_phone': '+1-555-0456',
-        'pet_name': 'Luna',
-        'pet_breed': 'Labrador',
-        'pet_age': 2,
-        'notes': 'Control de peso y revisión general',
-        'urgent': true,
-        'estimated_duration': 45,
-        'cost': 200.00,
-        'doctor_name': 'Dr. Carlos Rodríguez',
-        'specialty': 'Nutrición',
-      },
-      {
-        'id': '3',
-        'title': 'Cirugía de Castración - Rocky',
-        'appointment_date': now.add(const Duration(days: 10)).toIso8601String(),
-        'time': '8:00 AM',
-        'type': 'surgery',
-        'status': 'scheduled',
-        'clinic_name': 'Centro Médico Animal',
-        'clinic_address': 'Boulevard Norte 789, Ciudad',
-        'clinic_phone': '+1-555-0789',
-        'pet_name': 'Rocky',
-        'pet_breed': 'Pastor Alemán',
-        'pet_age': 1,
-        'notes': 'Cirugía de castración programada',
-        'urgent': false,
-        'estimated_duration': 120,
-        'cost': 500.00,
-        'doctor_name': 'Dr. Ana Martínez',
-        'specialty': 'Cirugía',
-      },
-      {
-        'id': '4',
-        'title': 'Limpieza Dental - Bella',
-        'appointment_date': now.add(const Duration(days: 15)).toIso8601String(),
-        'time': '11:30 AM',
-        'type': 'dental',
-        'status': 'completed',
-        'clinic_name': 'Clínica del Perro Feliz',
-        'clinic_address': 'Calle de las Flores 654, Ciudad',
-        'clinic_phone': '+1-555-0654',
-        'pet_name': 'Bella',
-        'pet_breed': 'Poodle',
-        'pet_age': 4,
-        'notes': 'Limpieza dental profesional completada',
-        'urgent': false,
-        'estimated_duration': 60,
-        'cost': 180.00,
-        'doctor_name': 'Dr. Luis Fernández',
-        'specialty': 'Odontología',
-      },
-      {
-        'id': '5',
-        'title': 'Consulta de Emergencia - Rex',
-        'appointment_date': now
-            .subtract(const Duration(days: 1))
-            .toIso8601String(),
-        'time': '6:00 PM',
-        'type': 'emergency',
-        'status': 'cancelled',
-        'clinic_name': 'Veterinaria 24/7',
-        'clinic_address': 'Plaza Comercial 321, Ciudad',
-        'clinic_phone': '+1-555-0321',
-        'pet_name': 'Rex',
-        'pet_breed': 'Rottweiler',
-        'pet_age': 5,
-        'notes': 'Consulta de emergencia cancelada por el cliente',
-        'urgent': true,
-        'estimated_duration': 90,
-        'cost': 300.00,
-        'doctor_name': 'Dr. Patricia López',
-        'specialty': 'Emergencias',
-      },
-    ];
-  }
-
   void _filterAppointments() {
+    final allAppointments = ref.read(appointmentProvider).appointments;
+
     setState(() {
-      _filteredAppointments = _appointments.where((appointment) {
+      _filteredAppointments = allAppointments.where((appointment) {
         bool matchesFilter = true;
         if (_selectedFilter == 'scheduled') {
-          matchesFilter = appointment['status'] == 'scheduled';
+          matchesFilter = appointment.status == 'scheduled';
         } else if (_selectedFilter == 'confirmed') {
-          matchesFilter = appointment['status'] == 'confirmed';
+          matchesFilter = appointment.status == 'confirmed';
         } else if (_selectedFilter == 'completed') {
-          matchesFilter = appointment['status'] == 'completed';
+          matchesFilter = appointment.status == 'completed';
         } else if (_selectedFilter == 'cancelled') {
-          matchesFilter = appointment['status'] == 'cancelled';
+          matchesFilter = appointment.status == 'cancelled';
         } else if (_selectedFilter == 'urgent') {
-          matchesFilter = appointment['urgent'] == true;
+          matchesFilter = appointment.isUrgent;
         }
 
         bool matchesSearch = true;
         if (_searchController.text.isNotEmpty) {
           final searchText = _searchController.text.toLowerCase();
+          final title = '${appointment.serviceType} - ${appointment.petName}';
           matchesSearch =
-              appointment['title'].toLowerCase().contains(searchText) ||
-              appointment['pet_name'].toLowerCase().contains(searchText) ||
-              appointment['clinic_name'].toLowerCase().contains(searchText) ||
-              appointment['doctor_name'].toLowerCase().contains(searchText);
+              title.toLowerCase().contains(searchText) ||
+              (appointment.petName?.toLowerCase().contains(searchText) ??
+                  false) ||
+              (appointment.clinicName?.toLowerCase().contains(searchText) ??
+                  false);
         }
 
         return matchesFilter && matchesSearch;
@@ -237,13 +130,11 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
       _filteredAppointments.sort((a, b) {
         switch (_selectedSort) {
           case 'date':
-            return DateTime.parse(
-              a['appointment_date'],
-            ).compareTo(DateTime.parse(b['appointment_date']));
+            return a.startsAt.compareTo(b.startsAt);
           case 'status':
-            return a['status'].compareTo(b['status']);
+            return a.status.compareTo(b.status);
           case 'urgent':
-            return b['urgent'].toString().compareTo(a['urgent'].toString());
+            return (b.isUrgent ? 1 : 0).compareTo(a.isUrgent ? 1 : 0);
           default:
             return 0;
         }
@@ -253,6 +144,8 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final appointmentState = ref.watch(appointmentProvider);
+
     return Scaffold(
       body: Container(
         decoration: ThemeUtils.getBackgroundDecoration(context, ref),
@@ -263,7 +156,7 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
               _buildStatsCards(),
               _buildSearchAndFilters(),
               Expanded(
-                child: _isLoading
+                child: appointmentState.isLoading
                     ? Center(
                         child: CircularProgressIndicator(
                           valueColor: AlwaysStoppedAnimation<Color>(
@@ -590,12 +483,9 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
     );
   }
 
-  Widget _buildAppointmentCard(Map<String, dynamic> appointment) {
-    final appointmentDate = DateTime.parse(appointment['appointment_date']);
-    final isToday =
-        appointmentDate.day == DateTime.now().day &&
-        appointmentDate.month == DateTime.now().month &&
-        appointmentDate.year == DateTime.now().year;
+  Widget _buildAppointmentCard(Appointment appointment) {
+    final appointmentDate = appointment.startsAt;
+    final isToday = appointment.isToday;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -620,12 +510,12 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
             width: 10,
             height: 10,
             decoration: BoxDecoration(
-              color: _getAppointmentColor(appointment['status']),
+              color: _getAppointmentColor(appointment.status),
               borderRadius: BorderRadius.circular(5),
             ),
           ),
           title: Text(
-            appointment['title'],
+            '${appointment.serviceType} - ${appointment.petName ?? "Mascota"}',
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.bold,
@@ -646,7 +536,7 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      '${_formatDate(appointmentDate)} - ${appointment['time']}',
+                      '${_formatDate(appointmentDate)} - ${appointment.appointmentTime}',
                       style: TextStyle(
                         fontSize: 12,
                         color: isToday
@@ -668,7 +558,7 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
                     const SizedBox(width: 4),
                     Flexible(
                       child: Text(
-                        appointment['pet_name'],
+                        appointment.petName ?? 'Mascota',
                         style: TextStyle(
                           fontSize: 12,
                           color: ThemeUtils.getTextSecondaryColor(context, ref),
@@ -685,7 +575,7 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (appointment['urgent'])
+              if (appointment.isUrgent)
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 6,
@@ -704,15 +594,15 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
                     ),
                   ),
                 ),
-              if (appointment['urgent']) const SizedBox(width: 6),
+              if (appointment.isUrgent) const SizedBox(width: 6),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                 decoration: BoxDecoration(
-                  color: _getAppointmentColor(appointment['status']),
+                  color: _getAppointmentColor(appointment.status),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  _getStatusText(appointment['status']),
+                  _getStatusText(appointment.status),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 9,
@@ -740,7 +630,7 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        appointment['clinic_name'],
+                        appointment.clinicName ?? 'Clínica',
                         style: TextStyle(
                           fontSize: 13,
                           color: ThemeUtils.getTextSecondaryColor(context, ref),
@@ -749,44 +639,8 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.person,
-                      size: 14,
-                      color: ThemeUtils.getTextSecondaryColor(context, ref),
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        '${appointment['doctor_name']} - ${appointment['specialty']}',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: ThemeUtils.getTextSecondaryColor(context, ref),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    _buildInfoChip(
-                      Icons.timer,
-                      '${appointment['estimated_duration']} min',
-                      const Color(0xFF2196F3),
-                    ),
-                    const SizedBox(width: 10),
-                    _buildInfoChip(
-                      Icons.attach_money,
-                      '\$${appointment['cost'].toStringAsFixed(0)}',
-                      const Color(0xFF4CAF50),
-                    ),
-                  ],
-                ),
-                if (appointment['notes'] != null &&
-                    appointment['notes'].isNotEmpty) ...[
+                if (appointment.notes != null &&
+                    appointment.notes!.isNotEmpty) ...[
                   const SizedBox(height: 10),
                   Container(
                     padding: const EdgeInsets.all(10),
@@ -808,7 +662,7 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
-                            appointment['notes'],
+                            appointment.notes!,
                             style: TextStyle(
                               fontSize: 12,
                               color: ThemeUtils.getTextSecondaryColor(
@@ -832,34 +686,9 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
     );
   }
 
-  Widget _buildInfoChip(IconData icon, String text, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: color),
-          const SizedBox(width: 3),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 11,
-              color: color,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionButtons(Map<String, dynamic> appointment) {
-    final status = appointment['status'];
-    final appointmentDate = DateTime.parse(appointment['appointment_date']);
+  Widget _buildActionButtons(Appointment appointment) {
+    final status = appointment.status;
+    final appointmentDate = appointment.startsAt;
 
     return Column(
       children: [
@@ -1000,14 +829,14 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
   }
 
   Map<String, int> _calculateStats() {
-    int total = _appointments.length;
-    int upcoming = _appointments
-        .where(
-          (apt) => apt['status'] == 'scheduled' || apt['status'] == 'confirmed',
-        )
+    final allAppointments = ref.read(appointmentProvider).appointments;
+
+    int total = allAppointments.length;
+    int upcoming = allAppointments
+        .where((apt) => apt.status == 'scheduled' || apt.status == 'confirmed')
         .length;
-    int completed = _appointments
-        .where((apt) => apt['status'] == 'completed')
+    int completed = allAppointments
+        .where((apt) => apt.status == 'completed')
         .length;
 
     return {'total': total, 'upcoming': upcoming, 'completed': completed};
@@ -1059,37 +888,45 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
     }
   }
 
-  void _confirmAppointment(Map<String, dynamic> appointment) {
-    setState(() {
-      final index = _appointments.indexWhere(
-        (apt) => apt['id'] == appointment['id'],
-      );
-      if (index != -1) {
-        _appointments[index]['status'] = 'confirmed';
+  Future<void> _confirmAppointment(Appointment appointment) async {
+    final success = await ref
+        .read(appointmentProvider.notifier)
+        .updateAppointmentStatus(id: appointment.id, status: 'confirmed');
+
+    if (mounted) {
+      _filterAppointments();
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Cita confirmada: ${appointment.serviceType} - ${appointment.petName}',
+            ),
+            backgroundColor: const Color(0xFF4CAF50),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error al confirmar cita'),
+            backgroundColor: Color(0xFFF44336),
+          ),
+        );
       }
-    });
-    _filterAppointments();
+    }
+  }
+
+  void _rescheduleAppointment(Appointment appointment) {
+    // TODO: Implementar pantalla de reagendamiento en futuras mejoras
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Cita confirmada: ${appointment['title']}'),
-        backgroundColor: const Color(0xFF4CAF50),
+      const SnackBar(
+        content: Text('Reagendar cita - Próximamente'),
+        backgroundColor: Color(0xFF1E88E5),
       ),
     );
   }
 
-  void _rescheduleAppointment(Map<String, dynamic> appointment) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _AppointmentFormModal(
-        appointment: appointment,
-        onSave: _saveAppointment,
-      ),
-    );
-  }
-
-  void _cancelAppointment(Map<String, dynamic> appointment) {
+  Future<void> _cancelAppointment(Appointment appointment) async {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1101,23 +938,39 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
             child: const Text('No'),
           ),
           TextButton(
-            onPressed: () {
-              setState(() {
-                final index = _appointments.indexWhere(
-                  (apt) => apt['id'] == appointment['id'],
-                );
-                if (index != -1) {
-                  _appointments[index]['status'] = 'cancelled';
+            onPressed: () async {
+              final navigator = Navigator.of(context);
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+              final success = await ref
+                  .read(appointmentProvider.notifier)
+                  .updateAppointmentStatus(
+                    id: appointment.id,
+                    status: 'cancelled',
+                  );
+
+              if (mounted) {
+                navigator.pop();
+                _filterAppointments();
+
+                if (success) {
+                  scaffoldMessenger.showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Cita cancelada: ${appointment.serviceType} - ${appointment.petName}',
+                      ),
+                      backgroundColor: const Color(0xFFF44336),
+                    ),
+                  );
+                } else {
+                  scaffoldMessenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('Error al cancelar cita'),
+                      backgroundColor: Color(0xFFF44336),
+                    ),
+                  );
                 }
-              });
-              _filterAppointments();
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Cita cancelada: ${appointment['title']}'),
-                  backgroundColor: const Color(0xFFF44336),
-                ),
-              );
+              }
             },
             child: const Text(
               'Sí, cancelar',
@@ -1129,7 +982,7 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
     );
   }
 
-  void _showMoreActions(Map<String, dynamic> appointment) {
+  void _showMoreActions(Appointment appointment) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -1154,7 +1007,7 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
             ),
             const SizedBox(height: 20),
             Text(
-              'Acciones para: ${appointment['title']}',
+              'Acciones para: ${appointment.serviceType} - ${appointment.petName}',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -1168,7 +1021,13 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
                   child: OutlinedButton.icon(
                     onPressed: () {
                       Navigator.of(context).pop();
-                      _editAppointment(appointment);
+                      // TODO: Editar cita - Implementar en futuras mejoras
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Editar cita - Próximamente'),
+                          backgroundColor: Color(0xFF1E88E5),
+                        ),
+                      );
                     },
                     icon: const Icon(Icons.edit),
                     label: const Text('Editar'),
@@ -1182,7 +1041,7 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
                   child: OutlinedButton.icon(
                     onPressed: () {
                       Navigator.of(context).pop();
-                      _deleteAppointment(appointment['id']);
+                      _deleteAppointment(appointment.id);
                     },
                     icon: const Icon(Icons.delete),
                     label: const Text('Eliminar'),
@@ -1203,27 +1062,16 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
   }
 
   void _addNewAppointment() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _AppointmentFormModal(onSave: _saveAppointment),
-    );
-  }
-
-  void _editAppointment(Map<String, dynamic> appointment) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _AppointmentFormModal(
-        appointment: appointment,
-        onSave: _saveAppointment,
+    // TODO: Implementar formulario de nueva cita
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Nueva cita - Próximamente'),
+        backgroundColor: Color(0xFF1E88E5),
       ),
     );
   }
 
-  void _deleteAppointment(String appointmentId) {
+  Future<void> _deleteAppointment(String appointmentId) async {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1235,55 +1083,38 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
             child: const Text('Cancelar'),
           ),
           TextButton(
-            onPressed: () {
-              setState(() {
-                _appointments.removeWhere(
-                  (appointment) => appointment['id'] == appointmentId,
-                );
-                _filteredAppointments.removeWhere(
-                  (appointment) => appointment['id'] == appointmentId,
-                );
-              });
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Cita eliminada'),
-                  backgroundColor: Colors.red,
-                ),
-              );
+            onPressed: () async {
+              final navigator = Navigator.of(context);
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+              final success = await ref
+                  .read(appointmentProvider.notifier)
+                  .deleteAppointment(appointmentId);
+
+              if (mounted) {
+                navigator.pop();
+                _filterAppointments();
+
+                if (success) {
+                  scaffoldMessenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('Cita eliminada'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                } else {
+                  scaffoldMessenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('Error al eliminar cita'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
             },
             child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
           ),
         ],
-      ),
-    );
-  }
-
-  void _saveAppointment(Map<String, dynamic> appointmentData) {
-    setState(() {
-      if (appointmentData['id'] == null) {
-        // Nueva cita
-        appointmentData['id'] = DateTime.now().millisecondsSinceEpoch
-            .toString();
-        _appointments.add(appointmentData);
-      } else {
-        // Editar cita existente
-        final index = _appointments.indexWhere(
-          (appointment) => appointment['id'] == appointmentData['id'],
-        );
-        if (index != -1) {
-          _appointments[index] = appointmentData;
-        }
-      }
-      _filterAppointments();
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          appointmentData['id'] == null ? 'Cita agregada' : 'Cita actualizada',
-        ),
-        backgroundColor: Colors.green,
       ),
     );
   }
@@ -1298,502 +1129,6 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
   }
 }
 
-class _AppointmentFormModal extends StatefulWidget {
-  final Map<String, dynamic>? appointment;
-  final Function(Map<String, dynamic>) onSave;
-
-  const _AppointmentFormModal({this.appointment, required this.onSave});
-
-  @override
-  State<_AppointmentFormModal> createState() => _AppointmentFormModalState();
-}
-
-class _AppointmentFormModalState extends State<_AppointmentFormModal> {
-  final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
-  final _clinicController = TextEditingController();
-  final _doctorController = TextEditingController();
-  final _specialtyController = TextEditingController();
-  final _notesController = TextEditingController();
-
-  DateTime _selectedDate = DateTime.now();
-  TimeOfDay _selectedTime = TimeOfDay.now();
-  String _type = 'vaccine';
-  String _status = 'scheduled';
-  String _petName = 'Max';
-  String _petBreed = 'Golden Retriever';
-  int _petAge = 3;
-  int _estimatedDuration = 30;
-  double _cost = 50.0;
-  bool _urgent = false;
-
-  final List<Map<String, dynamic>> _mockPets = [
-    {'name': 'Max', 'breed': 'Golden Retriever', 'age': 3},
-    {'name': 'Luna', 'breed': 'Labrador', 'age': 2},
-    {'name': 'Bella', 'breed': 'Pastor Alemán', 'age': 4},
-    {'name': 'Rocky', 'breed': 'Bulldog', 'age': 5},
-    {'name': 'Mia', 'breed': 'Chihuahua', 'age': 1},
-    {'name': 'Charlie', 'breed': 'Beagle', 'age': 6},
-    {'name': 'Daisy', 'breed': 'Poodle', 'age': 2},
-    {'name': 'Buddy', 'breed': 'Husky', 'age': 3},
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.appointment != null) {
-      _titleController.text = widget.appointment!['title'] ?? '';
-      _clinicController.text = widget.appointment!['clinic_name'] ?? '';
-      _doctorController.text = widget.appointment!['doctor_name'] ?? '';
-      _specialtyController.text = widget.appointment!['specialty'] ?? '';
-      _notesController.text = widget.appointment!['notes'] ?? '';
-      _type = widget.appointment!['type'] ?? 'vaccine';
-      _status = widget.appointment!['status'] ?? 'scheduled';
-      final appointmentPetName = widget.appointment!['pet_name'] ?? 'Max';
-      if (_mockPets.any((pet) => pet['name'] == appointmentPetName)) {
-        _petName = appointmentPetName;
-        final selectedPet = _mockPets.firstWhere(
-          (pet) => pet['name'] == appointmentPetName,
-        );
-        _petBreed = selectedPet['breed'];
-        _petAge = selectedPet['age'];
-      } else {
-        _petName = 'Max';
-        _petBreed = 'Golden Retriever';
-        _petAge = 3;
-      }
-      _estimatedDuration = widget.appointment!['estimated_duration'] ?? 30;
-      _cost = widget.appointment!['cost']?.toDouble() ?? 50.0;
-      _urgent = widget.appointment!['urgent'] ?? false;
-      try {
-        _selectedDate = DateTime.parse(widget.appointment!['appointment_date']);
-        _selectedTime = TimeOfDay.fromDateTime(_selectedDate);
-      } catch (e) {
-        _selectedDate = DateTime.now();
-        _selectedTime = TimeOfDay.now();
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _clinicController.dispose();
-    _doctorController.dispose();
-    _specialtyController.dispose();
-    _notesController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.8,
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Column(
-        children: [
-          Container(
-            margin: const EdgeInsets.only(top: 12),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurface.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.calendar_today,
-                  color: Theme.of(context).colorScheme.primary,
-                  size: 28,
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  widget.appointment == null ? 'Nueva Cita' : 'Editar Cita',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-                const Spacer(),
-                IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    TextFormField(
-                      controller: _titleController,
-                      decoration: const InputDecoration(
-                        labelText: 'Título de la cita',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.title),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Por favor ingresa un título';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _clinicController,
-                      decoration: const InputDecoration(
-                        labelText: 'Clínica',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.local_hospital),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Por favor ingresa el nombre de la clínica';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            controller: _doctorController,
-                            decoration: const InputDecoration(
-                              labelText: 'Doctor',
-                              border: OutlineInputBorder(),
-                              prefixIcon: Icon(Icons.person),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Requerido';
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: TextFormField(
-                            controller: _specialtyController,
-                            decoration: const InputDecoration(
-                              labelText: 'Especialidad',
-                              border: OutlineInputBorder(),
-                              prefixIcon: Icon(Icons.medical_services),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Requerido';
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      initialValue: _petName,
-                      decoration: const InputDecoration(
-                        labelText: 'Mascota',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.pets),
-                      ),
-                      items: _mockPets.map<DropdownMenuItem<String>>((pet) {
-                        return DropdownMenuItem<String>(
-                          value: pet['name'] as String,
-                          child: Text(
-                            '${pet['name']} (${pet['breed']}, ${pet['age']} años)',
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _petName = value!;
-                          final selectedPet = _mockPets.firstWhere(
-                            (pet) => pet['name'] == value,
-                          );
-                          _petBreed = selectedPet['breed'];
-                          _petAge = selectedPet['age'];
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: InkWell(
-                            onTap: _selectDate,
-                            child: InputDecorator(
-                              decoration: const InputDecoration(
-                                labelText: 'Fecha',
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(Icons.calendar_today),
-                              ),
-                              child: Text(
-                                '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: InkWell(
-                            onTap: _selectTime,
-                            child: InputDecorator(
-                              decoration: const InputDecoration(
-                                labelText: 'Hora',
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(Icons.access_time),
-                              ),
-                              child: Text(_selectedTime.format(context)),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: DropdownButtonFormField<String>(
-                            initialValue: _type,
-                            decoration: const InputDecoration(
-                              labelText: 'Tipo de cita',
-                              border: OutlineInputBorder(),
-                              prefixIcon: Icon(Icons.medical_services),
-                            ),
-                            items: const [
-                              DropdownMenuItem(
-                                value: 'vaccine',
-                                child: Text('Vacuna'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'checkup',
-                                child: Text('Revisión'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'surgery',
-                                child: Text('Cirugía'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'emergency',
-                                child: Text('Emergencia'),
-                              ),
-                            ],
-                            onChanged: (value) {
-                              setState(() {
-                                _type = value!;
-                              });
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: DropdownButtonFormField<String>(
-                            initialValue: _status,
-                            decoration: const InputDecoration(
-                              labelText: 'Estado',
-                              border: OutlineInputBorder(),
-                              prefixIcon: Icon(Icons.info),
-                            ),
-                            items: const [
-                              DropdownMenuItem(
-                                value: 'scheduled',
-                                child: Text('Programada'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'confirmed',
-                                child: Text('Confirmada'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'completed',
-                                child: Text('Completada'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'cancelled',
-                                child: Text('Cancelada'),
-                              ),
-                            ],
-                            onChanged: (value) {
-                              setState(() {
-                                _status = value!;
-                              });
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    SwitchListTile(
-                      title: const Text('Urgente'),
-                      subtitle: const Text('Marcar como cita urgente'),
-                      value: _urgent,
-                      onChanged: (value) {
-                        setState(() {
-                          _urgent = value;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            initialValue: _estimatedDuration.toString(),
-                            decoration: const InputDecoration(
-                              labelText: 'Duración (min)',
-                              border: OutlineInputBorder(),
-                              prefixIcon: Icon(Icons.timer),
-                            ),
-                            keyboardType: TextInputType.number,
-                            onChanged: (value) {
-                              _estimatedDuration = int.tryParse(value) ?? 30;
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: TextFormField(
-                            initialValue: _cost.toString(),
-                            decoration: const InputDecoration(
-                              labelText: 'Costo (\$)',
-                              border: OutlineInputBorder(),
-                              prefixIcon: Icon(Icons.attach_money),
-                            ),
-                            keyboardType: TextInputType.number,
-                            onChanged: (value) {
-                              _cost = double.tryParse(value) ?? 50.0;
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _notesController,
-                      decoration: const InputDecoration(
-                        labelText: 'Notas (opcional)',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.note),
-                      ),
-                      maxLines: 3,
-                    ),
-                    const SizedBox(height: 24),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                            ),
-                            child: const Text('Cancelar'),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: _saveAppointment,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Theme.of(
-                                context,
-                              ).colorScheme.primary,
-                              foregroundColor: Theme.of(
-                                context,
-                              ).colorScheme.onPrimary,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                            ),
-                            child: Text(
-                              widget.appointment == null
-                                  ? 'Agregar'
-                                  : 'Actualizar',
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _selectDate() async {
-    final date = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-    );
-    if (date != null) {
-      setState(() {
-        _selectedDate = date;
-      });
-    }
-  }
-
-  Future<void> _selectTime() async {
-    final time = await showTimePicker(
-      context: context,
-      initialTime: _selectedTime,
-    );
-    if (time != null) {
-      setState(() {
-        _selectedTime = time;
-      });
-    }
-  }
-
-  void _saveAppointment() {
-    if (_formKey.currentState!.validate()) {
-      final appointmentData = {
-        'id': widget.appointment?['id'],
-        'title': _titleController.text,
-        'clinic_name': _clinicController.text,
-        'doctor_name': _doctorController.text,
-        'specialty': _specialtyController.text,
-        'pet_name': _petName,
-        'pet_breed': _petBreed,
-        'pet_age': _petAge,
-        'notes': _notesController.text,
-        'type': _type,
-        'status': _status,
-        'urgent': _urgent,
-        'estimated_duration': _estimatedDuration,
-        'cost': _cost,
-        'appointment_date': DateTime(
-          _selectedDate.year,
-          _selectedDate.month,
-          _selectedDate.day,
-          _selectedTime.hour,
-          _selectedTime.minute,
-        ).toIso8601String(),
-        'time': _selectedTime.format(context),
-      };
-
-      widget.onSave(appointmentData);
-      Navigator.of(context).pop();
-    }
-  }
-}
+// TODO: Implementar formulario de nueva cita/edición con el backend
+// Usará createAppointment/updateAppointment del appointmentProvider
+// Seleccionará mascota y clínica de los providers correspondientes

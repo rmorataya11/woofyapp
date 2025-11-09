@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../config/theme_utils.dart';
+import '../../providers/appointment_provider.dart';
+import '../../models/appointment_model.dart';
 
 class CalendarScreen extends ConsumerStatefulWidget {
   const CalendarScreen({super.key});
@@ -12,8 +14,6 @@ class CalendarScreen extends ConsumerStatefulWidget {
 class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   DateTime _selectedDate = DateTime.now();
   DateTime _currentMonth = DateTime.now();
-  List<Map<String, dynamic>> _events = [];
-  List<Map<String, dynamic>> _reminders = [];
 
   @override
   void initState() {
@@ -22,123 +22,21 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   }
 
   Future<void> _loadEvents() async {
-    setState(() {
-      _events = _getMockEvents();
-      _reminders = _getMockReminders();
-    });
+    await ref.read(appointmentProvider.notifier).loadAppointments();
   }
 
-  List<Map<String, dynamic>> _getMockEvents() {
-    final now = DateTime.now();
-    return [
-      {
-        'id': '1',
-        'title': 'Vacuna Triple - Max',
-        'appointment_date': now.add(const Duration(days: 2)).toIso8601String(),
-        'time': '10:00 AM',
-        'type': 'vaccine',
-        'status': 'scheduled',
-        'clinic_name': 'Clínica Veterinaria Central',
-        'pet_name': 'Max',
-        'notes': 'Vacuna anual contra enfermedades comunes',
-        'urgent': false,
-      },
-      {
-        'id': '2',
-        'title': 'Control de Peso - Luna',
-        'appointment_date': now.add(const Duration(days: 5)).toIso8601String(),
-        'time': '2:00 PM',
-        'type': 'checkup',
-        'status': 'scheduled',
-        'clinic_name': 'Hospital San Patricio',
-        'pet_name': 'Luna',
-        'notes': 'Control de peso y revisión general',
-        'urgent': true,
-      },
-      {
-        'id': '3',
-        'title': 'Cirugía de Castración - Rocky',
-        'appointment_date': now.add(const Duration(days: 10)).toIso8601String(),
-        'time': '8:00 AM',
-        'type': 'surgery',
-        'status': 'scheduled',
-        'clinic_name': 'Centro Médico Animal',
-        'pet_name': 'Rocky',
-        'notes': 'Cirugía de castración programada',
-        'urgent': false,
-      },
-      {
-        'id': '4',
-        'title': 'Limpieza Dental - Bella',
-        'appointment_date': now.add(const Duration(days: 15)).toIso8601String(),
-        'time': '11:30 AM',
-        'type': 'dental',
-        'status': 'scheduled',
-        'clinic_name': 'Clínica del Perro Feliz',
-        'pet_name': 'Bella',
-        'notes': 'Limpieza dental profesional',
-        'urgent': false,
-      },
-    ];
-  }
-
-  List<Map<String, dynamic>> _getMockReminders() {
-    return [
-      {
-        'id': '1',
-        'title': 'Recordatorio: Medicamento',
-        'reminder_date': DateTime.now()
-            .add(const Duration(hours: 2))
-            .toIso8601String(),
-        'type': 'medication',
-        'pet_name': 'Max',
-        'description': 'Dar medicamento para el corazón',
-        'is_recurring': true,
-        'frequency': 'daily',
-      },
-      {
-        'id': '2',
-        'title': 'Recordatorio: Ejercicio',
-        'reminder_date': DateTime.now()
-            .add(const Duration(hours: 4))
-            .toIso8601String(),
-        'type': 'exercise',
-        'pet_name': 'Luna',
-        'description': 'Caminata de 30 minutos',
-        'is_recurring': true,
-        'frequency': 'daily',
-      },
-      {
-        'id': '3',
-        'title': 'Recordatorio: Baño',
-        'reminder_date': DateTime.now()
-            .add(const Duration(days: 1))
-            .toIso8601String(),
-        'type': 'grooming',
-        'pet_name': 'Rocky',
-        'description': 'Baño y cepillado',
-        'is_recurring': true,
-        'frequency': 'weekly',
-      },
-    ];
-  }
-
-  List<Map<String, dynamic>> _getEventsForDate(DateTime date) {
-    return _events.where((event) {
-      final eventDate = DateTime.parse(event['appointment_date']);
-      return eventDate.year == date.year &&
-          eventDate.month == date.month &&
-          eventDate.day == date.day;
+  List<Appointment> _getEventsForDate(DateTime date) {
+    final appointments = ref.read(appointmentProvider).appointments;
+    return appointments.where((appointment) {
+      return appointment.startsAt.year == date.year &&
+          appointment.startsAt.month == date.month &&
+          appointment.startsAt.day == date.day;
     }).toList();
   }
 
+  // TODO: En FASE 6 se implementará reminders desde el backend
   List<Map<String, dynamic>> _getRemindersForDate(DateTime date) {
-    return _reminders.where((reminder) {
-      final reminderDate = DateTime.parse(reminder['reminder_date']);
-      return reminderDate.year == date.year &&
-          reminderDate.month == date.month &&
-          reminderDate.day == date.day;
-    }).toList();
+    return []; // Por ahora vacío, se implementará en FASE 6
   }
 
   @override
@@ -417,7 +315,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.05),
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(20),
               ),
@@ -478,7 +378,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             Icon(
               Icons.event_available,
               size: 80,
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
@@ -504,7 +406,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     );
   }
 
-  Widget _buildEventCard(Map<String, dynamic> event) {
+  Widget _buildEventCard(Appointment event) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -512,7 +414,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         color: ThemeUtils.getCardColor(context, ref),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: _getEventColor(event['type']).withValues(alpha: 0.3),
+          color: _getEventColor(event.serviceType).withValues(alpha: 0.3),
           width: 2,
         ),
         boxShadow: [
@@ -532,14 +434,14 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 width: 12,
                 height: 12,
                 decoration: BoxDecoration(
-                  color: _getEventColor(event['type']),
+                  color: _getEventColor(event.serviceType),
                   borderRadius: BorderRadius.circular(6),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  event['title'],
+                  '${event.serviceType} - ${event.petName ?? "Mascota"}',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -547,7 +449,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   ),
                 ),
               ),
-              if (event['urgent'])
+              if (event.isUrgent)
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
@@ -574,7 +476,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               Icon(Icons.access_time, size: 16, color: const Color(0xFF616161)),
               const SizedBox(width: 8),
               Text(
-                event['time'],
+                event.appointmentTime,
                 style: const TextStyle(fontSize: 14, color: Color(0xFF616161)),
               ),
               const SizedBox(width: 16),
@@ -582,7 +484,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  event['clinic_name'],
+                  event.clinicName ?? 'Clínica',
                   style: TextStyle(
                     fontSize: 14,
                     color: ThemeUtils.getTextSecondaryColor(context, ref),
@@ -591,10 +493,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               ),
             ],
           ),
-          if (event['notes'] != null && event['notes'].isNotEmpty) ...[
+          if (event.notes != null && event.notes!.isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(
-              event['notes'],
+              event.notes!,
               style: const TextStyle(
                 fontSize: 14,
                 color: Color(0xFF616161),
@@ -607,7 +509,14 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () => _editAppointment(event),
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Editar cita - Próximamente'),
+                        backgroundColor: Color(0xFF1E88E5),
+                      ),
+                    );
+                  },
                   icon: const Icon(Icons.edit, size: 16),
                   label: const Text('Editar'),
                   style: OutlinedButton.styleFrom(
@@ -618,7 +527,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () => _deleteAppointment(event['id']),
+                  onPressed: () => _deleteAppointment(event.id),
                   icon: const Icon(Icons.delete, size: 16),
                   label: const Text('Eliminar'),
                   style: OutlinedButton.styleFrom(
@@ -762,25 +671,16 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   }
 
   void _addNewEvent() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _EventFormModal(onSave: _saveEvent),
+    // TODO: Implementar formulario de nueva cita desde calendario
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Nueva cita - Próximamente'),
+        backgroundColor: Color(0xFF1E88E5),
+      ),
     );
   }
 
-  void _editAppointment(Map<String, dynamic> appointment) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) =>
-          _EventFormModal(event: appointment, onSave: _saveEvent),
-    );
-  }
-
-  void _deleteAppointment(String appointmentId) {
+  Future<void> _deleteAppointment(String appointmentId) async {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -792,17 +692,33 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             child: const Text('Cancelar'),
           ),
           TextButton(
-            onPressed: () {
-              setState(() {
-                _events.removeWhere((event) => event['id'] == appointmentId);
-              });
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Cita eliminada'),
-                  backgroundColor: Colors.red,
-                ),
-              );
+            onPressed: () async {
+              final navigator = Navigator.of(context);
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+              final success = await ref
+                  .read(appointmentProvider.notifier)
+                  .deleteAppointment(appointmentId);
+
+              if (mounted) {
+                navigator.pop();
+
+                if (success) {
+                  scaffoldMessenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('Cita eliminada correctamente'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                } else {
+                  scaffoldMessenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('Error al eliminar cita'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
             },
             child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
           ),
@@ -810,395 +726,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       ),
     );
   }
-
-  void _saveEvent(Map<String, dynamic> eventData) {
-    setState(() {
-      if (eventData['id'] == null) {
-        eventData['id'] = DateTime.now().millisecondsSinceEpoch.toString();
-        _events.add(eventData);
-      } else {
-        // Editar evento existente
-        final index = _events.indexWhere(
-          (event) => event['id'] == eventData['id'],
-        );
-        if (index != -1) {
-          _events[index] = eventData;
-        }
-      }
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          eventData['id'] == null ? 'Evento agregado' : 'Evento actualizado',
-        ),
-        backgroundColor: Colors.green,
-      ),
-    );
-  }
 }
 
-class _EventFormModal extends StatefulWidget {
-  final Map<String, dynamic>? event;
-  final Function(Map<String, dynamic>) onSave;
-
-  const _EventFormModal({this.event, required this.onSave});
-
-  @override
-  State<_EventFormModal> createState() => _EventFormModalState();
-}
-
-class _EventFormModalState extends State<_EventFormModal> {
-  final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  final _locationController = TextEditingController();
-  final _notesController = TextEditingController();
-
-  DateTime _selectedDate = DateTime.now();
-  TimeOfDay _selectedTime = TimeOfDay.now();
-  String _eventType = 'appointment';
-  String _petName = 'Max';
-  bool _urgent = false;
-  bool _isAllDay = false;
-
-  final List<String> _mockPets = [
-    'Max',
-    'Luna',
-    'Bella',
-    'Rocky',
-    'Mia',
-    'Charlie',
-    'Daisy',
-    'Buddy',
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.event != null) {
-      _titleController.text = widget.event!['title'] ?? '';
-      _descriptionController.text = widget.event!['description'] ?? '';
-      _locationController.text = widget.event!['location'] ?? '';
-      _notesController.text = widget.event!['notes'] ?? '';
-      _eventType = widget.event!['event_type'] ?? 'appointment';
-      _petName = widget.event!['pet_name'] ?? 'Max';
-      _urgent = widget.event!['urgent'] ?? false;
-      _isAllDay = widget.event!['is_all_day'] ?? false;
-      _selectedDate = DateTime.parse(widget.event!['appointment_date']);
-      _selectedTime = TimeOfDay.fromDateTime(_selectedDate);
-    }
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _descriptionController.dispose();
-    _locationController.dispose();
-    _notesController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.85,
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Column(
-        children: [
-          Container(
-            margin: const EdgeInsets.only(top: 12),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.event,
-                  color: Theme.of(context).colorScheme.primary,
-                  size: 28,
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  widget.event == null ? 'Nuevo Evento' : 'Editar Evento',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-                const Spacer(),
-                IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    DropdownButtonFormField<String>(
-                      initialValue: _eventType,
-                      decoration: const InputDecoration(
-                        labelText: 'Tipo de evento',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.category),
-                      ),
-                      items: const [
-                        DropdownMenuItem(
-                          value: 'appointment',
-                          child: Text('Cita Veterinaria'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'reminder',
-                          child: Text('Recordatorio'),
-                        ),
-                        DropdownMenuItem(value: 'event', child: Text('Evento')),
-                      ],
-                      onChanged: (value) {
-                        setState(() {
-                          _eventType = value!;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _titleController,
-                      decoration: const InputDecoration(
-                        labelText: 'Título del evento',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.title),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Por favor ingresa un título';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _descriptionController,
-                      decoration: const InputDecoration(
-                        labelText: 'Descripción',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.description),
-                      ),
-                      maxLines: 2,
-                    ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      initialValue: _petName,
-                      decoration: const InputDecoration(
-                        labelText: 'Mascota',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.pets),
-                      ),
-                      items: _mockPets.map((pet) {
-                        return DropdownMenuItem(value: pet, child: Text(pet));
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _petName = value!;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    if (_eventType == 'appointment') ...[
-                      TextFormField(
-                        controller: _locationController,
-                        decoration: const InputDecoration(
-                          labelText: 'Clínica/Ubicación',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.location_on),
-                        ),
-                        validator: (value) {
-                          if (_eventType == 'appointment' &&
-                              (value == null || value.isEmpty)) {
-                            return 'Por favor ingresa la ubicación';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                    Row(
-                      children: [
-                        Expanded(
-                          child: InkWell(
-                            onTap: _selectDate,
-                            child: InputDecorator(
-                              decoration: const InputDecoration(
-                                labelText: 'Fecha',
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(Icons.calendar_today),
-                              ),
-                              child: Text(
-                                '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        if (!_isAllDay) ...[
-                          Expanded(
-                            child: InkWell(
-                              onTap: _selectTime,
-                              child: InputDecorator(
-                                decoration: const InputDecoration(
-                                  labelText: 'Hora',
-                                  border: OutlineInputBorder(),
-                                  prefixIcon: Icon(Icons.access_time),
-                                ),
-                                child: Text(_selectedTime.format(context)),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    SwitchListTile(
-                      title: const Text('Todo el día'),
-                      subtitle: const Text('Evento que dura todo el día'),
-                      value: _isAllDay,
-                      onChanged: (value) {
-                        setState(() {
-                          _isAllDay = value;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    SwitchListTile(
-                      title: const Text('Urgente'),
-                      subtitle: const Text('Marcar como evento urgente'),
-                      value: _urgent,
-                      onChanged: (value) {
-                        setState(() {
-                          _urgent = value;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _notesController,
-                      decoration: const InputDecoration(
-                        labelText: 'Notas adicionales (opcional)',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.note),
-                      ),
-                      maxLines: 3,
-                    ),
-                    const SizedBox(height: 24),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                            ),
-                            child: const Text('Cancelar'),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: _saveEvent,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Theme.of(
-                                context,
-                              ).colorScheme.primary,
-                              foregroundColor: Theme.of(
-                                context,
-                              ).colorScheme.onPrimary,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                            ),
-                            child: Text(
-                              widget.event == null ? 'Agregar' : 'Actualizar',
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _selectDate() async {
-    final date = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-    );
-    if (date != null) {
-      setState(() {
-        _selectedDate = date;
-      });
-    }
-  }
-
-  Future<void> _selectTime() async {
-    final time = await showTimePicker(
-      context: context,
-      initialTime: _selectedTime,
-    );
-    if (time != null) {
-      setState(() {
-        _selectedTime = time;
-      });
-    }
-  }
-
-  void _saveEvent() {
-    if (_formKey.currentState!.validate()) {
-      final eventData = {
-        'id': widget.event?['id'],
-        'title': _titleController.text,
-        'description': _descriptionController.text,
-        'location': _locationController.text,
-        'notes': _notesController.text,
-        'event_type': _eventType,
-        'pet_name': _petName,
-        'urgent': _urgent,
-        'is_all_day': _isAllDay,
-        'appointment_date': DateTime(
-          _selectedDate.year,
-          _selectedDate.month,
-          _selectedDate.day,
-          _isAllDay ? 0 : _selectedTime.hour,
-          _isAllDay ? 0 : _selectedTime.minute,
-        ).toIso8601String(),
-        'time': _isAllDay ? 'Todo el día' : _selectedTime.format(context),
-        'status': 'scheduled',
-        'clinic_name': _locationController.text,
-        'type': _eventType == 'appointment' ? 'vaccine' : _eventType,
-      };
-
-      widget.onSave(eventData);
-      Navigator.of(context).pop();
-    }
-  }
-}
+// TODO: Implementar formulario de eventos/citas desde calendario
