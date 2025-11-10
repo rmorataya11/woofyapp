@@ -7,7 +7,7 @@ class AiChatService {
 
   Future<List<AiConversation>> getConversations() async {
     try {
-      final response = await _apiClient.get<Map<String, dynamic>>(
+      final response = await _apiClient.get<dynamic>(
         '/ai-chat/conversations',
         requiresAuth: true,
       );
@@ -33,7 +33,7 @@ class AiChatService {
 
   Future<AiConversation> getConversation(String conversationId) async {
     try {
-      final response = await _apiClient.get<Map<String, dynamic>>(
+      final response = await _apiClient.get<dynamic>(
         '/ai-chat/conversations/$conversationId',
         requiresAuth: true,
       );
@@ -51,12 +51,15 @@ class AiChatService {
     }
   }
 
-  Future<AiConversation> createConversation({String? title}) async {
+  Future<AiConversation> createConversation({
+    required String userId,
+    String? title,
+  }) async {
     try {
-      final body = <String, dynamic>{};
+      final body = <String, dynamic>{'user_id': userId};
       if (title != null) body['title'] = title;
 
-      final response = await _apiClient.post<Map<String, dynamic>>(
+      final response = await _apiClient.post<dynamic>(
         '/ai-chat/conversations',
         body: body,
         requiresAuth: true,
@@ -82,7 +85,7 @@ class AiChatService {
     try {
       final body = {'content': content};
 
-      final response = await _apiClient.post<Map<String, dynamic>>(
+      final response = await _apiClient.post<dynamic>(
         '/ai-chat/conversations/$conversationId/messages',
         body: body,
         requiresAuth: true,

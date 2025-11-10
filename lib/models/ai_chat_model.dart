@@ -44,6 +44,7 @@ class AiMessage {
 class AiConversation {
   final String id;
   final String userId;
+  final String? petId;
   final String title;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -52,6 +53,7 @@ class AiConversation {
   AiConversation({
     required this.id,
     required this.userId,
+    this.petId,
     required this.title,
     required this.createdAt,
     required this.updatedAt,
@@ -69,6 +71,7 @@ class AiConversation {
     return AiConversation(
       id: json['id'] as String,
       userId: json['user_id'] as String,
+      petId: json['pet_id'] as String?,
       title: json['title'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -80,6 +83,7 @@ class AiConversation {
     return {
       'id': id,
       'user_id': userId,
+      if (petId != null) 'pet_id': petId,
       'title': title,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
@@ -90,6 +94,7 @@ class AiConversation {
   AiConversation copyWith({
     String? id,
     String? userId,
+    String? petId,
     String? title,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -98,6 +103,7 @@ class AiConversation {
     return AiConversation(
       id: id ?? this.id,
       userId: userId ?? this.userId,
+      petId: petId ?? this.petId,
       title: title ?? this.title,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,

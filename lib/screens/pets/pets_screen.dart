@@ -655,7 +655,7 @@ class _PetFormDialogState extends State<_PetFormDialog> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _vaccinationStatus,
+                initialValue: _vaccinationStatus,
                 decoration: const InputDecoration(
                   labelText: 'Estado de Vacunación',
                   border: OutlineInputBorder(),

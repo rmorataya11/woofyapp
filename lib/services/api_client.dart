@@ -218,6 +218,7 @@ class ApiClient {
     try {
       if (response.body.isNotEmpty) {
         jsonBody = jsonDecode(response.body);
+
         if (jsonBody is List) {
           jsonBody = <String, dynamic>{
             'success': true,
@@ -244,10 +245,12 @@ class ApiClient {
 
     if (statusCode >= 200 && statusCode < 300) {
       final jsonMap = jsonBody as Map<String, dynamic>;
+      final data = jsonMap['data'];
+
       return ApiResponse<T>(
         success: jsonMap['success'] ?? true,
         message: jsonMap['message'] ?? 'Success',
-        data: jsonMap['data'] as T?,
+        data: data,
         statusCode: statusCode,
       );
     }

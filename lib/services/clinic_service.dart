@@ -7,7 +7,7 @@ class ClinicService {
 
   Future<List<Clinic>> getClinics() async {
     try {
-      final response = await _apiClient.get<Map<String, dynamic>>(
+      final response = await _apiClient.get<dynamic>(
         '/clinics',
         requiresAuth: false,
       );
@@ -19,25 +19,12 @@ class ClinicService {
         );
       }
 
-      final List<dynamic> clinicsData;
-      if (response.data is List) {
-        clinicsData = response.data as List<dynamic>;
-      } else if (response.data is Map) {
-        final dataMap = response.data as Map<String, dynamic>;
-        clinicsData =
-            (dataMap['clinics'] ?? dataMap['data'] ?? []) as List<dynamic>;
-      } else {
-        clinicsData = [];
-      }
+      final clinicsData = response.data as List<dynamic>? ?? [];
 
-      if (clinicsData.isEmpty) return [];
-
-      print('🏥 Clínicas obtenidas: ${clinicsData.length}');
       return clinicsData
           .map((json) => Clinic.fromJson(json as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      print('🏥 ❌ Error al obtener clínicas: $e');
       rethrow;
     }
   }
@@ -53,7 +40,7 @@ class ClinicService {
       if (longitude != null) queryParams['longitude'] = longitude.toString();
       if (radius != null) queryParams['radius'] = radius.toString();
 
-      final response = await _apiClient.get<Map<String, dynamic>>(
+      final response = await _apiClient.get<dynamic>(
         '/clinics/nearby',
         queryParams: queryParams,
         requiresAuth: false,
@@ -79,7 +66,7 @@ class ClinicService {
 
   Future<Clinic> getClinicById(String id) async {
     try {
-      final response = await _apiClient.get<Map<String, dynamic>>(
+      final response = await _apiClient.get<dynamic>(
         '/clinics/$id',
         requiresAuth: false,
       );
@@ -99,7 +86,7 @@ class ClinicService {
 
   Future<List<ClinicServiceModel>> getClinicServices(String clinicId) async {
     try {
-      final response = await _apiClient.get<Map<String, dynamic>>(
+      final response = await _apiClient.get<dynamic>(
         '/clinics/$clinicId/services',
         requiresAuth: false,
       );
@@ -111,34 +98,21 @@ class ClinicService {
         );
       }
 
-      final List<dynamic> servicesData;
-      if (response.data is List) {
-        servicesData = response.data as List<dynamic>;
-      } else if (response.data is Map) {
-        final dataMap = response.data as Map<String, dynamic>;
-        servicesData =
-            (dataMap['services'] ?? dataMap['data'] ?? []) as List<dynamic>;
-      } else {
-        servicesData = [];
-      }
+      final servicesData = response.data as List<dynamic>? ?? [];
 
-      if (servicesData.isEmpty) return [];
-
-      print('🏥 Servicios obtenidos: ${servicesData.length}');
       return servicesData
           .map(
             (json) => ClinicServiceModel.fromJson(json as Map<String, dynamic>),
           )
           .toList();
     } catch (e) {
-      print('🏥 ❌ Error al obtener servicios: $e');
       rethrow;
     }
   }
 
   Future<ClinicHours> getClinicHours(String clinicId) async {
     try {
-      final response = await _apiClient.get<Map<String, dynamic>>(
+      final response = await _apiClient.get<dynamic>(
         '/clinics/$clinicId/hours',
         requiresAuth: false,
       );
@@ -173,7 +147,7 @@ class ClinicService {
         if (subject != null) 'subject': subject,
       };
 
-      final response = await _apiClient.post<Map<String, dynamic>>(
+      final response = await _apiClient.post<dynamic>(
         '/clinics/$clinicId/contact',
         body: body,
         requiresAuth: true,
@@ -209,7 +183,7 @@ class ClinicService {
         if (notes != null) 'notes': notes,
       };
 
-      final response = await _apiClient.post<Map<String, dynamic>>(
+      final response = await _apiClient.post<dynamic>(
         '/clinics/$clinicId/request-appointment',
         body: body,
         requiresAuth: true,

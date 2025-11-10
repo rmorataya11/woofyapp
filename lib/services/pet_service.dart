@@ -7,7 +7,7 @@ class PetService {
 
   Future<List<Pet>> getPets() async {
     try {
-      final response = await _apiClient.get<Map<String, dynamic>>(
+      final response = await _apiClient.get<dynamic>(
         '/pets',
         requiresAuth: true,
       );
@@ -19,17 +19,7 @@ class PetService {
         );
       }
 
-      final List<dynamic> petsData;
-      if (response.data is List) {
-        petsData = response.data as List<dynamic>;
-      } else if (response.data is Map) {
-        final dataMap = response.data as Map<String, dynamic>;
-        petsData = (dataMap['pets'] ?? dataMap['data'] ?? []) as List<dynamic>;
-      } else {
-        petsData = [];
-      }
-
-      if (petsData.isEmpty) return [];
+      final petsData = response.data as List<dynamic>? ?? [];
 
       return petsData
           .map((json) => Pet.fromMap(json as Map<String, dynamic>))
@@ -41,7 +31,7 @@ class PetService {
 
   Future<Pet> getPetById(String id) async {
     try {
-      final response = await _apiClient.get<Map<String, dynamic>>(
+      final response = await _apiClient.get<dynamic>(
         '/pets/$id',
         requiresAuth: true,
       );
@@ -79,9 +69,7 @@ class PetService {
         'vaccination_status': vaccinationStatus ?? 'unknown',
       };
 
-      print('🐕 Creando mascota con datos: $body');
-
-      final response = await _apiClient.post<Map<String, dynamic>>(
+      final response = await _apiClient.post<dynamic>(
         '/pets',
         body: body,
         requiresAuth: true,
@@ -94,10 +82,8 @@ class PetService {
         );
       }
 
-      print('🐕 Respuesta del backend: ${response.data}');
       return Pet.fromMap(response.data!);
     } catch (e) {
-      print('🐕 ❌ Error al crear mascota: $e');
       rethrow;
     }
   }
@@ -114,18 +100,29 @@ class PetService {
   }) async {
     try {
       final body = <String, dynamic>{};
-      if (name != null) body['name'] = name;
-      if (breed != null) body['breed'] = breed;
-      if (ageMonths != null) body['age_months'] = ageMonths;
-      if (weightKg != null) body['weight_kg'] = weightKg;
-      if (photoUrl != null) body['photo_url'] = photoUrl;
-      if (medicalNotes != null) body['medical_notes'] = medicalNotes;
-      if (vaccinationStatus != null)
+      if (name != null) {
+        body['name'] = name;
+      }
+      if (breed != null) {
+        body['breed'] = breed;
+      }
+      if (ageMonths != null) {
+        body['age_months'] = ageMonths;
+      }
+      if (weightKg != null) {
+        body['weight_kg'] = weightKg;
+      }
+      if (photoUrl != null) {
+        body['photo_url'] = photoUrl;
+      }
+      if (medicalNotes != null) {
+        body['medical_notes'] = medicalNotes;
+      }
+      if (vaccinationStatus != null) {
         body['vaccination_status'] = vaccinationStatus;
+      }
 
-      print('🐕 Actualizando mascota $id con datos: $body');
-
-      final response = await _apiClient.put<Map<String, dynamic>>(
+      final response = await _apiClient.put<dynamic>(
         '/pets/$id',
         body: body,
         requiresAuth: true,
@@ -138,10 +135,8 @@ class PetService {
         );
       }
 
-      print('🐕 Respuesta del backend: ${response.data}');
       return Pet.fromMap(response.data!);
     } catch (e) {
-      print('🐕 ❌ Error al actualizar mascota: $e');
       rethrow;
     }
   }

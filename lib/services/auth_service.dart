@@ -10,7 +10,7 @@ class AuthService {
     required String password,
   }) async {
     try {
-      final response = await _apiClient.post<Map<String, dynamic>>(
+      final response = await _apiClient.post<dynamic>(
         '/auth/login',
         body: {'email': email, 'password': password},
         requiresAuth: false,
@@ -44,7 +44,7 @@ class AuthService {
     String? name,
   }) async {
     try {
-      final response = await _apiClient.post<Map<String, dynamic>>(
+      final response = await _apiClient.post<dynamic>(
         '/auth/signup',
         body: {
           'email': email,
@@ -78,7 +78,7 @@ class AuthService {
   /// Obtener usuario actual
   Future<User> getCurrentUser() async {
     try {
-      final response = await _apiClient.get<Map<String, dynamic>>(
+      final response = await _apiClient.get<dynamic>(
         '/auth/me',
         requiresAuth: true,
       );
@@ -105,7 +105,7 @@ class AuthService {
         throw UnauthorizedException(message: 'No hay refresh token disponible');
       }
 
-      final response = await _apiClient.post<Map<String, dynamic>>(
+      final response = await _apiClient.post<dynamic>(
         '/auth/refresh',
         body: {'refresh_token': refreshToken},
         requiresAuth: false,

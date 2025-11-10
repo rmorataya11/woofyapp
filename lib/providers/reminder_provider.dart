@@ -52,7 +52,6 @@ class ReminderNotifier extends StateNotifier<ReminderState> {
 
       state = ReminderState(reminders: reminders, isLoading: false);
     } catch (e) {
-      print('🔔 Error al cargar recordatorios: $e');
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
     }
   }
@@ -82,7 +81,6 @@ class ReminderNotifier extends StateNotifier<ReminderState> {
 
       return true;
     } catch (e) {
-      print('🔔 Error al crear recordatorio: $e');
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
       return false;
     }
@@ -117,7 +115,6 @@ class ReminderNotifier extends StateNotifier<ReminderState> {
 
       return true;
     } catch (e) {
-      print('🔔 Error al actualizar recordatorio: $e');
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
       return false;
     }
@@ -136,7 +133,6 @@ class ReminderNotifier extends StateNotifier<ReminderState> {
 
       return true;
     } catch (e) {
-      print('🔔 Error al completar recordatorio: $e');
       state = state.copyWith(errorMessage: e.toString());
       return false;
     }

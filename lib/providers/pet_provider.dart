@@ -69,8 +69,6 @@ class Pet {
   }
 
   static Pet fromMap(Map<String, dynamic> map) {
-    print('🐕 Parseando mascota desde mapa: $map');
-
     return Pet(
       id: map['id'] ?? '',
       name: map['name'] ?? '',

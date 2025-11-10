@@ -7,7 +7,7 @@ class ProfileService {
 
   Future<Profile> getMyProfile() async {
     try {
-      final response = await _apiClient.get<Map<String, dynamic>>(
+      final response = await _apiClient.get<dynamic>(
         '/profiles/me',
         requiresAuth: true,
       );
@@ -40,7 +40,7 @@ class ProfileService {
       if (location != null) body['location'] = location;
       if (bio != null) body['bio'] = bio;
 
-      final response = await _apiClient.put<Map<String, dynamic>>(
+      final response = await _apiClient.put<dynamic>(
         '/profiles/me',
         body: body,
         requiresAuth: true,
@@ -61,7 +61,7 @@ class ProfileService {
 
   Future<UserPreferences> getMyPreferences() async {
     try {
-      final response = await _apiClient.get<Map<String, dynamic>>(
+      final response = await _apiClient.get<dynamic>(
         '/profiles/me/preferences',
         requiresAuth: true,
       );
@@ -80,7 +80,7 @@ class ProfileService {
     UserPreferences preferences,
   ) async {
     try {
-      final response = await _apiClient.put<Map<String, dynamic>>(
+      final response = await _apiClient.put<dynamic>(
         '/profiles/me/preferences',
         body: preferences.toJson(),
         requiresAuth: true,

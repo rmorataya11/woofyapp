@@ -11,7 +11,7 @@ class ReminderService {
       if (type != null) queryParams['type'] = type;
       if (upcoming != null) queryParams['upcoming'] = upcoming.toString();
 
-      final response = await _apiClient.get<Map<String, dynamic>>(
+      final response = await _apiClient.get<dynamic>(
         '/reminders',
         queryParams: queryParams.isNotEmpty ? queryParams : null,
         requiresAuth: true,
@@ -24,32 +24,19 @@ class ReminderService {
         );
       }
 
-      final List<dynamic> remindersData;
-      if (response.data is List) {
-        remindersData = response.data as List<dynamic>;
-      } else if (response.data is Map) {
-        final dataMap = response.data as Map<String, dynamic>;
-        remindersData =
-            (dataMap['reminders'] ?? dataMap['data'] ?? []) as List<dynamic>;
-      } else {
-        remindersData = [];
-      }
+      final remindersData = response.data as List<dynamic>? ?? [];
 
-      if (remindersData.isEmpty) return [];
-
-      print('🔔 Recordatorios obtenidos: ${remindersData.length}');
       return remindersData
           .map((json) => Reminder.fromJson(json as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      print('🔔 ❌ Error al obtener recordatorios: $e');
       rethrow;
     }
   }
 
   Future<Reminder> getReminderById(String id) async {
     try {
-      final response = await _apiClient.get<Map<String, dynamic>>(
+      final response = await _apiClient.get<dynamic>(
         '/reminders/$id',
         requiresAuth: true,
       );
@@ -82,9 +69,7 @@ class ReminderService {
         'type': type,
       };
 
-      print('🔔 Creando recordatorio para pet $petId con datos: $body');
-
-      final response = await _apiClient.post<Map<String, dynamic>>(
+      final response = await _apiClient.post<dynamic>(
         '/reminders/pet/$petId',
         body: body,
         requiresAuth: true,
@@ -97,10 +82,8 @@ class ReminderService {
         );
       }
 
-      print('🔔 Respuesta del backend: ${response.data}');
       return Reminder.fromJson(response.data!);
     } catch (e) {
-      print('🔔 ❌ Error al crear recordatorio: $e');
       rethrow;
     }
   }
@@ -121,9 +104,7 @@ class ReminderService {
       if (type != null) body['type'] = type;
       if (isSent != null) body['is_sent'] = isSent;
 
-      print('🔔 Actualizando recordatorio $id con datos: $body');
-
-      final response = await _apiClient.put<Map<String, dynamic>>(
+      final response = await _apiClient.put<dynamic>(
         '/reminders/$id',
         body: body,
         requiresAuth: true,
@@ -136,18 +117,15 @@ class ReminderService {
         );
       }
 
-      print('🔔 Respuesta del backend: ${response.data}');
       return Reminder.fromJson(response.data!);
     } catch (e) {
-      print('🔔 ❌ Error al actualizar recordatorio: $e');
       rethrow;
     }
   }
 
   Future<Reminder> completeReminder(String id) async {
     try {
-      // Marcar como completado actualizando is_completed
-      final response = await _apiClient.put<Map<String, dynamic>>(
+      final response = await _apiClient.put<dynamic>(
         '/reminders/$id',
         body: {'is_completed': true},
         requiresAuth: true,
@@ -160,10 +138,8 @@ class ReminderService {
         );
       }
 
-      print('🔔 Recordatorio $id marcado como completado');
       return Reminder.fromJson(response.data!);
     } catch (e) {
-      print('🔔 ❌ Error al completar recordatorio: $e');
       rethrow;
     }
   }

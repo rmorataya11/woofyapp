@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/ai_chat_model.dart';
 import '../services/ai_chat_service.dart';
+import 'auth_provider.dart';
 
 class AiChatState {
   final List<AiConversation> conversations;
@@ -47,8 +48,9 @@ class AiChatState {
 
 class AiChatNotifier extends StateNotifier<AiChatState> {
   final AiChatService _aiChatService = AiChatService();
+  final Ref _ref;
 
-  AiChatNotifier() : super(AiChatState.initial()) {
+  AiChatNotifier(this._ref) : super(AiChatState.initial()) {
     loadConversations();
   }
 
@@ -83,7 +85,14 @@ class AiChatNotifier extends StateNotifier<AiChatState> {
     state = state.copyWith(isLoading: true);
 
     try {
+      // Obtener el user_id del authProvider
+      final user = _ref.read(currentUserProvider);
+      if (user == null) {
+        throw Exception('Usuario no autenticado');
+      }
+
       final newConversation = await _aiChatService.createConversation(
+        userId: user.id,
         title: title,
       );
 
@@ -219,7 +228,7 @@ class AiChatNotifier extends StateNotifier<AiChatState> {
 final aiChatProvider = StateNotifierProvider<AiChatNotifier, AiChatState>((
   ref,
 ) {
-  return AiChatNotifier();
+  return AiChatNotifier(ref);
 });
 
 final currentConversationProvider = Provider<AiConversation?>((ref) {

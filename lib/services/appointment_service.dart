@@ -14,7 +14,7 @@ class AppointmentService {
       if (status != null) queryParams['status'] = status;
       if (petId != null) queryParams['pet_id'] = petId;
 
-      final response = await _apiClient.get<Map<String, dynamic>>(
+      final response = await _apiClient.get<dynamic>(
         '/appointments',
         queryParams: queryParams.isNotEmpty ? queryParams : null,
         requiresAuth: true,
@@ -27,18 +27,7 @@ class AppointmentService {
         );
       }
 
-      final List<dynamic> appointmentsData;
-      if (response.data is List) {
-        appointmentsData = response.data as List<dynamic>;
-      } else if (response.data is Map) {
-        final dataMap = response.data as Map<String, dynamic>;
-        appointmentsData =
-            (dataMap['appointments'] ?? dataMap['data'] ?? []) as List<dynamic>;
-      } else {
-        appointmentsData = [];
-      }
-
-      if (appointmentsData.isEmpty) return [];
+      final appointmentsData = response.data as List<dynamic>? ?? [];
 
       return appointmentsData
           .map((json) => Appointment.fromJson(json as Map<String, dynamic>))
@@ -50,7 +39,7 @@ class AppointmentService {
 
   Future<Appointment> getAppointmentById(String id) async {
     try {
-      final response = await _apiClient.get<Map<String, dynamic>>(
+      final response = await _apiClient.get<dynamic>(
         '/appointments/$id',
         requiresAuth: true,
       );
@@ -86,9 +75,7 @@ class AppointmentService {
         if (notes != null) 'notes': notes,
       };
 
-      print('📅 Creando cita con datos: $body');
-
-      final response = await _apiClient.post<Map<String, dynamic>>(
+      final response = await _apiClient.post<dynamic>(
         '/appointments',
         body: body,
         requiresAuth: true,
@@ -101,10 +88,8 @@ class AppointmentService {
         );
       }
 
-      print('📅 Respuesta del backend: ${response.data}');
       return Appointment.fromJson(response.data!);
     } catch (e) {
-      print('📅 ❌ Error al crear cita: $e');
       rethrow;
     }
   }
@@ -121,9 +106,7 @@ class AppointmentService {
       if (endsAt != null) body['ends_at'] = endsAt.toIso8601String();
       if (notes != null) body['notes'] = notes;
 
-      print('📅 Actualizando cita $id con datos: $body');
-
-      final response = await _apiClient.put<Map<String, dynamic>>(
+      final response = await _apiClient.put<dynamic>(
         '/appointments/$id',
         body: body,
         requiresAuth: true,
@@ -136,10 +119,8 @@ class AppointmentService {
         );
       }
 
-      print('📅 Respuesta del backend: ${response.data}');
       return Appointment.fromJson(response.data!);
     } catch (e) {
-      print('📅 ❌ Error al actualizar cita: $e');
       rethrow;
     }
   }
@@ -195,7 +176,7 @@ class AppointmentService {
       final queryParams = <String, String>{};
       if (status != null) queryParams['status'] = status;
 
-      final response = await _apiClient.get<Map<String, dynamic>>(
+      final response = await _apiClient.get<dynamic>(
         '/appointment-requests',
         queryParams: queryParams.isNotEmpty ? queryParams : null,
         requiresAuth: true,
@@ -208,18 +189,7 @@ class AppointmentService {
         );
       }
 
-      final List<dynamic> requestsData;
-      if (response.data is List) {
-        requestsData = response.data as List<dynamic>;
-      } else if (response.data is Map) {
-        final dataMap = response.data as Map<String, dynamic>;
-        requestsData =
-            (dataMap['requests'] ?? dataMap['data'] ?? []) as List<dynamic>;
-      } else {
-        requestsData = [];
-      }
-
-      if (requestsData.isEmpty) return [];
+      final requestsData = response.data as List<dynamic>? ?? [];
 
       return requestsData
           .map(
@@ -243,7 +213,7 @@ class AppointmentService {
       if (finalTime != null) body['final_time'] = finalTime;
       if (notes != null) body['notes'] = notes;
 
-      final response = await _apiClient.put<Map<String, dynamic>>(
+      final response = await _apiClient.put<dynamic>(
         '/appointment-requests/$requestId/confirm',
         body: body,
         requiresAuth: true,
@@ -270,7 +240,7 @@ class AppointmentService {
       final body = <String, dynamic>{};
       if (reason != null) body['reason'] = reason;
 
-      final response = await _apiClient.put<Map<String, dynamic>>(
+      final response = await _apiClient.put<dynamic>(
         '/appointment-requests/$requestId/cancel',
         body: body,
         requiresAuth: true,
