@@ -140,7 +140,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             onPressed: () async {
               await ref.read(authProvider.notifier).logout();
               if (mounted) {
-                context.go(AppRouter.splash);
+                context.go(AppRouter.login);
               }
             },
             icon: const Icon(Icons.logout, size: 20),
@@ -272,7 +272,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Widget _buildUpcomingEventsCompact() {
     final upcomingAppointments = ref.watch(upcomingAppointmentsProvider);
-    final todayReminders = ref.watch(todayRemindersProvider);
+    final pendingReminders =
+        ref
+            .watch(reminderProvider)
+            .reminders
+            .where((r) => !r.isCompleted && r.dueAt.isAfter(DateTime.now()))
+            .toList()
+          ..sort((a, b) => a.dueAt.compareTo(b.dueAt));
     final List<Map<String, dynamic>> combinedEvents = [];
 
     for (var apt in upcomingAppointments.take(2)) {
@@ -287,14 +293,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
 
     if (combinedEvents.length < 2) {
-      for (var reminder in todayReminders.take(2 - combinedEvents.length)) {
+      for (var reminder in pendingReminders.take(2 - combinedEvents.length)) {
         combinedEvents.add({
           'title': reminder.title,
           'pet': reminder.petName ?? 'General',
           'date': _formatDate(reminder.dueAt),
           'time': _formatTime(reminder.dueAt),
           'type': 'reminder',
-          'urgent': reminder.isUrgent,
+          'urgent': false,
         });
       }
     }

@@ -690,6 +690,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
     if (mounted) {
       if (success) {
+        setState(() {});
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Recordatorio completado'),
@@ -731,6 +732,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
               if (mounted) {
                 navigator.pop();
+                setState(() {});
 
                 if (success) {
                   scaffoldMessenger.showSnackBar(

@@ -420,12 +420,26 @@ class _PetsScreenState extends ConsumerState<PetsScreen> {
   }
 
   Widget _buildStatsSection() {
+    final pets = ref.watch(petNotifierProvider);
+    final tipsList = _getPersonalizedTips(pets);
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: ThemeUtils.getCardColor(context, ref),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+            Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
+          ],
+        ),
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
             color: ThemeUtils.getShadowColor(context, ref),
@@ -437,81 +451,151 @@ class _PetsScreenState extends ConsumerState<PetsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Estadísticas',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: ThemeUtils.getTextPrimaryColor(context, ref),
-            ),
-          ),
-          const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(
-                child: _buildStatCard(
-                  'Citas Totales',
-                  '24',
-                  Icons.event,
-                  const Color(0xFF1E88E5),
-                ),
+              Icon(
+                Icons.lightbulb,
+                color: Theme.of(context).colorScheme.primary,
+                size: 24,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatCard(
-                  'Completadas',
-                  '22',
-                  Icons.check_circle,
-                  const Color(0xFF4CAF50),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatCard(
-                  'Recordatorios',
-                  '5',
-                  Icons.notifications,
-                  const Color(0xFFFF9800),
+              const SizedBox(width: 8),
+              Text(
+                'Consejos para tus mascotas',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: ThemeUtils.getTextPrimaryColor(context, ref),
                 ),
               ),
             ],
           ),
+          const SizedBox(height: 16),
+          ...tipsList.map((tip) => _buildTipCard(tip)),
         ],
       ),
     );
   }
 
-  Widget _buildStatCard(
-    String title,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
+  List<Map<String, dynamic>> _getPersonalizedTips(List<Pet> pets) {
+    if (pets.isEmpty) {
+      return [
+        {
+          'icon': Icons.pets,
+          'title': 'Agrega tu primera mascota',
+          'description':
+              'Comienza registrando a tu perrito para recibir consejos personalizados.',
+          'color': const Color(0xFF1E88E5),
+        },
+      ];
+    }
+
+    final tips = <Map<String, dynamic>>[];
+
+    final avgAge =
+        pets.fold<int>(0, (sum, pet) => sum + pet.ageMonths) ~/ pets.length;
+    if (avgAge < 12) {
+      tips.add({
+        'icon': Icons.child_care,
+        'title': 'Cachorros en casa',
+        'description':
+            'Los cachorros necesitan 3-4 comidas al día. Asegúrate de tener un horario consistente.',
+        'color': const Color(0xFF9C27B0),
+      });
+    } else if (avgAge > 84) {
+      tips.add({
+        'icon': Icons.favorite,
+        'title': 'Cuidado senior',
+        'description':
+            'Los perros mayores necesitan chequeos veterinarios cada 6 meses. Mantén su rutina estable.',
+        'color': const Color(0xFFFF9800),
+      });
+    } else {
+      tips.add({
+        'icon': Icons.fitness_center,
+        'title': 'Mantén la actividad',
+        'description':
+            'Los perros adultos necesitan 30-60 minutos de ejercicio diario para mantenerse saludables.',
+        'color': const Color(0xFF4CAF50),
+      });
+    }
+
+    final needsVaccination = pets.any(
+      (p) =>
+          p.vaccinationStatus == 'overdue' ||
+          p.vaccinationStatus == 'in_progress',
+    );
+    if (needsVaccination) {
+      tips.add({
+        'icon': Icons.vaccines,
+        'title': 'Vacunación pendiente',
+        'description':
+            'Algunas mascotas tienen vacunas pendientes. Agenda una cita con tu veterinario.',
+        'color': const Color(0xFFF44336),
+      });
+    } else {
+      tips.add({
+        'icon': Icons.water_drop,
+        'title': 'Hidratación',
+        'description':
+            'Asegúrate de que tu perro tenga agua fresca disponible en todo momento.',
+        'color': const Color(0xFF2196F3),
+      });
+    }
+
+    return tips;
+  }
+
+  Widget _buildTipCard(Map<String, dynamic> tip) {
     return Container(
+      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: ThemeUtils.getCardColor(context, ref),
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: (tip['color'] as Color).withValues(alpha: 0.3),
+          width: 1,
+        ),
       ),
-      child: Column(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: color,
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: (tip['color'] as Color).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              tip['icon'] as IconData,
+              color: tip['color'] as Color,
+              size: 24,
             ),
           ),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 12,
-              color: ThemeUtils.getTextSecondaryColor(context, ref),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  tip['title'] as String,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: ThemeUtils.getTextPrimaryColor(context, ref),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  tip['description'] as String,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: ThemeUtils.getTextSecondaryColor(context, ref),
+                    height: 1.4,
+                  ),
+                ),
+              ],
             ),
-            textAlign: TextAlign.center,
           ),
         ],
       ),

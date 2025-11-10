@@ -64,8 +64,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   Widget _buildProfileHeader(Profile? profile, User? user) {
     final displayName = profile?.name ?? user?.name ?? 'Usuario';
     final displayEmail = profile?.email ?? user?.email ?? '';
-    final displayBio = profile?.bio ?? 'Usuario de Woofy';
-    final displayLocation = profile?.location ?? 'No especificada';
     final displayPhone = profile?.phone ?? 'No especificado';
     final avatarUrl = profile?.avatarUrl;
 
@@ -116,23 +114,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               color: ThemeUtils.getTextSecondaryColor(context, ref),
             ),
           ),
-          const SizedBox(height: 8),
-          if (displayBio.isNotEmpty)
-            Text(
-              displayBio,
-              style: TextStyle(
-                fontSize: 14,
-                color: ThemeUtils.getTextSecondaryColor(context, ref),
-              ),
-              textAlign: TextAlign.center,
-            ),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildInfoItem(Icons.location_on, displayLocation, 'Ubicación'),
-              _buildInfoItem(Icons.phone, displayPhone, 'Teléfono'),
-            ],
+            children: [_buildInfoItem(Icons.phone, displayPhone, 'Teléfono')],
           ),
         ],
       ),
@@ -181,16 +166,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
       child: Column(
         children: [
           _buildSettingItem(
-            Icons.edit,
-            'Editar Perfil',
-            'Actualiza tu información personal',
+            Icons.phone,
+            'Editar Teléfono',
+            'Actualiza tu número de teléfono',
             _editProfile,
-          ),
-          _buildSettingItem(
-            Icons.security,
-            'Privacidad',
-            'Gestiona tu privacidad y seguridad',
-            _openPrivacy,
           ),
           _buildSettingItem(
             Icons.help,
@@ -361,86 +340,33 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
   void _editProfile() {
     final profile = ref.read(profileProvider).profile;
-    final user = ref.read(authProvider).user;
 
-    final nameController = TextEditingController(
-      text: profile?.name ?? user?.name ?? '',
-    );
-    final emailController = TextEditingController(
-      text: profile?.email ?? user?.email ?? '',
-    );
     final phoneController = TextEditingController(text: profile?.phone ?? '');
-    final locationController = TextEditingController(
-      text: profile?.location ?? '',
-    );
-    final bioController = TextEditingController(text: profile?.bio ?? '');
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Editar Perfil'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                decoration: const InputDecoration(
-                  labelText: 'Nombre',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.person),
-                ),
-                controller: nameController,
+        title: const Text('Editar Teléfono'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              decoration: const InputDecoration(
+                labelText: 'Teléfono',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.phone),
+                hintText: 'Ej: +1 234 567 890',
               ),
-              const SizedBox(height: 16),
-              TextField(
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.email),
-                ),
-                controller: emailController,
-                keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                decoration: const InputDecoration(
-                  labelText: 'Teléfono',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.phone),
-                ),
-                controller: phoneController,
-                keyboardType: TextInputType.phone,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                decoration: const InputDecoration(
-                  labelText: 'Ubicación',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.location_on),
-                ),
-                controller: locationController,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                decoration: const InputDecoration(
-                  labelText: 'Biografía',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.info),
-                ),
-                controller: bioController,
-                maxLines: 3,
-              ),
-            ],
-          ),
+              controller: phoneController,
+              keyboardType: TextInputType.phone,
+              autofocus: true,
+            ),
+          ],
         ),
         actions: [
           TextButton(
             onPressed: () {
-              nameController.dispose();
-              emailController.dispose();
               phoneController.dispose();
-              locationController.dispose();
-              bioController.dispose();
               Navigator.of(context).pop();
             },
             child: const Text('Cancelar'),
@@ -452,19 +378,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
               final success = await ref
                   .read(profileProvider.notifier)
-                  .updateProfile(
-                    name: nameController.text.trim(),
-                    email: emailController.text.trim(),
-                    phone: phoneController.text.trim(),
-                    location: locationController.text.trim(),
-                    bio: bioController.text.trim(),
-                  );
+                  .updateProfile(phone: phoneController.text.trim());
 
-              nameController.dispose();
-              emailController.dispose();
               phoneController.dispose();
-              locationController.dispose();
-              bioController.dispose();
 
               if (mounted) {
                 navigator.pop();
@@ -472,14 +388,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                 if (success) {
                   scaffoldMessenger.showSnackBar(
                     const SnackBar(
-                      content: Text('Perfil actualizado correctamente'),
+                      content: Text('Teléfono actualizado correctamente'),
                       backgroundColor: Color(0xFF4CAF50),
                     ),
                   );
                 } else {
                   final errorMessage =
                       ref.read(profileProvider).errorMessage ??
-                      'Error al actualizar perfil';
+                      'Error al actualizar teléfono';
                   scaffoldMessenger.showSnackBar(
                     SnackBar(
                       content: Text(errorMessage),
@@ -496,77 +412,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     );
   }
 
-  void _openPrivacy() {
-    final preferences =
-        ref.read(profileProvider).preferences ??
-        UserPreferences.defaultPreferences();
-
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) {
-          return AlertDialog(
-            title: const Text('Configuración de Privacidad'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Configuración de Datos',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16),
-                SwitchListTile(
-                  title: const Text('Compartir Ubicación'),
-                  subtitle: const Text(
-                    'Permitir compartir ubicación con veterinarias',
-                  ),
-                  value: preferences.privacy.shareLocation,
-                  onChanged: (value) async {
-                    final updatedPrivacy = preferences.privacy.copyWith(
-                      shareLocation: value,
-                    );
-                    final updatedPreferences = preferences.copyWith(
-                      privacy: updatedPrivacy,
-                    );
-                    await ref
-                        .read(profileProvider.notifier)
-                        .updatePreferences(updatedPreferences);
-                    setDialogState(() {});
-                  },
-                ),
-                SwitchListTile(
-                  title: const Text('Análisis de Datos'),
-                  subtitle: const Text('Permitir análisis para mejorar la app'),
-                  value: preferences.privacy.dataAnalytics,
-                  onChanged: (value) async {
-                    final updatedPrivacy = preferences.privacy.copyWith(
-                      dataAnalytics: value,
-                    );
-                    final updatedPreferences = preferences.copyWith(
-                      privacy: updatedPrivacy,
-                    );
-                    await ref
-                        .read(profileProvider.notifier)
-                        .updatePreferences(updatedPreferences);
-                    setDialogState(() {});
-                  },
-                ),
-                const SizedBox(height: 16),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Cerrar'),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
   void _openHelp() {
     showDialog(
       context: context,
@@ -577,35 +422,56 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Recursos de Ayuda',
+              'Contacta con nosotros',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             ListTile(
-              leading: const Icon(Icons.contact_support),
-              title: const Text('Contactar Soporte'),
-              subtitle: const Text('Envía un mensaje al equipo de soporte'),
+              leading: Icon(
+                Icons.email,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              title: const Text('Email'),
+              subtitle: const Text('woofy@gmail.com'),
               onTap: () {
-                Navigator.of(context).pop();
-                _showContactSupportDialog();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Contactar a: woofy@gmail.com'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
               },
             ),
             ListTile(
-              leading: const Icon(Icons.bug_report),
-              title: const Text('Reportar Problema'),
-              subtitle: const Text('Reporta un error o problema'),
+              leading: Icon(
+                Icons.support_agent,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              title: const Text('Soporte Técnico'),
+              subtitle: const Text('soporte@woofy.com'),
               onTap: () {
-                Navigator.of(context).pop();
-                _showBugReportDialog();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Contactar a: soporte@woofy.com'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
               },
             ),
             ListTile(
-              leading: const Icon(Icons.info_outline),
-              title: const Text('Acerca de la App'),
-              subtitle: const Text('Información de la aplicación'),
+              leading: Icon(
+                Icons.phone,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              title: const Text('WhatsApp'),
+              subtitle: const Text('+1 (555) 123-4567'),
               onTap: () {
-                Navigator.of(context).pop();
-                _openAbout();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('WhatsApp: +1 (555) 123-4567'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
               },
             ),
           ],
@@ -614,90 +480,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('Cerrar'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showContactSupportDialog() {
-    final TextEditingController messageController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Contactar Soporte'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Envía un mensaje al equipo de soporte:'),
-            const SizedBox(height: 16),
-            TextField(
-              controller: messageController,
-              decoration: const InputDecoration(
-                labelText: 'Mensaje',
-                border: OutlineInputBorder(),
-                hintText: 'Describe tu problema o consulta...',
-              ),
-              maxLines: 4,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Mensaje enviado al soporte')),
-              );
-            },
-            child: const Text('Enviar'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showBugReportDialog() {
-    final TextEditingController bugController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Reportar Problema'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Describe el problema que encontraste:'),
-            const SizedBox(height: 16),
-            TextField(
-              controller: bugController,
-              decoration: const InputDecoration(
-                labelText: 'Descripción del problema',
-                border: OutlineInputBorder(),
-                hintText: 'Explica qué pasó y cómo reproducir el problema...',
-              ),
-              maxLines: 4,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Problema reportado al equipo')),
-              );
-            },
-            child: const Text('Reportar'),
           ),
         ],
       ),
@@ -844,7 +626,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             if (shouldLogout == true && mounted) {
               await ref.read(authProvider.notifier).logout();
               if (mounted) {
-                context.go(AppRouter.splash);
+                context.go(AppRouter.login);
               }
             }
           },
