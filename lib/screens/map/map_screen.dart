@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import '../../config/theme_utils.dart';
 import '../../providers/clinic_provider.dart';
 import '../../models/clinic_model.dart';
 import '../../services/clinic_service.dart';
+import '../../services/profile_service.dart';
 import '../../utils/api_exceptions.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
@@ -16,9 +19,18 @@ class MapScreen extends ConsumerStatefulWidget {
 
 class _MapScreenState extends ConsumerState<MapScreen> {
   final TextEditingController _searchController = TextEditingController();
-  List<Clinic> _filteredClinics = [];
+  List<Clinic> _allClinics = []; // Todas las clínicas cargadas
+  List<Clinic> _filteredClinics = []; // Clínicas filtradas
   String _selectedFilter = 'all';
   String _selectedSort = 'rating';
+
+  GoogleMapController? _mapController;
+  LatLng? _userLocation;
+  Set<Marker> _markers = {};
+  Set<Polyline> _polylines = {};
+
+  final ProfileService _profileService = ProfileService();
+  final ClinicService _clinicService = ClinicService();
 
   final List<Map<String, dynamic>> _filters = [
     {'id': 'all', 'name': 'Todas', 'icon': Icons.list},
@@ -28,9 +40,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _filterClinics();
-    });
+    _getUserLocation();
   }
 
   @override
@@ -39,8 +49,159 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     super.dispose();
   }
 
+  /// Obtener la ubicación del usuario desde el backend
+  Future<void> _getUserLocation() async {
+    try {
+      debugPrint('📍 Obteniendo ubicación del usuario desde el backend...');
+
+      // Obtener coordenadas del backend
+      final locationData = await _profileService.getUserLocation();
+      final lat = locationData['latitude']!;
+      final lng = locationData['longitude']!;
+
+      debugPrint('📍 Ubicación obtenida del backend: $lat, $lng');
+
+      setState(() {
+        _userLocation = LatLng(lat, lng);
+      });
+
+      // Mover la cámara a la ubicación del usuario
+      if (_mapController != null) {
+        _mapController!.animateCamera(
+          CameraUpdate.newLatLngZoom(LatLng(lat, lng), 14),
+        );
+      }
+
+      // Cargar todas las clínicas de la BD
+      _loadAllClinics(lat, lng);
+    } catch (e) {
+      debugPrint('❌ Error obteniendo ubicación del backend: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al obtener ubicación: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    }
+  }
+
+  /// Cargar todas las clínicas guardadas en la BD
+  Future<void> _loadAllClinics(double userLat, double userLng) async {
+    try {
+      debugPrint('🔍 Cargando todas las clínicas de la BD...');
+
+      // Usar el servicio para obtener todas las clínicas
+      final clinics = await _clinicService.getClinics();
+
+      debugPrint('🏥 Clínicas obtenidas de la BD: ${clinics.length}');
+
+      Set<Marker> loadedMarkers = {};
+      List<Clinic> loadedClinics = [];
+
+      for (var clinic in clinics) {
+        try {
+          // Verificar que la clínica tenga coordenadas
+          if (clinic.latitude == null || clinic.longitude == null) {
+            debugPrint('⚠️ Clínica sin coordenadas: ${clinic.name}');
+            continue;
+          }
+
+          final lat = clinic.latitude!;
+          final lng = clinic.longitude!;
+
+          loadedClinics.add(clinic);
+
+          // Crear marcador
+          loadedMarkers.add(
+            Marker(
+              markerId: MarkerId(clinic.id),
+              position: LatLng(lat, lng),
+              infoWindow: InfoWindow(
+                title: clinic.name,
+                snippet: clinic.address,
+              ),
+              onTap: () {
+                if (_userLocation != null) {
+                  _createRoute(_userLocation!, LatLng(lat, lng));
+                }
+              },
+            ),
+          );
+        } catch (e) {
+          debugPrint('❌ Error procesando clínica: $e');
+          continue;
+        }
+      }
+
+      debugPrint('✅ Clínicas procesadas: ${loadedClinics.length}');
+
+      setState(() {
+        _markers = loadedMarkers;
+        _allClinics = loadedClinics; // Guardar todas las clínicas
+      });
+
+      // Aplicar filtros y ordenamiento
+      _filterClinics();
+
+      // Mover la cámara para mostrar la ubicación del usuario
+      if (_mapController != null && _userLocation != null) {
+        _mapController!.animateCamera(
+          CameraUpdate.newLatLngZoom(_userLocation!, 14),
+        );
+      }
+    } catch (e, stackTrace) {
+      debugPrint('❌ Error cargando clínicas: $e');
+      debugPrint('Stack trace: $stackTrace');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cargar clínicas: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _createRoute(LatLng start, LatLng end) async {
+    const apiKey =
+        'AIzaSyAVilyupjW6EG8t-Dsgi_fCNMq4LfiLrAc'; // tu Google Maps API Key
+    PolylinePoints polylinePoints = PolylinePoints(apiKey: apiKey);
+
+    PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
+      request: PolylineRequest(
+        origin: PointLatLng(start.latitude, start.longitude),
+        destination: PointLatLng(end.latitude, end.longitude),
+        mode: TravelMode.driving,
+      ),
+    );
+
+    if (result.points.isNotEmpty) {
+      List<LatLng> polylineCoordinates = result.points
+          .map((p) => LatLng(p.latitude, p.longitude))
+          .toList();
+
+      setState(() {
+        _polylines = {
+          Polyline(
+            polylineId: const PolylineId('route'),
+            points: polylineCoordinates,
+            color: Colors.pinkAccent,
+            width: 5,
+          ),
+        };
+      });
+    }
+  }
+
   void _filterClinics() {
-    final allClinics = ref.read(clinicProvider).clinics;
+    // Usar las clínicas cargadas localmente si están disponibles, sino usar el provider
+    final allClinics = _allClinics.isNotEmpty
+        ? _allClinics
+        : ref.read(clinicProvider).clinics;
 
     setState(() {
       List<Clinic> filtered = allClinics.where((clinic) {
@@ -298,35 +459,54 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(20),
-              child: Image.asset(
-                'resources/Map.jpg',
-                fit: BoxFit.cover,
-                width: double.infinity,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [Color(0xFF1E88E5), Color(0xFF42A5F5)],
+              child: _userLocation == null
+                  ? Container(
+                      color: Theme.of(context).colorScheme.surface,
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const CircularProgressIndicator(),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Obteniendo tu ubicación...',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            ElevatedButton.icon(
+                              onPressed: _getUserLocation,
+                              icon: const Icon(Icons.refresh),
+                              label: const Text('Reintentar'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF1E88E5),
+                                foregroundColor: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    child: const Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.map, size: 80, color: Colors.white),
-                          SizedBox(height: 16),
-                          Text(
-                            'Mapa no disponible',
-                            style: TextStyle(fontSize: 18, color: Colors.white),
-                          ),
-                        ],
+                    )
+                  : GoogleMap(
+                      initialCameraPosition: CameraPosition(
+                        target: _userLocation!,
+                        zoom: 14,
                       ),
+                      myLocationEnabled: true,
+                      myLocationButtonEnabled: true,
+                      markers: _markers,
+                      polylines: _polylines,
+                      onMapCreated: (controller) {
+                        _mapController = controller;
+                        // Asegurar que la cámara esté en la ubicación del usuario
+                        if (_userLocation != null) {
+                          controller.animateCamera(
+                            CameraUpdate.newLatLngZoom(_userLocation!, 14),
+                          );
+                        }
+                      },
                     ),
-                  );
-                },
-              ),
             ),
           ),
           _buildClinicsList(),
@@ -350,7 +530,39 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          ..._filteredClinics.map((clinic) => _buildClinicCard(clinic)),
+          if (_filteredClinics.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: ThemeUtils.getCardColor(context, ref),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Center(
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.location_off,
+                      size: 48,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withOpacity(0.5),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'No se encontraron clínicas cercanas',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            ..._filteredClinics.map((clinic) => _buildClinicCard(clinic)),
         ],
       ),
     );

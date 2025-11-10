@@ -44,7 +44,24 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   Future<void> _checkAuthStatus() async {
-    await Future.delayed(const Duration(milliseconds: 2000));
+    // Esperar un poco para la animación
+    await Future.delayed(const Duration(milliseconds: 1500));
+
+    // Verificar el estado actual de autenticación
+    if (mounted) {
+      final authState = ref.read(authProvider);
+      if (!authState.isLoading) {
+        if (authState.isAuthenticated) {
+          if (mounted) {
+            context.go(AppRouter.home);
+          }
+        } else {
+          if (mounted) {
+            context.go(AppRouter.login);
+          }
+        }
+      }
+    }
   }
 
   @override
@@ -62,7 +79,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         if (next.isAuthenticated) {
           context.go(AppRouter.home);
         } else {
-          context.go(AppRouter.onboarding);
+          // Si viene de un logout, ir directamente a login
+          if (previous?.isAuthenticated == true) {
+            context.go(AppRouter.login);
+          } else {
+            context.go(AppRouter.login);
+          }
         }
       }
     });
