@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../models/pet_model.dart';
 import '../../providers/pet_provider.dart';
 import '../../config/theme_utils.dart';
 import 'package:go_router/go_router.dart';

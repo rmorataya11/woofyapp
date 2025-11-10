@@ -1,4 +1,4 @@
-import '../providers/pet_provider.dart';
+import '../models/pet_model.dart';
 import '../utils/api_exceptions.dart';
 import 'api_client.dart';
 
@@ -22,7 +22,7 @@ class PetService {
       final petsData = response.data as List<dynamic>? ?? [];
 
       return petsData
-          .map((json) => Pet.fromMap(json as Map<String, dynamic>))
+          .map((json) => Pet.fromJson(json as Map<String, dynamic>))
           .toList();
     } catch (e) {
       rethrow;
@@ -43,7 +43,7 @@ class PetService {
         );
       }
 
-      return Pet.fromMap(response.data!);
+      return Pet.fromJson(response.data!);
     } catch (e) {
       rethrow;
     }
@@ -82,7 +82,7 @@ class PetService {
         );
       }
 
-      return Pet.fromMap(response.data!);
+      return Pet.fromJson(response.data!);
     } catch (e) {
       rethrow;
     }
@@ -135,7 +135,7 @@ class PetService {
         );
       }
 
-      return Pet.fromMap(response.data!);
+      return Pet.fromJson(response.data!);
     } catch (e) {
       rethrow;
     }
