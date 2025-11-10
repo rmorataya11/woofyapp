@@ -168,7 +168,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   Future<void> _createRoute(LatLng start, LatLng end) async {
     const apiKey =
-        'AIzaSyAVilyupjW6EG8t-Dsgi_fCNMq4LfiLrAc'; // tu Google Maps API Key
+        'AIzaSyAwrUsw07bJs_G8Dg0IVj6Xz1QHMYkiJPQ'; // tu Google Maps API Key
     PolylinePoints polylinePoints = PolylinePoints(apiKey: apiKey);
 
     PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
@@ -640,23 +640,29 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               children: [
                 const Icon(Icons.star, size: 16, color: Colors.amber),
                 const SizedBox(width: 4),
-                Text(
-                  '${clinic.rating?.toStringAsFixed(1) ?? '0.0'} ⭐',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: ThemeUtils.getTextSecondaryColor(context, ref),
+                Flexible(
+                  child: Text(
+                    '${clinic.rating?.toStringAsFixed(1) ?? '0.0'} ⭐',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: ThemeUtils.getTextSecondaryColor(context, ref),
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const Spacer(),
+                const SizedBox(width: 8),
                 ElevatedButton.icon(
                   onPressed: () => _showContactModal(clinic),
-                  icon: const Icon(Icons.email, size: 16),
-                  label: const Text('Contactar'),
+                  icon: const Icon(Icons.email, size: 14),
+                  label: const Text(
+                    'Contactar',
+                    style: TextStyle(fontSize: 12),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF1E88E5),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
+                      horizontal: 12,
                       vertical: 10,
                     ),
                     shape: RoundedRectangleBorder(
