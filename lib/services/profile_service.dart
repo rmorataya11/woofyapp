@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import '../models/profile_model.dart';
 import '../utils/api_exceptions.dart';
 import 'api_client.dart';
@@ -139,6 +140,55 @@ class ProfileService {
       }
     } catch (e) {
       rethrow;
+    }
+  }
+
+  /// Obtener la ubicación del usuario (coordenadas) desde el backend
+  /// Si el endpoint falla, usa coordenadas por defecto (ESEN)
+  Future<Map<String, double>> getUserLocation() async {
+    try {
+      // Intentar obtener desde endpoint específico de ubicación
+      final response = await _apiClient.get<Map<String, dynamic>>(
+        '/user/location',
+        requiresAuth: false, // Cambia a true si requiere autenticación
+      );
+
+      if (!response.success || response.data == null) {
+        // Si falla, usar coordenadas por defecto (ESEN)
+        debugPrint(
+          '⚠️ No se pudo obtener ubicación del backend, usando coordenadas por defecto',
+        );
+        return {
+          'latitude': 13.6553, // ESEN default
+          'longitude': -89.2860, // ESEN default
+        };
+      }
+
+      final data = response.data!;
+      final latValue = data['latitude'] ?? data['lat'];
+      final lngValue = data['longitude'] ?? data['lng'] ?? data['lon'];
+      final lat = latValue?.toDouble();
+      final lng = lngValue?.toDouble();
+
+      if (lat == null || lng == null) {
+        // Si las coordenadas son inválidas, usar por defecto
+        debugPrint('⚠️ Coordenadas inválidas, usando coordenadas por defecto');
+        return {
+          'latitude': 13.6553, // ESEN default
+          'longitude': -89.2860, // ESEN default
+        };
+      }
+
+      return {'latitude': lat, 'longitude': lng};
+    } catch (e) {
+      // Si hay cualquier error, usar coordenadas por defecto
+      debugPrint(
+        '⚠️ Error obteniendo ubicación: $e, usando coordenadas por defecto',
+      );
+      return {
+        'latitude': 13.6553, // ESEN default
+        'longitude': -89.2860, // ESEN default
+      };
     }
   }
 }
