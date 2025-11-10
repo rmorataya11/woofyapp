@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../models/pet_model.dart';
 import '../../providers/pet_provider.dart';
 import '../../config/theme_utils.dart';
-import 'package:go_router/go_router.dart';
+import 'widgets/pet_form_dialog.dart';
+import 'widgets/pet_details_modal.dart';
 
 class PetsScreen extends ConsumerStatefulWidget {
   const PetsScreen({super.key});
@@ -303,7 +305,7 @@ class _PetsScreenState extends ConsumerState<PetsScreen> {
   void _showAddPetDialog() {
     showDialog(
       context: context,
-      builder: (dialogContext) => _PetFormDialog(
+      builder: (dialogContext) => PetFormDialog(
         onSave: (pet) async {
           final scaffoldMessenger = ScaffoldMessenger.of(context);
           final success = await ref
@@ -335,7 +337,7 @@ class _PetsScreenState extends ConsumerState<PetsScreen> {
   void _showEditPetDialog(Pet pet) {
     showDialog(
       context: context,
-      builder: (dialogContext) => _PetFormDialog(
+      builder: (dialogContext) => PetFormDialog(
         pet: pet,
         onSave: (updatedPet) async {
           final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -416,7 +418,7 @@ class _PetsScreenState extends ConsumerState<PetsScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (context) => _PetDetailsModal(pet: pet, ref: ref),
+      builder: (context) => PetDetailsModal(pet: pet, ref: ref),
     );
   }
 
@@ -601,378 +603,5 @@ class _PetsScreenState extends ConsumerState<PetsScreen> {
         ],
       ),
     );
-  }
-}
-
-class _PetFormDialog extends StatefulWidget {
-  final Pet? pet;
-  final Future<void> Function(Pet) onSave;
-
-  const _PetFormDialog({this.pet, required this.onSave});
-
-  @override
-  State<_PetFormDialog> createState() => _PetFormDialogState();
-}
-
-class _PetFormDialogState extends State<_PetFormDialog> {
-  final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _breedController = TextEditingController();
-  final _ageMonthsController = TextEditingController();
-  final _weightKgController = TextEditingController();
-  final _medicalNotesController = TextEditingController();
-
-  String _vaccinationStatus = 'unknown';
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.pet != null) {
-      _nameController.text = widget.pet!.name;
-      _breedController.text = widget.pet!.breed;
-      _ageMonthsController.text = widget.pet!.ageMonths.toString();
-      _weightKgController.text = widget.pet!.weightKg.toString();
-      _medicalNotesController.text = widget.pet!.medicalNotes;
-
-      final validStatuses = ['unknown', 'up_to_date', 'in_progress', 'overdue'];
-      if (validStatuses.contains(widget.pet!.vaccinationStatus)) {
-        _vaccinationStatus = widget.pet!.vaccinationStatus;
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _breedController.dispose();
-    _ageMonthsController.dispose();
-    _weightKgController.dispose();
-    _medicalNotesController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(widget.pet == null ? 'Agregar Mascota' : 'Editar Mascota'),
-      content: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Nombre',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'El nombre es requerido';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _breedController,
-                decoration: const InputDecoration(
-                  labelText: 'Raza',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'La raza es requerida';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _ageMonthsController,
-                      decoration: const InputDecoration(
-                        labelText: 'Edad (meses)',
-                        border: OutlineInputBorder(),
-                        hintText: 'Ej: 24',
-                      ),
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Requerido';
-                        }
-                        final age = int.tryParse(value);
-                        if (age == null || age < 0) {
-                          return 'Edad inválida';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _weightKgController,
-                      decoration: const InputDecoration(
-                        labelText: 'Peso (kg)',
-                        border: OutlineInputBorder(),
-                        hintText: 'Ej: 5.5',
-                      ),
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Requerido';
-                        }
-                        final weight = double.tryParse(value);
-                        if (weight == null || weight <= 0) {
-                          return 'Peso inválido';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                initialValue: _vaccinationStatus,
-                decoration: const InputDecoration(
-                  labelText: 'Estado de Vacunación',
-                  border: OutlineInputBorder(),
-                ),
-                items: const [
-                  DropdownMenuItem(
-                    value: 'unknown',
-                    child: Text('Desconocido'),
-                  ),
-                  DropdownMenuItem(value: 'up_to_date', child: Text('Al día')),
-                  DropdownMenuItem(
-                    value: 'in_progress',
-                    child: Text('En proceso'),
-                  ),
-                  DropdownMenuItem(value: 'overdue', child: Text('Vencidas')),
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    _vaccinationStatus = value!;
-                  });
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _medicalNotesController,
-                decoration: const InputDecoration(
-                  labelText: 'Notas Médicas',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 3,
-              ),
-            ],
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => context.pop(),
-          child: const Text('Cancelar'),
-        ),
-        ElevatedButton(
-          onPressed: _savePet,
-          child: Text(widget.pet == null ? 'Agregar' : 'Guardar'),
-        ),
-      ],
-    );
-  }
-
-  Future<void> _savePet() async {
-    if (_formKey.currentState!.validate()) {
-      final pet = Pet(
-        id: widget.pet?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-        name: _nameController.text.trim(),
-        breed: _breedController.text.trim(),
-        ageMonths: int.parse(_ageMonthsController.text),
-        weightKg: double.parse(_weightKgController.text),
-        photoUrl: widget.pet?.photoUrl,
-        medicalNotes: _medicalNotesController.text.trim(),
-        vaccinationStatus: _vaccinationStatus,
-        createdAt: widget.pet?.createdAt ?? DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
-
-      final navigator = Navigator.of(context);
-
-      await widget.onSave(pet);
-
-      if (mounted) {
-        navigator.pop();
-      }
-    }
-  }
-}
-
-class _PetDetailsModal extends StatelessWidget {
-  final Pet pet;
-  final WidgetRef ref;
-
-  const _PetDetailsModal({required this.pet, required this.ref});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.8,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: ThemeUtils.getCardColor(context, ref),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 30,
-                backgroundColor: Theme.of(
-                  context,
-                ).colorScheme.primary.withValues(alpha: 0.1),
-                child: Icon(
-                  Icons.pets,
-                  color: Theme.of(context).colorScheme.primary,
-                  size: 30,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      pet.name,
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: ThemeUtils.getTextPrimaryColor(context, ref),
-                      ),
-                    ),
-                    Text(
-                      '${pet.breed} • ${pet.ageYears} años (${pet.ageMonths} meses)',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: ThemeUtils.getTextSecondaryColor(context, ref),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                onPressed: () => context.pop(),
-                icon: const Icon(Icons.close),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildInfoSection('Información General', [
-                    _buildInfoItem('Raza', pet.breed),
-                    _buildInfoItem(
-                      'Edad',
-                      '${pet.ageYears} ${pet.ageYears == 1 ? "año" : "años"} (${pet.ageMonths} meses)',
-                    ),
-                    _buildInfoItem('Peso', '${pet.weightKg} kg'),
-                  ]),
-                  const SizedBox(height: 20),
-                  _buildInfoSection('Estado de Salud', [
-                    _buildInfoItem(
-                      'Vacunación',
-                      _getVaccinationText(pet.vaccinationStatus),
-                    ),
-                    _buildInfoItem(
-                      'Notas médicas',
-                      pet.medicalNotes.isNotEmpty
-                          ? pet.medicalNotes
-                          : 'Sin notas',
-                    ),
-                  ]),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoSection(String title, List<Widget> items) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF212121),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF5F5F5),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(children: items),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInfoItem(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 100,
-            child: Text(
-              '$label:',
-              style: const TextStyle(
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF616161),
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(color: Color(0xFF212121)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _getVaccinationText(String status) {
-    switch (status) {
-      case 'up_to_date':
-        return 'Al día';
-      case 'in_progress':
-        return 'En proceso';
-      case 'overdue':
-        return 'Vencidas';
-      default:
-        return 'Desconocido';
-    }
   }
 }
