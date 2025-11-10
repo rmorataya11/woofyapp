@@ -14,8 +14,8 @@ class AppointmentHelpers {
           return appointment.status == 'scheduled';
         case 'confirmed':
           return appointment.status == 'confirmed';
-        case 'completed':
-          return appointment.status == 'completed';
+        case 'done':
+          return appointment.status == 'done';
         case 'cancelled':
           return appointment.status == 'cancelled';
         case 'urgent':
@@ -92,7 +92,7 @@ class AppointmentHelpers {
       'total': appointments.length,
       'scheduled': appointments.where((a) => a.status == 'scheduled').length,
       'confirmed': appointments.where((a) => a.status == 'confirmed').length,
-      'completed': appointments.where((a) => a.status == 'completed').length,
+      'done': appointments.where((a) => a.status == 'done').length,
       'cancelled': appointments.where((a) => a.status == 'cancelled').length,
       'urgent': appointments.where((a) => a.isUrgent).length,
     };
@@ -105,7 +105,7 @@ class AppointmentHelpers {
         return 0xFF2196F3;
       case 'confirmed':
         return 0xFF4CAF50;
-      case 'completed':
+      case 'done':
         return 0xFF9C27B0;
       case 'cancelled':
         return 0xFFF44336;
@@ -121,7 +121,7 @@ class AppointmentHelpers {
         return 0xe8b5; // Icons.schedule
       case 'confirmed':
         return 0xe86c; // Icons.check_circle
-      case 'completed':
+      case 'done':
         return 0xe876; // Icons.done_all
       case 'cancelled':
         return 0xe5c9; // Icons.cancel
@@ -137,7 +137,7 @@ class AppointmentHelpers {
         return 'Programada';
       case 'confirmed':
         return 'Confirmada';
-      case 'completed':
+      case 'done':
         return 'Completada';
       case 'cancelled':
         return 'Cancelada';

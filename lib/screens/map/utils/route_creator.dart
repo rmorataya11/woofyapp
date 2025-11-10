@@ -3,7 +3,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 
 class RouteCreator {
-  static const String apiKey = 'AIzaSyAwrUsw07bJs_G8Dg0IVj6Xz1QHMYkiJPQ';
+  static const String apiKey = 'AIzaSyAocTk8Qn1rcNRG7hX-SsJP41k9a5AIp5w';
 
   /// Crear ruta entre dos puntos
   static Future<Set<Polyline>> createRoute(LatLng start, LatLng end) async {

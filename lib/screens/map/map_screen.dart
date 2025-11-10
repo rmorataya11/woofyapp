@@ -211,52 +211,53 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   }
 
   Widget _buildMapView() {
-    return Stack(
+    return Column(
       children: [
         // Mapa
-        Container(
-          margin: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: _userLocation == null
-                ? const Center(
-                    child: CircularProgressIndicator(),
-                  )
-                : GoogleMap(
-                    initialCameraPosition: CameraPosition(
-                      target: _userLocation!,
-                      zoom: 14,
+        Expanded(
+          flex: 3,
+          child: Container(
+            margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.2),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: _userLocation == null
+                  ? const Center(
+                      child: CircularProgressIndicator(),
+                    )
+                  : GoogleMap(
+                      initialCameraPosition: CameraPosition(
+                        target: _userLocation!,
+                        zoom: 14,
+                      ),
+                      myLocationEnabled: true,
+                      myLocationButtonEnabled: true,
+                      markers: _markers,
+                      polylines: _polylines,
+                      onMapCreated: (controller) {
+                        _mapController = controller;
+                        if (_userLocation != null) {
+                          controller.animateCamera(
+                            CameraUpdate.newLatLngZoom(_userLocation!, 14),
+                          );
+                        }
+                      },
                     ),
-                    myLocationEnabled: true,
-                    myLocationButtonEnabled: true,
-                    markers: _markers,
-                    polylines: _polylines,
-                    onMapCreated: (controller) {
-                      _mapController = controller;
-                      if (_userLocation != null) {
-                        controller.animateCamera(
-                          CameraUpdate.newLatLngZoom(_userLocation!, 14),
-                        );
-                      }
-                    },
-                  ),
+            ),
           ),
         ),
         // Lista de clínicas
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
+        Expanded(
+          flex: 2,
           child: SingleChildScrollView(
             child: ClinicsList(
               clinics: _filteredClinics,

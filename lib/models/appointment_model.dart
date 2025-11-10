@@ -65,7 +65,7 @@ class Appointment {
           service?['category'] as String? ??
           '',
       reason: json['reason'] as String?,
-      status: json['status'] as String,
+      status: json['status'] as String? ?? 'pending',
       notes: json['notes'] as String?,
       createdFromRequest: json['created_from_request'] as bool? ?? false,
       requestId: json['request_id'] as String?,

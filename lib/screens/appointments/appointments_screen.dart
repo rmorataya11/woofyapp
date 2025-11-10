@@ -34,34 +34,22 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
       'color': Color(0xFF1E88E5),
     },
     {
-      'id': 'scheduled',
-      'name': 'Programadas',
-      'icon': Icons.schedule,
-      'color': Color(0xFF2196F3),
-    },
-    {
-      'id': 'confirmed',
-      'name': 'Confirmadas',
-      'icon': Icons.check_circle,
-      'color': Color(0xFF4CAF50),
-    },
-    {
-      'id': 'completed',
-      'name': 'Completadas',
-      'icon': Icons.done_all,
-      'color': Color(0xFF9C27B0),
-    },
-    {
-      'id': 'cancelled',
-      'name': 'Canceladas',
-      'icon': Icons.cancel,
-      'color': Color(0xFFF44336),
+      'id': 'pending',
+      'name': 'Pendientes',
+      'icon': Icons.hourglass_empty,
+      'color': Color(0xFFFF9800),
     },
     {
       'id': 'urgent',
       'name': 'Urgentes',
       'icon': Icons.priority_high,
-      'color': Color(0xFFFF9800),
+      'color': Color(0xFFD32F2F),
+    },
+    {
+      'id': 'done',
+      'name': 'Completadas',
+      'icon': Icons.done_all,
+      'color': Color(0xFF9C27B0),
     },
   ];
 
@@ -104,14 +92,10 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
     setState(() {
       _filteredAppointments = allAppointments.where((appointment) {
         bool matchesFilter = true;
-        if (_selectedFilter == 'scheduled') {
-          matchesFilter = appointment.status == 'scheduled';
-        } else if (_selectedFilter == 'confirmed') {
-          matchesFilter = appointment.status == 'confirmed';
-        } else if (_selectedFilter == 'completed') {
-          matchesFilter = appointment.status == 'completed';
-        } else if (_selectedFilter == 'cancelled') {
-          matchesFilter = appointment.status == 'cancelled';
+        if (_selectedFilter == 'pending') {
+          matchesFilter = appointment.status == 'pending';
+        } else if (_selectedFilter == 'done') {
+          matchesFilter = appointment.status == 'done';
         } else if (_selectedFilter == 'urgent') {
           matchesFilter = appointment.isUrgent;
         }
@@ -254,7 +238,7 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
           Expanded(
             child: _buildStatCard(
               'Completadas',
-              stats['completed'].toString(),
+              stats['done'].toString(),
               Icons.check_circle,
               const Color(0xFF4CAF50),
             ),
@@ -698,7 +682,7 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
       children: [
         Row(
           children: [
-            if (status == 'scheduled' &&
+            if ((status == 'pending' || status == 'scheduled') &&
                 !appointmentDate.isBefore(DateTime.now())) ...[
               Expanded(
                 child: OutlinedButton.icon(
@@ -757,6 +741,25 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
                 !appointmentDate.isBefore(DateTime.now())) ...[
               Expanded(
                 child: OutlinedButton.icon(
+                  onPressed: () => _completeAppointment(appointment),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF9C27B0),
+                    side: const BorderSide(color: Color(0xFF9C27B0)),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  icon: const Icon(Icons.check_circle, size: 14),
+                  label: const Text(
+                    'Completar',
+                    style: TextStyle(fontSize: 11),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
                   onPressed: () => _rescheduleAppointment(appointment),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFF2196F3),
@@ -789,7 +792,7 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
                   label: const Text('Cancelar', style: TextStyle(fontSize: 11)),
                 ),
               ),
-            ] else if (status == 'completed')
+            ] else if (status == 'done')
               ...[
             ] else if (status == 'cancelled') ...[
               Expanded(
@@ -837,22 +840,27 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
 
     int total = allAppointments.length;
     int upcoming = allAppointments
-        .where((apt) => apt.status == 'scheduled' || apt.status == 'confirmed')
+        .where(
+          (apt) =>
+              apt.status == 'pending' ||
+              apt.status == 'scheduled' ||
+              apt.status == 'confirmed',
+        )
         .length;
-    int completed = allAppointments
-        .where((apt) => apt.status == 'completed')
-        .length;
+    int done = allAppointments.where((apt) => apt.status == 'done').length;
 
-    return {'total': total, 'upcoming': upcoming, 'completed': completed};
+    return {'total': total, 'upcoming': upcoming, 'done': done};
   }
 
   Color _getAppointmentColor(String status) {
     switch (status) {
+      case 'pending':
+        return const Color(0xFFFF9800);
       case 'scheduled':
         return const Color(0xFF2196F3);
       case 'confirmed':
         return const Color(0xFF4CAF50);
-      case 'completed':
+      case 'done':
         return const Color(0xFF9C27B0);
       case 'cancelled':
         return const Color(0xFFF44336);
@@ -863,11 +871,13 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
 
   String _getStatusText(String status) {
     switch (status) {
+      case 'pending':
+        return 'Pendiente';
       case 'scheduled':
         return 'Programada';
       case 'confirmed':
         return 'Confirmada';
-      case 'completed':
+      case 'done':
         return 'Completada';
       case 'cancelled':
         return 'Cancelada';
@@ -913,6 +923,34 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Error al confirmar cita'),
+            backgroundColor: Color(0xFFF44336),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _completeAppointment(Appointment appointment) async {
+    final success = await ref
+        .read(appointmentProvider.notifier)
+        .updateAppointmentStatus(id: appointment.id, status: 'done');
+
+    if (mounted) {
+      _filterAppointments();
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Cita completada: ${appointment.serviceType} - ${appointment.petName}',
+            ),
+            backgroundColor: const Color(0xFF9C27B0),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error al completar cita'),
             backgroundColor: Color(0xFFF44336),
           ),
         );

@@ -81,6 +81,7 @@ create index IF not exists idx_appointment_requests_created on public.appointmen
 create trigger update_appointment_requests_updated_at BEFORE
 update on appointment_requests for EACH row
 execute FUNCTION update_updated_at_column ();
+
 create table public.appointments (
   id uuid not null default extensions.uuid_generate_v4 (),
   user_id uuid not null,

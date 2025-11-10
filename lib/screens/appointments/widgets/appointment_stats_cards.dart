@@ -43,7 +43,7 @@ class AppointmentStatsCards extends ConsumerWidget {
               context,
               ref,
               'Completadas',
-              stats['completed'].toString(),
+              stats['done'].toString(),
               Icons.check_circle,
               const Color(0xFF4CAF50),
             ),
@@ -68,7 +68,7 @@ class AppointmentStatsCards extends ConsumerWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.2),
+            color: color.withValues(alpha: 0.2),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

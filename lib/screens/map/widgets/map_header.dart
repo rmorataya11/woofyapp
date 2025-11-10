@@ -14,7 +14,7 @@ class MapHeader extends ConsumerWidget {
         color: ThemeUtils.getCardColor(context, ref),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -22,15 +22,8 @@ class MapHeader extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.pop(),
-            color: ThemeUtils.getTextPrimaryColor(context, ref),
-          ),
-          const SizedBox(width: 12),
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Mapa de Clínicas',
