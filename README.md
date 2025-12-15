@@ -1,6 +1,6 @@
 <div align="center">
   <img src="assets/icon/app_icon.png" alt="Woofy Logo" width="150">
-  <h1>🐕 Woofy - Plataforma Integral de Gestión Veterinaria para Mascotas</h1>
+  <h1>Woofy - Plataforma Integral de Gestión Veterinaria para Mascotas</h1>
 </div>
 
 <div align="center">
