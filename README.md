@@ -1,4 +1,7 @@
-# 🐕 Woofy - Plataforma Integral de Gestión Veterinaria para Mascotas
+<div align="center">
+  <img src="assets/icon/app_icon.png" alt="Woofy Logo" width="150">
+  <h1>🐕 Woofy - Plataforma Integral de Gestión Veterinaria para Mascotas</h1>
+</div>
 
 <div align="center">
   <img src="https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white" alt="Flutter">
@@ -17,9 +20,23 @@ El proyecto implementa una arquitectura moderna basada en gestión de estado rea
 
 ---
 
+## 📸 Galería
+
+<div align="center">
+
+|                                                                        |                                                                       |                                                                       |
+| :--------------------------------------------------------------------: | :-------------------------------------------------------------------: | :-------------------------------------------------------------------: |
+| <img src="assets/screenshots/1.1jpeg" height="400" alt="Screenshot 1"> | <img src="assets/screenshots/1.jpeg" height="400" alt="Screenshot 2"> | <img src="assets/screenshots/2.jpeg" height="400" alt="Screenshot 3"> |
+| <img src="assets/screenshots/3.jpeg" height="400" alt="Screenshot 4">  | <img src="assets/screenshots/4.jpeg" height="400" alt="Screenshot 5"> | <img src="assets/screenshots/5.jpeg" height="400" alt="Screenshot 6"> |
+
+</div>
+
+---
+
 ## 🎯 Funcionalidades Principales
 
 ### 🏥 Gestión Veterinaria Integral
+
 - **Registro de Mascotas**: Gestión completa del perfil de cada mascota con información detallada
 - **Historial Médico**: Registro y seguimiento de vacunas, tratamientos y eventos médicos
 - **Sistema de Citas**: Programación, gestión y seguimiento de citas veterinarias con estados (programada, confirmada, completada)
@@ -27,17 +44,20 @@ El proyecto implementa una arquitectura moderna basada en gestión de estado rea
 - **Recordatorios Automáticos**: Sistema de notificaciones para no olvidar citas importantes
 
 ### 🗺️ Localización y Navegación
+
 - **Mapa de Clínicas Veterinarias**: Integración con Google Maps para visualizar clínicas cercanas
 - **Geolocalización**: Búsqueda de veterinarias basada en la ubicación del usuario
 - **Rutas y Direcciones**: Cálculo de rutas hacia clínicas seleccionadas
 - **Filtros Avanzados**: Búsqueda por especialidad, calificaciones y distancia
 
 ### 🤖 Asistente Inteligente
+
 - **Chat con IA**: Asistente virtual especializado en cuidado de mascotas
 - **Consultas Contextuales**: Respuestas personalizadas basadas en el historial de la mascota
 - **Conversaciones Persistentes**: Historial de conversaciones guardado en la nube
 
 ### 👤 Gestión de Usuario
+
 - **Autenticación Segura**: Sistema de autenticación con Supabase Auth
 - **Perfil Personalizable**: Configuración de preferencias de usuario
 - **Temas Adaptativos**: Soporte para modo claro y oscuro con persistencia de preferencias
@@ -48,37 +68,45 @@ El proyecto implementa una arquitectura moderna basada en gestión de estado rea
 ## 🛠️ Stack Tecnológico
 
 ### Frontend & Framework
+
 - **Flutter 3.x**: Framework multiplataforma para desarrollo móvil
 - **Dart 3.9.0**: Lenguaje de programación moderno y tipado estáticamente
 - **Material Design**: Sistema de diseño de Google para interfaces consistentes
 
 ### Gestión de Estado
+
 - **Riverpod 2.4.9**: Gestión de estado reactiva y declarativa
 - **Riverpod Generator 2.3.9**: Generación automática de código para providers
 
 ### Backend & Base de Datos
+
 - **Supabase 2.10.1**: Backend as a Service (BaaS) con PostgreSQL
   - Autenticación y autorización de usuarios
   - Base de datos relacional en tiempo real
   - Almacenamiento seguro de datos
 
 ### Navegación
+
 - **Go Router 12.1.3**: Sistema de navegación declarativa y type-safe
 
 ### Servicios de Ubicación
+
 - **Google Maps Flutter 2.14.0**: Integración de mapas interactivos
 - **Geolocator 14.0.2**: Obtención de ubicación GPS del dispositivo
 - **Flutter Polyline Points 3.1.0**: Cálculo de rutas y polilíneas en mapas
 
 ### Almacenamiento
+
 - **SharedPreferences 2.2.2**: Almacenamiento local de preferencias
 - **Flutter Secure Storage 9.2.2**: Almacenamiento seguro de credenciales y tokens
 
 ### Comunicación
+
 - **HTTP 1.3.0**: Cliente HTTP para comunicación con APIs REST
 - **Flutter Dotenv 5.1.0**: Gestión de variables de entorno y configuración
 
 ### Herramientas de Desarrollo
+
 - **Build Runner 2.4.7**: Generación de código para Riverpod
 - **Flutter Lints 5.0.0**: Análisis estático de código y mejores prácticas
 - **Flutter Launcher Icons 0.13.1**: Generación automática de iconos de aplicación
@@ -132,27 +160,32 @@ lib/
 ## 🚀 Características Técnicas Destacadas
 
 ### ✨ Gestión de Estado Reactiva
+
 - Implementación de Riverpod para gestión de estado eficiente y predecible
 - Providers generados automáticamente para reducir código boilerplate
 - Estado sincronizado entre componentes de forma reactiva
 
 ### 🔐 Seguridad y Autenticación
+
 - Autenticación segura mediante Supabase Auth
 - Almacenamiento encriptado de credenciales con Flutter Secure Storage
 - Gestión de tokens y sesiones de usuario
 
 ### 📱 Experiencia de Usuario
+
 - Diseño responsivo adaptado a diferentes tamaños de pantalla
 - Soporte nativo para temas claro y oscuro
 - Animaciones fluidas y transiciones suaves
 - Navegación intuitiva con Go Router
 
 ### 🌐 Integración con Servicios Externos
+
 - Integración completa con Google Maps API
 - Sincronización en tiempo real con Supabase
 - Comunicación RESTful con servicios backend
 
 ### 🎨 Personalización
+
 - Sistema de temas completamente personalizable
 - Persistencia de preferencias de usuario
 - Configuración adaptable según el dispositivo
@@ -183,17 +216,20 @@ lib/
 ## 📦 Instalación
 
 1. **Clonar el repositorio**
+
    ```bash
    git clone https://github.com/tu-usuario/woofyapp.git
    cd woofyapp
    ```
 
 2. **Instalar dependencias**
+
    ```bash
    flutter pub get
    ```
 
 3. **Configurar variables de entorno**
+
    - Crear archivo `.env` en la raíz del proyecto
    - Configurar credenciales de Supabase y Google Maps
 
