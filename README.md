@@ -24,10 +24,10 @@ El proyecto implementa una arquitectura moderna basada en gestión de estado rea
 
 <div align="center">
 
-|                                                                        |                                                                       |                                                                       |
-| :--------------------------------------------------------------------: | :-------------------------------------------------------------------: | :-------------------------------------------------------------------: |
-| <img src="assets/screenshots/1.1jpeg" height="400" alt="Screenshot 1"> | <img src="assets/screenshots/1.jpeg" height="400" alt="Screenshot 2"> | <img src="assets/screenshots/2.jpeg" height="400" alt="Screenshot 3"> |
-| <img src="assets/screenshots/3.jpeg" height="400" alt="Screenshot 4">  | <img src="assets/screenshots/4.jpeg" height="400" alt="Screenshot 5"> | <img src="assets/screenshots/5.jpeg" height="400" alt="Screenshot 6"> |
+|                                                                         |                                                                       |                                                                       |
+| :---------------------------------------------------------------------: | :-------------------------------------------------------------------: | :-------------------------------------------------------------------: |
+| <img src="assets/screenshots/1.1.jpeg" height="400" alt="Screenshot 1"> | <img src="assets/screenshots/1.jpeg" height="400" alt="Screenshot 2"> | <img src="assets/screenshots/2.jpeg" height="400" alt="Screenshot 3"> |
+|  <img src="assets/screenshots/3.jpeg" height="400" alt="Screenshot 4">  | <img src="assets/screenshots/4.jpeg" height="400" alt="Screenshot 5"> | <img src="assets/screenshots/5.jpeg" height="400" alt="Screenshot 6"> |
 
 </div>
 
